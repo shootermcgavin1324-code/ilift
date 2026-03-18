@@ -244,6 +244,7 @@ interface Set {
 export default function Dashboard() {
   const [user, setUser] = useState<{id: string; name: string; email: string; totalXP: number; streak: number; badges: string[]} | null>(null);
   const [group, setGroup] = useState<{id: string; name: string; code: string} | null>(null);
+  const [loading, setLoading] = useState(true);
   const [rpe, setRpe] = useState(7);
   const [submitted, setSubmitted] = useState(false);
   const [activeTab, setActiveTab] = useState<'home' | 'log' | 'squad' | 'awards' | 'profile' | 'history'>('home');
@@ -285,8 +286,32 @@ export default function Dashboard() {
       // New user - show onboarding first
       router.push('/onboarding');
     } else {
-      setUser(JSON.parse(userData)); 
+      const user = JSON.parse(userData);
+      setUser(user); 
       if (groupData) setGroup(JSON.parse(groupData)); 
+      
+      // Sync with server to ensure central profile is up to date
+      if (user?.email) {
+        fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'login', email: user.email })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.user) {
+            // Update localStorage with latest from server
+            localStorage.setItem('ilift_user', JSON.stringify(data.user));
+            localStorage.setItem('ilift_group', JSON.stringify(data.group));
+            setUser(data.user);
+            setGroup(data.group);
+          }
+        })
+        .catch(console.error)
+        .finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
     }
   }, [router]);
 
@@ -451,6 +476,17 @@ export default function Dashboard() {
     { id: 1, user: 'Brenlee', avatar: '👩', workout: 'Upper Body', exercises: ['Bench Press 3×10', 'Pull-ups 3×8', 'Overhead Press 3×10', 'Dips 3×12', 'Barbell Row 3×10'], minutes: 75, time: '2h ago', xp: 245, rpe: 8 },
     { id: 2, user: 'Taurus', avatar: '👨', workout: 'Leg Day', exercises: ['Squat 4×8', 'Leg Press 3×12', 'RDL 3×10', 'Leg Curl 3×12', 'Calf Raise 4×15'], minutes: 90, time: '4h ago', xp: 310, rpe: 9 },
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400 font-medium">Syncing your profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) return null;
 
