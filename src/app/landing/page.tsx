@@ -1,5 +1,6 @@
 'use client';
 
+// Landing page - updated March 18 2026
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
