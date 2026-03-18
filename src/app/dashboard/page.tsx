@@ -84,11 +84,11 @@ export default function Dashboard() {
     }
     
     try {
-      // Try to get from Supabase
+      // Try to get existing user from Supabase
       let userData = await getUser(email);
       
       if (!userData) {
-        // Create new user from onboarding data
+        // Create new user from onboarding data if not found
         const onboarding = JSON.parse(localStorage.getItem('ilift_onboarding_data') || '{}');
         const newUser = {
           email,
@@ -224,8 +224,8 @@ export default function Dashboard() {
           {[
             { id: 'home', icon: Home, label: 'Home' },
             { id: 'log', icon: Dumbbell, label: 'Log' },
+            { id: 'squad', icon: Users, label: 'Squad' },
             { id: 'challenges', icon: TargetIcon, label: 'Prizes' },
-            { id: 'history', icon: History, label: 'History' },
             { id: 'awards', icon: Award, label: 'Awards' },
             { id: 'profile', icon: Target, label: 'Profile' },
           ].map(tab => (
@@ -350,6 +350,41 @@ export default function Dashboard() {
               <button onClick={completeWorkout} className="w-full py-4 bg-yellow-400 rounded-xl font-black text-black text-lg">
                 Complete Workout (+{calculateScore()} XP)
               </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Squad Tab */}
+      {activeTab === 'squad' && (
+        <div className="p-4 space-y-4">
+          <h2 className="text-xl font-bold">Your Squad</h2>
+          <p className="text-gray-400 text-sm">People in your group ({user.group_code})</p>
+          
+          {leaderboard.length === 0 ? (
+            <div className="text-center py-8 bg-gray-900/50 rounded-xl">
+              <Users size={40} className="mx-auto text-gray-700 mb-3" />
+              <p className="text-gray-500">No one else in your squad yet!</p>
+              <p className="text-gray-600 text-sm mt-1">Share the squad code: <span className="text-yellow-400 font-bold">{user.group_code}</span></p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {leaderboard.map((member, i) => (
+                <div key={member.id} className={`bg-gray-900 rounded-xl p-4 flex items-center gap-4 ${member.id === user.id ? 'border border-yellow-400/30' : ''}`}>
+                  <span className="text-2xl font-black text-gray-600 w-8">#{i + 1}</span>
+                  <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center">
+                    <Target size={24} className="text-gray-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold">{member.name}</p>
+                    <p className="text-gray-500 text-sm">Level {Math.floor((member.total_xp || 0) / 500) + 1}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-yellow-400 font-black text-xl">{(member.total_xp || 0).toLocaleString()}</p>
+                    <p className="text-gray-500 text-xs">XP</p>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
