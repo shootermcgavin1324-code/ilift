@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, TrendingUp, Zap, Crown, Star, Dumbbell as Lift, Activity, ChevronRight, Medal, FileText, User, User as Avatar } from 'lucide-react';
+import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, TrendingUp, Zap, Crown, Star, Dumbbell as Lift, Activity, ChevronRight, Medal, FileText, User, Search, Camera } from 'lucide-react';
 
 const ACHIEVEMENTS = [
   { id: 'first_workout', name: 'First Steps', desc: 'Complete first workout', points: 50, icon: Star },
@@ -252,6 +252,7 @@ export default function Dashboard() {
   const [restTimeLeft, setRestTimeLeft] = useState(0);
   const [leaderboardPeriod, setLeaderboardPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'lifetime'>('daily');
   const [currentExercise, setCurrentExercise] = useState('');
+  const [exerciseSearch, setExerciseSearch] = useState('');
   const [sets, setSets] = useState<Set[]>([
     { weight: 135, reps: 10, rpe: 7, done: false },
     { weight: 135, reps: 10, rpe: 7, done: false },
@@ -586,7 +587,9 @@ export default function Dashboard() {
                 <div className="space-y-3 mb-4">
                   <p className="text-gray-400 text-sm text-center font-medium">Tap to log:</p>
                   <div className="grid grid-cols-3 gap-2">
-                    {QUICK_EXERCISES.map((ex, i) => (
+                    {QUICK_EXERCISES
+                      .filter(ex => !exerciseSearch || ex.name.toLowerCase().includes(exerciseSearch))
+                      .map((ex, i) => (
                       <button 
                         key={i} 
                         onClick={() => quickLog(ex.name)} 
