@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, TrendingUp, Zap, Crown, Star, Dumbbell as Lift, Activity, ChevronRight, Medal, FileText, User, Search, Camera } from 'lucide-react';
+import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, TrendingUp, Zap, Crown, Star, Dumbbell as Lift, Activity, ChevronRight, Medal, FileText, User, Search, Camera, Video } from 'lucide-react';
 
 const ACHIEVEMENTS = [
   { id: 'first_workout', name: 'First Steps', desc: 'Complete first workout', points: 50, icon: Star },
+  { id: 'verified', name: 'Verified', desc: 'Upload video proof', points: 150, icon: Video },
   { id: 'streak_7', name: 'On Fire', desc: '7 day streak', points: 100, icon: Flame },
   { id: 'streak_30', name: 'Unstoppable', desc: '30 day streak', points: 250, icon: Zap },
   { id: 'streak_100', name: 'Legend', desc: '100 day streak', points: 500, icon: Crown },
@@ -248,6 +249,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'home' | 'log' | 'squad' | 'awards' | 'profile' | 'history'>('home');
   const [showQuickLog, setShowQuickLog] = useState(false);
   const [floatingXP, setFloatingXP] = useState<number | null>(null);
+  const [videoUploading, setVideoUploading] = useState(false);
   const [restTimer, setRestTimer] = useState<number | null>(null);
   const [restTimeLeft, setRestTimeLeft] = useState(0);
   const [leaderboardPeriod, setLeaderboardPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'lifetime'>('daily');
@@ -784,7 +786,7 @@ export default function Dashboard() {
                   </div>
                   <button 
                     onClick={() => {
-                      const text = `I just earned ${user?.badges?.length || 0} badges on iLift! 💪🔥`;
+                      const text = `I just earned ${user?.badges?.length || 0} badges on iLift!`;
                       window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
                     }}
                     className="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg font-bold text-sm border border-blue-500/30 hover:bg-blue-500/30"
@@ -793,6 +795,83 @@ export default function Dashboard() {
                   </button>
                 </div>
               </div>
+              
+              {/* Video Upload Section */}
+              <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 mb-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <Video size={24} className="text-purple-400" />
+                  <div>
+                    <p className="font-bold text-white">Proof of Work</p>
+                    <p className="text-gray-500 text-sm">Upload a video to earn the Verified badge</p>
+                  </div>
+                </div>
+                
+                {user?.badges?.includes('verified') ? (
+                  <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-3 text-green-400 text-sm font-medium">
+                    ✓ Video verified! You earned the Verified badge.
+                  </div>
+                ) : (
+                  <label className={`flex items-center justify-center gap-2 py-3 rounded-lg font-bold cursor-pointer transition-all ${
+                    videoUploading 
+                      ? 'bg-gray-700 text-gray-500' 
+                      : 'bg-purple-500/20 text-purple-400 border border-purple-500/30 hover:bg-purple-500/30'
+                  }`}>
+                    {videoUploading ? (
+                      <>Uploading...</>
+                    ) : (
+                      <>
+                        <Video size={18} />
+                        <span>Upload Video Proof</span>
+                      </>
+                    )}
+                    <input 
+                      type="file" 
+                      accept="video/*" 
+                      className="hidden" 
+                      disabled={videoUploading}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        
+                        // Check file size (limit to 10MB for localStorage)
+                        if (file.size > 10 * 1024 * 1024) {
+                          alert('Video must be under 10MB for this demo');
+                          return;
+                        }
+                        
+                        setVideoUploading(true);
+                        
+                        try {
+                          // Convert to base64 for local storage demo
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            const videoData = reader.result as string;
+                            
+                            // Save video data
+                            localStorage.setItem('ilift_video_proof', videoData);
+                            
+                            // Update user badges
+                            const updatedUser = { 
+                              ...user, 
+                              badges: [...(user?.badges || []), 'verified'],
+                              videoProof: videoData
+                            };
+                            setUser(updatedUser);
+                            localStorage.setItem('ilift_user', JSON.stringify(updatedUser));
+                            setVideoUploading(false);
+                            alert('Video uploaded! You earned the Verified badge!');
+                          };
+                          reader.readAsDataURL(file);
+                        } catch (err) {
+                          setVideoUploading(false);
+                          alert('Failed to upload video');
+                        }
+                      }}
+                    />
+                  </label>
+                )}
+              </div>
+
               {ACHIEVEMENTS.map(ach => {
                 const earned = user?.badges?.includes(ach.id);
                 return (

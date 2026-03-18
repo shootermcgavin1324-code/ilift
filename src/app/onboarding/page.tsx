@@ -215,20 +215,25 @@ export default function Onboarding() {
             <div className="space-y-4">
               <h1 className="text-2xl font-black">Experience level</h1>
               
-              {experiences.map(exp => (
+              {[
+                { id: 'beginner', label: 'Beginner', desc: '0-1 years' },
+                { id: 'intermediate', label: 'Intermediate', desc: '2-4 years' },
+                { id: 'advanced', label: 'Advanced', desc: '5+ years' },
+              ].map(exp => (
                 <button
-                  key={exp}
+                  key={exp.id}
                   onClick={() => { 
-                    setData({ ...data, experience: exp, lifting_since: exp === 'Beginner' ? 2024 : exp === 'Intermediate' ? 2022 : 2019 }); 
+                    setData({ ...data, experience: exp.label, lifting_since: exp.id === 'beginner' ? 2025 : exp.id === 'intermediate' ? 2022 : 2019 }); 
                     next(); 
                   }}
-                  className={`w-full p-4 rounded-xl text-left font-bold transition-all ${
-                    data.experience === exp 
+                  className={`w-full p-4 rounded-xl text-left transition-all ${
+                    data.experience === exp.label
                       ? 'bg-yellow-400 text-black' 
-                      : 'bg-gray-800 border border-gray-700 text-white'
+                      : 'bg-gray-800 border border-gray-700 text-white hover:border-yellow-400'
                   }`}
                 >
-                  {exp}
+                  <span className="font-bold">{exp.label}</span>
+                  <span className="text-sm ml-2 opacity-70">({exp.desc})</span>
                 </button>
               ))}
               
