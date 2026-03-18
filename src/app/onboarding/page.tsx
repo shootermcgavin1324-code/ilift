@@ -40,6 +40,7 @@ export default function Onboarding() {
     
     // Save email for dashboard to use
     localStorage.setItem('ilift_email', email.trim());
+    localStorage.setItem('ilift_onboarding', 'true');
     localStorage.setItem('ilift_onboarding_data', JSON.stringify({
       name: name.trim(),
       groupCode: groupCode || 'TEST'

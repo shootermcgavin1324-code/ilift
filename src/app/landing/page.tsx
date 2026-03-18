@@ -9,23 +9,33 @@ export default function Landing() {
   const [code, setCode] = useState('');
 
   useEffect(() => {
-    // Check if already logged in
-    const userData = localStorage.getItem('ilift_user');
+    // Check if already logged in (has completed onboarding)
     const hasOnboarding = localStorage.getItem('ilift_onboarding');
-    if (userData && hasOnboarding) {
+    const email = localStorage.getItem('ilift_email');
+    if (hasOnboarding && email) {
       router.push('/dashboard');
     }
   }, [router]);
 
   const handleStart = () => {
+    const hasOnboarding = localStorage.getItem('ilift_onboarding');
+    if (hasOnboarding) {
+      router.push('/dashboard');
+      return;
+    }
     if (email) localStorage.setItem('ilift_pending_email', email);
     if (code) localStorage.setItem('ilift_pending_code', code.toUpperCase());
     router.push('/onboarding');
   };
 
   const handleSignIn = () => {
-    // For demo: just go to onboarding (will create account)
-    router.push('/onboarding');
+    const hasOnboarding = localStorage.getItem('ilift_onboarding');
+    const email = localStorage.getItem('ilift_email');
+    if (hasOnboarding && email) {
+      router.push('/dashboard');
+    } else {
+      router.push('/onboarding');
+    }
   };
 
   return (
