@@ -258,6 +258,18 @@ export default function Dashboard() {
   ]);
   const router = useRouter();
 
+  // Animation styles
+  const styles = `
+    @keyframes float { 0% { transform: translateY(0) scale(1); opacity: 1; } 50% { transform: translateY(-20px) scale(1.1); opacity: 0.8; } 100% { transform: translateY(-40px) scale(1); opacity: 0; } }
+    @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(245, 196, 0, 0.3); } 50% { box-shadow: 0 0 40px rgba(245, 196, 0, 0.6); } }
+    @keyframes scale-in { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .animate-float { animation: float 1.5s ease-out forwards; }
+    .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+    .animate-scale-in { animation: scale-in 0.2s ease-out; }
+    .hover-scale:hover { transform: scale(1.02); }
+    .hover-lift:hover { transform: translateY(-2px); }
+  `;
+
   useEffect(() => {
     const userData = localStorage.getItem('ilift_user');
     const groupData = localStorage.getItem('ilift_group');
