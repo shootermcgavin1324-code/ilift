@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Scale, Flame, Trophy, TrendingUp, ArrowRight } from 'lucide-react';
 
@@ -8,6 +8,19 @@ export default function Landing() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
+
+  useEffect(() => {
+    // Check if already logged in - redirect to dashboard
+    const userData = localStorage.getItem('ilift_user');
+    const hasOnboarding = localStorage.getItem('ilift_onboarding');
+    if (userData) {
+      if (hasOnboarding) {
+        router.push('/dashboard');
+      } else {
+        router.push('/onboarding');
+      }
+    }
+  }, [router]);
 
   const handleJoin = () => {
     // Store email and code to pass to onboarding

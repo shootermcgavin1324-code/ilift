@@ -410,7 +410,12 @@ export default function Dashboard() {
     setTimeout(() => { setSubmitted(false); }, 2500);
   };
 
-  const logout = () => { localStorage.removeItem('ilift_user'); localStorage.removeItem('ilift_group'); router.push('/'); };
+  const logout = () => { 
+    localStorage.removeItem('ilift_user'); 
+    localStorage.removeItem('ilift_group');
+    localStorage.removeItem('ilift_onboarding');
+    router.push('/'); 
+  };
 
   const leaderboardData = {
     daily: [
