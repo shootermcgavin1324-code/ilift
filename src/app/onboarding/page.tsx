@@ -45,8 +45,15 @@ export default function Onboarding() {
   useEffect(() => {
     const userData = localStorage.getItem('ilift_user');
     const groupData = localStorage.getItem('ilift_group');
+    const hasOnboarding = localStorage.getItem('ilift_onboarding');
     const pendingEmail = localStorage.getItem('ilift_pending_email');
     const pendingCode = localStorage.getItem('ilift_pending_code');
+    
+    // If already completed onboarding, go to dashboard
+    if (userData && hasOnboarding) {
+      router.push('/dashboard');
+      return;
+    }
     
     if (userData) {
       const user = JSON.parse(userData);

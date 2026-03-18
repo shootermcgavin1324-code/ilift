@@ -209,13 +209,6 @@ export default function Landing() {
               
               <button 
                 onClick={() => {
-                  const userData = localStorage.getItem('ilift_user');
-                  const hasOnboarding = localStorage.getItem('ilift_onboarding');
-                  console.log('Click - userData:', !!userData, 'hasOnboarding:', !!hasOnboarding);
-                  if (userData && hasOnboarding) {
-                    router.push('/dashboard');
-                    return;
-                  }
                   if (email) localStorage.setItem('ilift_pending_email', email);
                   if (code) localStorage.setItem('ilift_pending_code', code.toUpperCase());
                   router.push('/onboarding');
@@ -227,7 +220,7 @@ export default function Landing() {
             </div>
             
             <p className="text-center text-gray-500 text-sm mt-6">
-              Already have an account? <button onClick={handleEnter} className="text-yellow-400 font-semibold hover:underline">Sign in</button>
+              Already have an account? <span onClick={() => router.push('/dashboard')} className="text-yellow-400 font-semibold hover:underline cursor-pointer">Sign in</span>
             </p>
           </div>
         </main>
