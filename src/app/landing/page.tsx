@@ -18,21 +18,21 @@ export default function Landing() {
   }, [router]);
 
   const handleNewUser = () => {
-    // Save email and code for onboarding
+    // Save for onboarding
     if (email) localStorage.setItem('ilift_pending_email', email);
     if (code) localStorage.setItem('ilift_pending_code', code.toUpperCase());
     router.push('/onboarding');
   };
 
-  const handleReturningUser = () => {
-    // Just go to dashboard - it will fetch your data from Supabase
-    router.push('/dashboard');
+  const handleSignIn = () => {
+    // For returning users - go to onboarding which will redirect to dashboard
+    router.push('/onboarding');
   };
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
       {/* Header */}
-      <header className="p-6 flex justify-between items-center">
+      <header className="p-6">
         <h1 className="text-3xl font-black"><span className="text-yellow-400">i</span>LIFT</h1>
       </header>
 
@@ -45,41 +45,41 @@ export default function Landing() {
             <p className="text-gray-400 text-lg">Compete with friends — even when you train alone.</p>
           </div>
 
-          {/* Two Clear Options */}
-          <div className="space-y-4">
-            {/* NEW USER */}
-            <div className="bg-gray-900 rounded-xl p-4 border border-gray-700">
-              <h3 className="font-bold text-white mb-3">New User?</h3>
+          {/* SIGN UP SECTION */}
+          <div className="bg-gray-900 rounded-2xl p-6 border border-gray-700 mb-4">
+            <h3 className="text-xl font-black text-white mb-4">NEW USER? JOIN A SQUAD</h3>
+            
+            <div className="space-y-3">
               <input
                 type="text"
-                placeholder="Squad code (optional)"
+                placeholder="Squad code"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                className="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white mb-2"
+                className="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white"
               />
               <input
                 type="email"
                 placeholder="Your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white mb-3"
+                className="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white"
               />
               <button 
                 onClick={handleNewUser}
                 className="w-full py-3 bg-yellow-400 rounded-lg font-black text-black"
               >
-                Create Account →
+                SIGN UP →
               </button>
             </div>
-
-            {/* RETURNING USER */}
-            <button 
-              onClick={handleReturningUser}
-              className="w-full py-4 bg-gray-800 rounded-xl font-bold text-white border border-gray-600 hover:border-yellow-400"
-            >
-              Already have an account? Sign In →
-            </button>
           </div>
+
+          {/* SIGN IN SECTION */}
+          <button 
+            onClick={handleSignIn}
+            className="w-full py-4 bg-gray-800 rounded-2xl font-bold text-white border border-gray-600 hover:border-yellow-400"
+          >
+            ALREADY A MEMBER? SIGN IN →
+          </button>
         </div>
       </main>
     </div>

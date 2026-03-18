@@ -710,6 +710,14 @@ export default function Dashboard() {
           >
             Share Progress
           </button>
+          
+          {/* Logout Button */}
+          <button 
+            onClick={logout}
+            className="w-full py-3 bg-red-500/20 text-red-400 rounded-xl font-bold border border-red-500/30"
+          >
+            Log Out
+          </button>
         </div>
       )}
 
