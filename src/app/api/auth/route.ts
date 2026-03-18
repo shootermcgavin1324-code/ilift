@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { createUser, getUserByEmail, createGroup, joinGroup, getUserById, getGroupByCode } from '@/lib/db';
+import { createUser, getUserByEmail, createGroup, joinGroup, getUserById, getGroupByCode, updateUser } from '@/lib/db';
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { action, name, email, groupCode } = body;
+  const { action, name, email, groupCode, onboarding } = body;
 
   try {
     if (action === 'register' || action === 'login') {
@@ -22,6 +22,11 @@ export async function POST(request: Request) {
         user.badges = [];
       }
       
+      // Save onboarding data if provided
+      if (onboarding) {
+        user = updateUser(user.id, { onboarding }) || user;
+      }
+      
       // Join or create group
       const group = joinGroup(user.id, groupCode || 'TEST');
       
@@ -34,7 +39,8 @@ export async function POST(request: Request) {
           totalXP: user.totalXP || 0,
           streak: user.streak || 0,
           badges: user.badges || [],
-          lastWorkout: user.lastWorkout
+          lastWorkout: user.lastWorkout,
+          onboarding: user.onboarding
         },
         group: { id: group.id, name: group.name, code: group.code }
       });

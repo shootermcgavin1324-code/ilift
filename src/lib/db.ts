@@ -62,6 +62,17 @@ export function getUserByEmail(email: string) {
   return db.users.find((u: any) => u.email === email);
 }
 
+export function updateUser(userId: string, updates: Record<string, any>) {
+  const db = readDB();
+  const userIndex = db.users.findIndex((u: any) => u.id === userId);
+  if (userIndex !== -1) {
+    db.users[userIndex] = { ...db.users[userIndex], ...updates };
+    writeDB(db);
+    return db.users[userIndex];
+  }
+  return null;
+}
+
 export function updateUserXP(userId: string, xp: number) {
   const db = readDB();
   const user = db.users.find((u: any) => u.id === userId);
