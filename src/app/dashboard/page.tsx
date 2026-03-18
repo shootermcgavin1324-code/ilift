@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, TrendingUp, Zap, Crown, Star, Dumbbell as Lift, Activity, ChevronRight } from 'lucide-react';
+import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, TrendingUp, Zap, Crown, Star, Dumbbell as Lift, Activity, ChevronRight, Medal, FileText, User, User as Avatar } from 'lucide-react';
 
 const ACHIEVEMENTS = [
   { id: 'first_workout', name: 'First Steps', desc: 'Complete first workout', points: 50, icon: Star },
@@ -132,8 +132,8 @@ function SquadView({ user, group }: { user: { id: string; name: string; totalXP:
               <div className="text-2xl font-black text-gray-600 w-8">
                 #{i + 1}
               </div>
-              <div className="w-12 h-12 rounded-xl bg-gray-800 flex items-center justify-center text-2xl">
-                {member.id === user?.id ? '🎯' : '👤'}
+              <div className="w-12 h-12 rounded-xl bg-gray-800 flex items-center justify-center">
+                {member.id === user?.id ? <Target className="text-yellow-400" size={24} /> : <User size={24} />}
               </div>
               <div className="flex-1">
                 <p className={`font-bold ${member.id === user?.id ? 'text-yellow-400' : 'text-white'}`}>
@@ -143,7 +143,7 @@ function SquadView({ user, group }: { user: { id: string; name: string; totalXP:
               </div>
               <div className="text-right">
                 <p className="text-yellow-400 font-black text-xl">{(member.totalXP || 0).toLocaleString()}</p>
-                <p className="text-orange-400 text-sm">🔥 {member.streak || 0}</p>
+                <p className="text-orange-400 text-sm flex items-center gap-1"><Flame size={14} /> {member.streak || 0}</p>
               </div>
             </div>
           </div>
@@ -411,28 +411,28 @@ export default function Dashboard() {
 
   const leaderboardData = {
     daily: [
-      { name: 'Brenlee', score: 245, rank: 1, avatar: '👩', isTop3: true },
-      { name: 'Taurus', score: 210, rank: 2, avatar: '👨', isTop3: true },
-      { name: 'Sonk', score: 180, rank: 3, avatar: '🧑', isTop3: true },
-      { name: user?.name || 'You', score: calculateScore(), rank: 4, isYou: true, avatar: '🎯' },
+      { name: 'Brenlee', score: 245, rank: 1, isTop3: true },
+      { name: 'Taurus', score: 210, rank: 2, isTop3: true },
+      { name: 'Sonk', score: 180, rank: 3, isTop3: true },
+      { name: user?.name || 'You', score: calculateScore(), rank: 4, isYou: true },
     ],
     weekly: [
-      { name: 'Brenlee', score: 1245, rank: 1, avatar: '👩', isTop3: true },
-      { name: 'Sonk', score: 980, rank: 2, avatar: '🧑', isTop3: true },
-      { name: 'Taurus', score: 850, rank: 3, avatar: '👨', isTop3: true },
-      { name: user?.name || 'You', score: calculateScore() * 5, rank: 4, isYou: true, avatar: '🎯' },
+      { name: 'Brenlee', score: 1245, rank: 1, isTop3: true },
+      { name: 'Sonk', score: 980, rank: 2, isTop3: true },
+      { name: 'Taurus', score: 850, rank: 3, isTop3: true },
+      { name: user?.name || 'You', score: calculateScore() * 5, rank: 4, isYou: true },
     ],
     monthly: [
-      { name: 'Brenlee', score: 5245, rank: 1, avatar: '👩', isTop3: true },
-      { name: 'Taurus', score: 3890, rank: 2, avatar: '👨', isTop3: true },
-      { name: 'Sonk', score: 2450, rank: 3, avatar: '🧑', isTop3: true },
-      { name: user?.name || 'You', score: calculateScore() * 20, rank: 4, isYou: true, avatar: '🎯' },
+      { name: 'Brenlee', score: 5245, rank: 1, isTop3: true },
+      { name: 'Taurus', score: 3890, rank: 2, isTop3: true },
+      { name: 'Sonk', score: 2450, rank: 3, isTop3: true },
+      { name: user?.name || 'You', score: calculateScore() * 20, rank: 4, isYou: true },
     ],
     lifetime: [
-      { name: 'Brenlee', score: 24500, rank: 1, avatar: '👩', isTop3: true },
-      { name: 'Taurus', score: 18900, rank: 2, avatar: '👨', isTop3: true },
-      { name: 'Sonk', score: 12450, rank: 3, avatar: '🧑', isTop3: true },
-      { name: user?.name || 'You', score: user?.totalXP || 0, rank: 4, isYou: true, avatar: '🎯' },
+      { name: 'Brenlee', score: 24500, rank: 1, isTop3: true },
+      { name: 'Taurus', score: 18900, rank: 2, isTop3: true },
+      { name: 'Sonk', score: 12450, rank: 3, isTop3: true },
+      { name: user?.name || 'You', score: user?.totalXP || 0, rank: 4, isYou: true },
     ],
   };
   
@@ -534,10 +534,10 @@ export default function Dashboard() {
                     }`}
                   >
                     <span className={`text-2xl font-black w-10 text-center ${entry.isTop3 ? 'text-yellow-400' : 'text-gray-600'}`}>
-                      {entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : entry.rank === 3 ? '🥉' : `#${entry.rank}`}
+                      {entry.rank === 1 ? <Trophy size={24} className="inline" /> : entry.rank === 2 ? <Medal size={24} className="inline" /> : entry.rank === 3 ? <Award size={24} className="inline" /> : `#${entry.rank}`}
                     </span>
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${entry.isYou ? 'bg-yellow-400/20 ring-2 ring-yellow-400' : 'bg-gray-800'}`}>
-                      {entry.avatar}
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${entry.isYou ? 'bg-yellow-400/20 ring-2 ring-yellow-400' : 'bg-gray-800'}`}>
+                      {entry.isYou ? <Target className="text-yellow-400" size={24} /> : <User size={24} />}
                     </div>
                     <div className="flex-1">
                       <p className={`font-bold text-lg ${entry.isYou ? 'text-yellow-400' : 'text-white'}`}>
@@ -852,7 +852,7 @@ export default function Dashboard() {
                   <p className="text-gray-500 text-xs font-medium mt-1">Total XP</p>
                 </div>
                 <div className="bg-gray-900 rounded-xl border border-gray-800 p-4 text-center hover:border-orange-400/50 transition-all">
-                  <p className="text-3xl font-black text-orange-400">🔥 {user.streak || 0}</p>
+                  <p className="text-3xl font-black text-orange-400 flex items-center gap-2"><Flame size={32} /> {user.streak || 0}</p>
                   <p className="text-gray-500 text-xs font-medium mt-1">Streak</p>
                 </div>
                 <div className="bg-gray-900 rounded-xl border border-gray-800 p-4 text-center hover:border-gray-600 transition-all">
