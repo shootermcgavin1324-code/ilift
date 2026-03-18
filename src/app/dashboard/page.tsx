@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, Search, Camera, Video, Zap, Crown, Star, Activity, X } from 'lucide-react';
+import { supabase, getUser, createUser, updateUser, saveWorkout, getUserWorkouts, getLeaderboard } from '@/lib/supabase';
 
 const ACHIEVEMENTS = [
   { id: 'first_workout', name: 'First Steps', desc: 'Complete first workout', points: 50, icon: Star },
@@ -40,30 +41,60 @@ export default function Dashboard() {
   const [rpe, setRpe] = useState(7);
   const [toast, setToast] = useState<any>(null);
   const [workouts, setWorkouts] = useState<any[]>([]);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
 
   useEffect(() => {
-    const userData = localStorage.getItem('ilift_user');
-    const groupData = localStorage.getItem('ilift_group');
-    const hasOnboarding = localStorage.getItem('ilift_onboarding');
-    const workoutsData = localStorage.getItem('ilift_workouts');
-    
-    if (!userData || !hasOnboarding) {
+    loadUserData();
+  }, []);
+
+  async function loadUserData() {
+    const email = localStorage.getItem('ilift_email');
+    if (!email) {
       router.push('/');
       return;
     }
     
-    const parsedUser = JSON.parse(userData);
-    setUser(parsedUser);
-    if (groupData) setGroup(JSON.parse(groupData));
-    if (workoutsData) setWorkouts(JSON.parse(workoutsData));
+    try {
+      // Try to get from Supabase
+      let userData = await getUser(email);
+      
+      if (!userData) {
+        // Create new user from onboarding data
+        const onboarding = JSON.parse(localStorage.getItem('ilift_onboarding_data') || '{}');
+        const newUser = {
+          email,
+          name: onboarding.name || email.split('@')[0],
+          total_xp: 0,
+          streak: 0,
+          badges: [],
+          group_code: onboarding.groupCode || 'TEST',
+          onboarding
+        };
+        const result = await createUser(newUser);
+        userData = result.data;
+      }
+      
+      setUser(userData);
+      localStorage.setItem('ilift_user_id', userData.id);
+      
+      // Load workouts
+      const userWorkouts = await getUserWorkouts(userData.id);
+      setWorkouts(userWorkouts);
+      
+      // Load leaderboard
+      const lb = await getLeaderboard(userData.group_code);
+      setLeaderboard(lb);
+      
+    } catch (e) {
+      console.error('Failed to load user:', e);
+    }
+    
     setLoading(false);
-  }, [router]);
+  }
 
   const logout = () => {
-    localStorage.removeItem('ilift_user');
-    localStorage.removeItem('ilift_group');
-    localStorage.removeItem('ilift_onboarding');
-    localStorage.removeItem('ilift_workouts');
+    localStorage.removeItem('ilift_email');
+    localStorage.removeItem('ilift_user_id');
     router.push('/');
   };
 
@@ -86,11 +117,11 @@ export default function Dashboard() {
     setShowQuickLog(false);
   };
 
-  const completeWorkout = () => {
+  const completeWorkout = async () => {
     if (!currentExercise || sets.filter(s => s.done).length === 0) return;
     
     const score = calculateScore();
-    const newXP = (user.totalXP || 0) + score;
+    const newXP = (user.total_xp || 0) + score;
     const newStreak = (user.streak || 0) + 1;
     
     // Check badges
@@ -99,34 +130,50 @@ export default function Dashboard() {
     if (newXP >= 1000 && !newBadges.includes('xp_1000')) newBadges.push('xp_1000');
     if (newStreak >= 7 && !newBadges.includes('streak_7')) newBadges.push('streak_7');
     
-    const updatedUser = { ...user, totalXP: newXP, streak: newStreak, badges: newBadges };
-    setUser(updatedUser);
-    localStorage.setItem('ilift_user', JSON.stringify(updatedUser));
-    
-    // Save workout locally
-    const workout = {
-      id: Date.now().toString(),
-      exercise: currentExercise,
-      sets: sets.filter(s => s.done),
-      score,
-      date: new Date().toISOString()
-    };
-    const newWorkouts = [workout, ...workouts].slice(0, 20);
-    setWorkouts(newWorkouts);
-    localStorage.setItem('ilift_workouts', JSON.stringify(newWorkouts));
-    
-    setSubmitted(true);
-    setToast({ message: `Workout saved! +${score} XP`, type: 'success' });
-    setTimeout(() => setSubmitted(false), 2500);
-    setTimeout(() => {
-      setSets([{ weight: 135, reps: 10, rpe: 7, done: false }]);
-      setCurrentExercise('');
-    }, 2500);
+    try {
+      // Update user in Supabase
+      await updateUser(user.id, { 
+        total_xp: newXP, 
+        streak: newStreak, 
+        badges: newBadges 
+      });
+      
+      // Save workout to Supabase
+      await saveWorkout({
+        user_id: user.id,
+        exercise: currentExercise,
+        sets: sets.filter(s => s.done),
+        score
+      });
+      
+      // Update local state
+      const updatedUser = { ...user, total_xp: newXP, streak: newStreak, badges: newBadges };
+      setUser(updatedUser);
+      
+      // Reload data
+      const userWorkouts = await getUserWorkouts(user.id);
+      setWorkouts(userWorkouts);
+      
+      const lb = await getLeaderboard(user.group_code);
+      setLeaderboard(lb);
+      
+      setSubmitted(true);
+      setToast({ message: `Workout saved! +${score} XP`, type: 'success' });
+      setTimeout(() => setSubmitted(false), 2500);
+      setTimeout(() => {
+        setSets([{ weight: 135, reps: 10, rpe: 7, done: false }]);
+        setCurrentExercise('');
+      }, 2500);
+      
+    } catch (e) {
+      console.error('Failed to save workout:', e);
+      setToast({ message: 'Failed to save workout', type: 'error' });
+    }
   };
 
-  const currentLevel = Math.floor((user?.totalXP || 0) / 500) + 1;
-  const xpProgress = ((user?.totalXP || 0) % 500) / 5;
-  const xpToNextLevel = 500 - ((user?.totalXP || 0) % 500);
+  const currentLevel = Math.floor((user?.total_xp || 0) / 500) + 1;
+  const xpProgress = ((user?.total_xp || 0) % 500) / 5;
+  const xpToNextLevel = 500 - ((user?.total_xp || 0) % 500);
 
   if (loading) {
     return <div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">Loading...</div>;
@@ -165,7 +212,7 @@ export default function Dashboard() {
         <div className="p-4 space-y-4">
           <div className="bg-gray-900 rounded-xl p-4">
             <p className="text-gray-400 text-sm">Your XP</p>
-            <p className="text-4xl font-black text-yellow-400">{(user.totalXP || 0).toLocaleString()}</p>
+            <p className="text-4xl font-black text-yellow-400">{(user.total_xp || 0).toLocaleString()}</p>
             <div className="flex justify-between text-sm mt-2">
               <span className="text-gray-500">Level {currentLevel}</span>
               <span className="text-gray-500">{xpToNextLevel} to Level {currentLevel + 1}</span>
@@ -173,6 +220,17 @@ export default function Dashboard() {
             <div className="bg-gray-800 h-2 rounded-full mt-2">
               <div className="bg-yellow-400 h-2 rounded-full" style={{ width: `${xpProgress}%` }}></div>
             </div>
+          </div>
+
+          {/* Leaderboard */}
+          <div className="bg-gray-900 rounded-xl p-4">
+            <p className="text-gray-400 text-sm mb-3">Leaderboard</p>
+            {leaderboard.slice(0, 5).map((u, i) => (
+              <div key={u.id} className={`flex justify-between items-center py-2 ${u.id === user.id ? 'text-yellow-400' : 'text-gray-300'}`}>
+                <span className="font-bold">#{i + 1} {u.name}</span>
+                <span className="font-black">{u.total_xp || 0} XP</span>
+              </div>
+            ))}
           </div>
 
           <div className="bg-gray-900 rounded-xl p-4">
@@ -315,7 +373,7 @@ export default function Dashboard() {
             <p className="text-gray-400">{user.email}</p>
             <div className="mt-4 bg-gray-800 rounded-lg p-3">
               <p className="text-gray-400 text-sm">Level {currentLevel}</p>
-              <p className="text-3xl font-black text-yellow-400">{(user.totalXP || 0).toLocaleString()} XP</p>
+              <p className="text-3xl font-black text-yellow-400">{(user.total_xp || 0).toLocaleString()} XP</p>
             </div>
           </div>
           
@@ -334,7 +392,7 @@ export default function Dashboard() {
           
           <div className="bg-gray-900 rounded-xl p-4">
             <p className="text-gray-400 text-sm mb-2">Squad Code</p>
-            <p className="text-4xl font-black text-yellow-400">{group?.code || 'TEST'}</p>
+            <p className="text-4xl font-black text-yellow-400">{user.group_code || 'TEST'}</p>
           </div>
         </div>
       )}

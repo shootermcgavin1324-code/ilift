@@ -12,10 +12,9 @@ export default function Onboarding() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Check if already completed
-    const userData = localStorage.getItem('ilift_user');
-    const hasOnboarding = localStorage.getItem('ilift_onboarding');
-    if (userData && hasOnboarding) {
+    // Check if already logged in
+    const existingEmail = localStorage.getItem('ilift_email');
+    if (existingEmail) {
       router.push('/dashboard');
     }
     
@@ -26,7 +25,7 @@ export default function Onboarding() {
     if (pendingCode) setGroupCode(pendingCode);
   }, [router]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!name.trim()) {
       setError('Please enter your name');
       return;
@@ -39,37 +38,14 @@ export default function Onboarding() {
     setLoading(true);
     setError('');
     
-    // Create user locally (demo mode)
-    const user = {
-      id: Date.now().toString(),
+    // Save email for dashboard to use
+    localStorage.setItem('ilift_email', email.trim());
+    localStorage.setItem('ilift_onboarding_data', JSON.stringify({
       name: name.trim(),
-      email: email.trim(),
-      totalXP: 0,
-      streak: 0,
-      badges: [],
-      groupId: Date.now().toString(),
-      onboarding: {
-        fitness_goal: 'General Fitness',
-        weight: 150,
-        height: 70,
-        age: 25,
-        experience: 'Beginner',
-        lifting_since: 2024,
-        workouts_per_week: 3
-      }
-    };
+      groupCode: groupCode || 'TEST'
+    }));
     
-    const group = {
-      id: user.groupId,
-      code: groupCode || 'TEST',
-      name: (name.trim()) + "'s Squad"
-    };
-    
-    localStorage.setItem('ilift_user', JSON.stringify(user));
-    localStorage.setItem('ilift_group', JSON.stringify(group));
-    localStorage.setItem('ilift_onboarding', 'true');
-    
-    // Small delay to show loading
+    // Small delay then go to dashboard (user will be created there)
     setTimeout(() => {
       router.push('/dashboard');
     }, 500);
