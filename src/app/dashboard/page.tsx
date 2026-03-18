@@ -455,30 +455,33 @@ export default function Dashboard() {
           <button onClick={logout} className="text-gray-500 hover:text-gray-300 transition-colors">✕</button>
         </header>
 
-        {/* Tab Bar */}
-        <div className="flex gap-1 px-4 mt-2">
-          {[
-            { id: 'home', label: 'Home' },
-            { id: 'log', label: 'Log' },
-            { id: 'squad', label: 'Squad' },
-            { id: 'history', label: 'History' },
-            { id: 'awards', label: 'Awards' },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-1 py-3 text-sm font-bold transition-all border-b-2 ${
-                activeTab === tab.id 
-                  ? 'text-yellow-400 border-yellow-400' 
-                  : 'text-gray-500 border-transparent hover:text-gray-300'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        {/* Bottom Navigation - Mobile First */}
+        <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-lg border-t border-gray-800 px-2 py-2 pb-6 md:pb-2 z-50">
+          <div className="flex justify-around items-center">
+            {[
+              { id: 'home', label: '🏠', full: 'Home' },
+              { id: 'log', label: '💪', full: 'Log' },
+              { id: 'squad', label: '👥', full: 'Squad' },
+              { id: 'history', label: '📋', full: 'History' },
+              { id: 'awards', label: '🏅', full: 'Awards' },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all ${
+                  activeTab === tab.id 
+                    ? 'text-yellow-400 scale-110' 
+                    : 'text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                <span className="text-xl">{tab.label}</span>
+                <span className="text-[10px] font-bold mt-0.5">{tab.full}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="p-4 pb-28">
+        <div className="p-4 pb-24 md:pb-8">
           {activeTab === 'home' && (
             <>
               {/* Your Rank Card - PROMINENT */}
