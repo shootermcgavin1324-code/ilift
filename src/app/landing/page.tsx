@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight } from 'lucide-react';
 
 export default function Landing() {
   const router = useRouter();
@@ -21,6 +20,11 @@ export default function Landing() {
   const handleStart = () => {
     if (email) localStorage.setItem('ilift_pending_email', email);
     if (code) localStorage.setItem('ilift_pending_code', code.toUpperCase());
+    router.push('/onboarding');
+  };
+
+  const handleSignIn = () => {
+    // For demo: just go to onboarding (will create account)
     router.push('/onboarding');
   };
 
@@ -65,7 +69,7 @@ export default function Landing() {
           </div>
 
           <p className="text-center text-gray-500 text-sm mt-6">
-            Already have an account? <span onClick={() => router.push('/dashboard')} className="text-yellow-400">Sign in</span>
+            Already have an account? <span onClick={handleSignIn} className="text-yellow-400">Sign in</span>
           </p>
         </div>
       </main>

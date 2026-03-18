@@ -30,6 +30,17 @@
       "lastWorkout": null,
       "badges": [],
       "createdAt": "2026-03-18T06:11:53.511Z"
+    },
+    {
+      "id": "1773863322610",
+      "name": "Test User",
+      "email": "testnew@test.com",
+      "totalXP": 0,
+      "streak": 0,
+      "lastWorkout": null,
+      "badges": [],
+      "createdAt": "2026-03-18T19:48:42.610Z",
+      "groupId": "1773808423748"
     }
   ],
   "groups": [
@@ -40,7 +51,8 @@
       "members": [
         "1773808423747",
         "1773814178305",
-        "1773814313511"
+        "1773814313511",
+        "1773863322610"
       ],
       "createdAt": "2026-03-18T04:33:43.748Z"
     }

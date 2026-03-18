@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight } from 'lucide-react';
 
 export default function Onboarding() {
   const router = useRouter();
@@ -27,7 +26,7 @@ export default function Onboarding() {
     if (pendingCode) setGroupCode(pendingCode);
   }, [router]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!name.trim()) {
       setError('Please enter your name');
       return;
@@ -40,42 +39,40 @@ export default function Onboarding() {
     setLoading(true);
     setError('');
     
-    try {
-      const res = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          action: 'register', 
-          name, 
-          email, 
-          groupCode: groupCode || 'TEST',
-          onboarding: {
-            fitness_goal: 'General Fitness',
-            weight: 150,
-            height: 70,
-            age: 25,
-            experience: 'Beginner',
-            lifting_since: 2024,
-            workouts_per_week: 3
-          }
-        })
-      });
-      
-      const result = await res.json();
-      
-      if (result.success) {
-        localStorage.setItem('ilift_user', JSON.stringify(result.user));
-        localStorage.setItem('ilift_group', JSON.stringify(result.group));
-        localStorage.setItem('ilift_onboarding', 'true');
-        router.push('/dashboard');
-      } else {
-        setError(result.error || 'Something went wrong');
+    // Create user locally (demo mode)
+    const user = {
+      id: Date.now().toString(),
+      name: name.trim(),
+      email: email.trim(),
+      totalXP: 0,
+      streak: 0,
+      badges: [],
+      groupId: Date.now().toString(),
+      onboarding: {
+        fitness_goal: 'General Fitness',
+        weight: 150,
+        height: 70,
+        age: 25,
+        experience: 'Beginner',
+        lifting_since: 2024,
+        workouts_per_week: 3
       }
-    } catch (e) {
-      setError('Failed to create account');
-    } finally {
-      setLoading(false);
-    }
+    };
+    
+    const group = {
+      id: user.groupId,
+      code: groupCode || 'TEST',
+      name: (name.trim()) + "'s Squad"
+    };
+    
+    localStorage.setItem('ilift_user', JSON.stringify(user));
+    localStorage.setItem('ilift_group', JSON.stringify(group));
+    localStorage.setItem('ilift_onboarding', 'true');
+    
+    // Small delay to show loading
+    setTimeout(() => {
+      router.push('/dashboard');
+    }, 500);
   };
 
   return (
