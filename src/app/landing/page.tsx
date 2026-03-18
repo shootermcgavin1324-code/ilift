@@ -9,7 +9,7 @@ export default function Landing() {
   const [code, setCode] = useState('');
 
   useEffect(() => {
-    // Check if already logged in (has completed onboarding)
+    // Check if already logged in
     const hasOnboarding = localStorage.getItem('ilift_onboarding');
     const email = localStorage.getItem('ilift_email');
     if (hasOnboarding && email) {
@@ -17,29 +17,16 @@ export default function Landing() {
     }
   }, [router]);
 
-  const handleStart = () => {
-    // Check if already logged in
-    const hasOnboarding = localStorage.getItem('ilift_onboarding');
-    const email = localStorage.getItem('ilift_email');
-    if (hasOnboarding && email) {
-      router.push('/dashboard');
-      return;
-    }
-    
-    // New user - go to onboarding
+  const handleNewUser = () => {
+    // Save email and code for onboarding
     if (email) localStorage.setItem('ilift_pending_email', email);
     if (code) localStorage.setItem('ilift_pending_code', code.toUpperCase());
     router.push('/onboarding');
   };
 
-  const handleSignIn = () => {
-    const hasOnboarding = localStorage.getItem('ilift_onboarding');
-    const email = localStorage.getItem('ilift_email');
-    if (hasOnboarding && email) {
-      router.push('/dashboard');
-    } else {
-      router.push('/onboarding');
-    }
+  const handleReturningUser = () => {
+    // Just go to dashboard - it will fetch your data from Supabase
+    router.push('/dashboard');
   };
 
   return (
@@ -58,33 +45,41 @@ export default function Landing() {
             <p className="text-gray-400 text-lg">Compete with friends — even when you train alone.</p>
           </div>
 
-          {/* Form */}
-          <div className="space-y-3">
-            <input
-              type="text"
-              placeholder="Squad code (optional)"
-              value={code}
-              onChange={(e) => setCode(e.target.value.toUpperCase())}
-              className="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 text-white"
-            />
-            <input
-              type="email"
-              placeholder="Your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 text-white"
-            />
+          {/* Two Clear Options */}
+          <div className="space-y-4">
+            {/* NEW USER */}
+            <div className="bg-gray-900 rounded-xl p-4 border border-gray-700">
+              <h3 className="font-bold text-white mb-3">New User?</h3>
+              <input
+                type="text"
+                placeholder="Squad code (optional)"
+                value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase())}
+                className="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white mb-2"
+              />
+              <input
+                type="email"
+                placeholder="Your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white mb-3"
+              />
+              <button 
+                onClick={handleNewUser}
+                className="w-full py-3 bg-yellow-400 rounded-lg font-black text-black"
+              >
+                Create Account →
+              </button>
+            </div>
+
+            {/* RETURNING USER */}
             <button 
-              onClick={handleStart}
-              className="w-full py-4 bg-yellow-400 rounded-xl font-black text-black text-xl"
+              onClick={handleReturningUser}
+              className="w-full py-4 bg-gray-800 rounded-xl font-bold text-white border border-gray-600 hover:border-yellow-400"
             >
-              GET STARTED →
+              Already have an account? Sign In →
             </button>
           </div>
-
-          <p className="text-center text-gray-500 text-sm mt-6">
-            Already have an account? <span onClick={handleSignIn} className="text-yellow-400">Sign in</span>
-          </p>
         </div>
       </main>
     </div>
