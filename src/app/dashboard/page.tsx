@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, TrendingUp, Zap, Crown, Star, Dumbbell as Lift, Activity, ChevronRight, Medal, FileText, User, Search, Camera, Video } from 'lucide-react';
+import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, Search, Camera, Video, Zap, Crown, Star, Activity, X } from 'lucide-react';
 
 const ACHIEVEMENTS = [
   { id: 'first_workout', name: 'First Steps', desc: 'Complete first workout', points: 50, icon: Star },
@@ -17,1120 +17,344 @@ const ACHIEVEMENTS = [
 ];
 
 const QUICK_EXERCISES = [
-  { name: 'Bench Press', icon: Dumbbell }, 
-  { name: 'Squat', icon: Dumbbell }, 
-  { name: 'Deadlift', icon: Dumbbell }, 
-  { name: 'Pull-ups', icon: Dumbbell }, 
-  { name: 'Dips', icon: Dumbbell },
-  { name: 'Overhead Press', icon: Dumbbell },
-  { name: 'Barbell Row', icon: Dumbbell },
-  { name: 'Leg Press', icon: Dumbbell },
-  { name: 'Romanian Deadlift', icon: Dumbbell },
-  { name: 'Lat Pulldown', icon: Dumbbell },
-  { name: 'Cable Fly', icon: Dumbbell },
-  { name: 'Leg Curl', icon: Dumbbell },
-  { name: 'Calf Raise', icon: Dumbbell },
-  { name: 'Face Pull', icon: Dumbbell },
-  { name: 'Lateral Raise', icon: Dumbbell },
-  { name: 'Bicep Curl', icon: Dumbbell },
-  { name: 'Tricep Extension', icon: Dumbbell },
-  { name: 'Plank', icon: Dumbbell },
-  { name: 'Push-ups', icon: Dumbbell },
-  { name: 'Lunges', icon: Dumbbell },
+  { name: 'Bench Press' }, { name: 'Squat' }, { name: 'Deadlift' },
+  { name: 'Pull-ups' }, { name: 'Dips' }, { name: 'Overhead Press' },
+  { name: 'Barbell Row' }, { name: 'Leg Press' }, { name: 'Romanian Deadlift' },
+  { name: 'Lat Pulldown' }, { name: 'Cable Fly' }, { name: 'Leg Curl' },
+  { name: 'Calf Raise' }, { name: 'Face Pull' }, { name: 'Bicep Curl' },
+  { name: 'Tricep Pushdown' }, { name: 'Lateral Raise' }, { name: 'Cable Row' },
+  { name: 'Leg Extension' }, { name: 'Hip Thrust' },
 ];
-const DAILY_CHALLENGE = { title: '50 Pull-ups', bonusXP: 100, icon: Dumbbell };
-
-// Animations
-const styles = `
-  @keyframes float {
-    0% { transform: translateY(0) scale(1); opacity: 1; }
-    50% { transform: translateY(-20px) scale(1.1); opacity: 0.8; }
-    100% { transform: translateY(-40px) scale(1); opacity: 0; }
-  }
-  @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 20px rgba(245, 196, 0, 0.3); }
-    50% { box-shadow: 0 0 40px rgba(245, 196, 0, 0.6); }
-  }
-  @keyframes rank-pop {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-  }
-  .animate-float { animation: float 1.5s ease-out forwards; }
-  .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-  .animate-rank-pop { animation: rank-pop 0.3s ease-out; }
-  .shadow-lg-custom { box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5); }
-  .shadow-inner-glow { box-shadow: inset 0 2px 10px rgba(245, 196, 0, 0.1); }
-`;
-
-function FloatingXP({ amount }: { amount: number }) {
-  return (
-    <>
-      <style>{styles}</style>
-      <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-50">
-        <div className="animate-float text-7xl font-black text-yellow-400 drop-shadow-2xl">+{amount} XP</div>
-      </div>
-    </>
-  );
-}
-
-// Squad View Component - shows all group members
-function SquadView({ user, group }: { user: { id: string; name: string; totalXP: number; streak: number } | null; group: { id: string; name: string; code: string } | null }) {
-  const [members, setMembers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!group?.id) return;
-    
-    const groupId = group.id;
-    
-    async function fetchMembers() {
-      try {
-        const res = await fetch(`/api/group?groupId=${groupId}`);
-        const data = await res.json();
-        if (data.success) {
-          setMembers(data.members || []);
-        }
-      } catch (e) {
-        console.error('Failed to fetch members', e);
-      } finally {
-        setLoading(false);
-      }
-    }
-    
-    fetchMembers();
-  }, [group?.id]);
-
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold text-white mb-4">👥 Your Squad</h2>
-        <p className="text-gray-500 text-center">Loading...</p>
-      </div>
-    );
-  }
-
-  const sortedMembers = [...members].sort((a, b) => (b.totalXP || 0) - (a.totalXP || 0));
-
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-white">👥 Your Squad</h2>
-        <span className="text-gray-500 text-sm">{group?.name}</span>
-      </div>
-      
-      {members.length === 0 ? (
-        <p className="text-gray-500 text-center">No squad members yet</p>
-      ) : (
-        sortedMembers.map((member, i) => (
-          <div 
-            key={member.id} 
-            className={`bg-gray-900 rounded-xl border p-4 ${
-              member.id === user?.id ? 'border-yellow-400/50' : 'border-gray-800'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <div className="text-2xl font-black text-gray-600 w-8">
-                #{i + 1}
-              </div>
-              <div className="w-12 h-12 rounded-xl bg-gray-800 flex items-center justify-center">
-                {member.id === user?.id ? <Target className="text-yellow-400" size={24} /> : <User size={24} />}
-              </div>
-              <div className="flex-1">
-                <p className={`font-bold ${member.id === user?.id ? 'text-yellow-400' : 'text-white'}`}>
-                  {member.name || 'Unknown'} {member.id === user?.id && '(You)'}
-                </p>
-                <p className="text-gray-500 text-sm">Level {Math.floor((member.totalXP || 0) / 500) + 1}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-yellow-400 font-black text-xl">{(member.totalXP || 0).toLocaleString()}</p>
-                <p className="text-orange-400 text-sm flex items-center gap-1"><Flame size={14} /> {member.streak || 0}</p>
-              </div>
-            </div>
-          </div>
-        ))
-      )}
-      
-      <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4 mt-6">
-        <p className="text-gray-400 text-sm text-center">Share your squad code to invite friends</p>
-        <p className="text-center text-2xl font-black text-yellow-400 mt-2">{group?.code || 'TEST'}</p>
-      </div>
-    </div>
-  );
-}
-
-// Workout History Component - fetches from API
-function WorkoutHistory({ user }: { user: { id: string; name: string } | null }) {
-  const [workouts, setWorkouts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user?.id) return;
-    
-    const userId = user.id;
-    
-    async function fetchHistory() {
-      try {
-        const res = await fetch(`/api/workout?type=user&userId=${userId}`);
-        const data = await res.json();
-        if (data.success) {
-          setWorkouts(data.workouts || []);
-        }
-      } catch (e) {
-        console.error('Failed to fetch history', e);
-      } finally {
-        setLoading(false);
-      }
-    }
-    
-    fetchHistory();
-  }, [user?.id]);
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    
-    if (date.toDateString() === today.toDateString()) return 'Today';
-    if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
-
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold text-white mb-4">📋 Workout History</h2>
-        <p className="text-gray-500 text-center">Loading...</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-bold text-white mb-4">📋 Workout History</h2>
-      
-      {workouts.length === 0 ? (
-        <p className="text-gray-500 text-center">No workouts yet. Start logging!</p>
-      ) : (
-        workouts.map((workout) => (
-          <div key={workout.id} className="bg-gray-900 rounded-xl border border-gray-800 p-4">
-            <div className="flex justify-between items-center mb-2">
-              <p className="font-bold text-white">
-                {workout.exercises?.[0]?.name || 'Workout'}
-              </p>
-              <span className="text-yellow-400 font-black">+{workout.score} XP</span>
-            </div>
-            <p className="text-gray-500 text-sm">{formatDate(workout.date)}</p>
-            {workout.exercises?.length > 0 && (
-              <p className="text-gray-400 text-sm mt-2">
-                {workout.exercises.length} exercise{workout.exercises.length > 1 ? 's' : ''}
-              </p>
-            )}
-          </div>
-        ))
-      )}
-    </div>
-  );
-}
-
-interface Set {
-  weight: number;
-  reps: number;
-  rpe: number;
-  done: boolean;
-}
 
 export default function Dashboard() {
-  const [user, setUser] = useState<{id: string; name: string; email: string; totalXP: number; streak: number; badges: string[]} | null>(null);
-  const [group, setGroup] = useState<{id: string; name: string; code: string} | null>(null);
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [group, setGroup] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [rpe, setRpe] = useState(7);
-  const [submitted, setSubmitted] = useState(false);
-  const [activeTab, setActiveTab] = useState<'home' | 'log' | 'squad' | 'awards' | 'profile' | 'history'>('home');
+  const [activeTab, setActiveTab] = useState('home');
   const [showQuickLog, setShowQuickLog] = useState(false);
-  const [floatingXP, setFloatingXP] = useState<number | null>(null);
-  const [videoUploading, setVideoUploading] = useState(false);
-  const [restTimer, setRestTimer] = useState<number | null>(null);
-  const [restTimeLeft, setRestTimeLeft] = useState(0);
-  const [leaderboardPeriod, setLeaderboardPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'lifetime'>('daily');
   const [currentExercise, setCurrentExercise] = useState('');
   const [exerciseSearch, setExerciseSearch] = useState('');
-  const [toast, setToast] = useState<{message: string; type: 'success' | 'error'} | null>(null);
-  const [sets, setSets] = useState<Set[]>([
-    { weight: 135, reps: 10, rpe: 7, done: false },
-    { weight: 135, reps: 10, rpe: 7, done: false },
-    { weight: 135, reps: 10, rpe: 7, done: false },
-  ]);
-  const router = useRouter();
-
-  // Toast helper
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  // Animation styles
-  const styles = `
-    @keyframes float { 0% { transform: translateY(0) scale(1); opacity: 1; } 50% { transform: translateY(-20px) scale(1.1); opacity: 0.8; } 100% { transform: translateY(-40px) scale(1); opacity: 0; } }
-    @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(245, 196, 0, 0.3); } 50% { box-shadow: 0 0 40px rgba(245, 196, 0, 0.6); } }
-    @keyframes scale-in { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-    .animate-float { animation: float 1.5s ease-out forwards; }
-    .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-    .animate-scale-in { animation: scale-in 0.2s ease-out; }
-    .hover-scale:hover { transform: scale(1.02); }
-    .hover-lift:hover { transform: translateY(-2px); }
-  `;
+  const [sets, setSets] = useState([{ weight: 135, reps: 10, rpe: 7, done: false }]);
+  const [submitted, setSubmitted] = useState(false);
+  const [rpe, setRpe] = useState(7);
+  const [toast, setToast] = useState<any>(null);
+  const [workouts, setWorkouts] = useState<any[]>([]);
 
   useEffect(() => {
     const userData = localStorage.getItem('ilift_user');
     const groupData = localStorage.getItem('ilift_group');
-    const hasSeenOnboarding = localStorage.getItem('ilift_onboarding');
+    const hasOnboarding = localStorage.getItem('ilift_onboarding');
+    const workoutsData = localStorage.getItem('ilift_workouts');
     
-    if (!userData) {
+    if (!userData || !hasOnboarding) {
       router.push('/');
-    } else if (!hasSeenOnboarding) {
-      // New user - show onboarding first
-      router.push('/onboarding');
-    } else {
-      const user = JSON.parse(userData);
-      setUser(user); 
-      if (groupData) setGroup(JSON.parse(groupData)); 
-      
-      // Sync with server to ensure central profile is up to date
-      if (user?.email) {
-        fetch('/api/auth', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'login', email: user.email })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.user) {
-            // Update localStorage with latest from server
-            localStorage.setItem('ilift_user', JSON.stringify(data.user));
-            localStorage.setItem('ilift_group', JSON.stringify(data.group));
-            setUser(data.user);
-            setGroup(data.group);
-          }
-        })
-        .catch(console.error)
-        .finally(() => setLoading(false));
-      } else {
-        setLoading(false);
-      }
-    }
-  }, [router]);
-
-  // Rest timer countdown
-  useEffect(() => {
-    if (restTimer === null || restTimer <= 0) {
-      if (restTimer !== null) {
-        setRestTimer(null);
-        setRestTimeLeft(0);
-      }
       return;
     }
-    const timeout = setTimeout(() => {
-      setRestTimeLeft(restTimer - 1);
-      setRestTimer(restTimer - 1);
-    }, 1000);
-    return () => clearTimeout(timeout);
-  }, [restTimer]);
+    
+    const parsedUser = JSON.parse(userData);
+    setUser(parsedUser);
+    if (groupData) setGroup(JSON.parse(groupData));
+    if (workoutsData) setWorkouts(JSON.parse(workoutsData));
+    setLoading(false);
+  }, [router]);
 
-  const startRestTimer = (seconds: number) => {
-    setRestTimeLeft(seconds);
-    setRestTimer(seconds);
+  const logout = () => {
+    localStorage.removeItem('ilift_user');
+    localStorage.removeItem('ilift_group');
+    localStorage.removeItem('ilift_onboarding');
+    localStorage.removeItem('ilift_workouts');
+    router.push('/');
+  };
+
+  const calculateScore = () => {
+    const doneSets = sets.filter(s => s.done);
+    if (doneSets.length === 0) return 0;
+    const avgRpe = doneSets.reduce((sum, s) => sum + s.rpe, 0) / doneSets.length;
+    const streak = user?.streak || 0;
+    return Math.round(50 * (avgRpe / 5) * (1 + streak * 0.05) * doneSets.length);
+  };
+
+  const quickLog = (exerciseName: string) => {
+    setCurrentExercise(exerciseName);
+    setSets([
+      { weight: 135, reps: 10, rpe: 7, done: false },
+      { weight: 135, reps: 10, rpe: 7, done: false },
+      { weight: 135, reps: 10, rpe: 7, done: false },
+    ]);
+    setActiveTab('log');
+    setShowQuickLog(false);
+  };
+
+  const completeWorkout = () => {
+    if (!currentExercise || sets.filter(s => s.done).length === 0) return;
+    
+    const score = calculateScore();
+    const newXP = (user.totalXP || 0) + score;
+    const newStreak = (user.streak || 0) + 1;
+    
+    // Check badges
+    const newBadges = [...(user.badges || [])];
+    if (newBadges.length === 0) newBadges.push('first_workout');
+    if (newXP >= 1000 && !newBadges.includes('xp_1000')) newBadges.push('xp_1000');
+    if (newStreak >= 7 && !newBadges.includes('streak_7')) newBadges.push('streak_7');
+    
+    const updatedUser = { ...user, totalXP: newXP, streak: newStreak, badges: newBadges };
+    setUser(updatedUser);
+    localStorage.setItem('ilift_user', JSON.stringify(updatedUser));
+    
+    // Save workout locally
+    const workout = {
+      id: Date.now().toString(),
+      exercise: currentExercise,
+      sets: sets.filter(s => s.done),
+      score,
+      date: new Date().toISOString()
+    };
+    const newWorkouts = [workout, ...workouts].slice(0, 20);
+    setWorkouts(newWorkouts);
+    localStorage.setItem('ilift_workouts', JSON.stringify(newWorkouts));
+    
+    setSubmitted(true);
+    setToast({ message: `Workout saved! +${score} XP`, type: 'success' });
+    setTimeout(() => setSubmitted(false), 2500);
+    setTimeout(() => {
+      setSets([{ weight: 135, reps: 10, rpe: 7, done: false }]);
+      setCurrentExercise('');
+    }, 2500);
   };
 
   const currentLevel = Math.floor((user?.totalXP || 0) / 500) + 1;
+  const xpProgress = ((user?.totalXP || 0) % 500) / 5;
   const xpToNextLevel = 500 - ((user?.totalXP || 0) % 500);
-  const xpProgress = ((user?.totalXP || 0) % 500) / 500 * 100;
-
-  const calculateScore = () => {
-    const base = 50;
-    const rpeMultiplier = rpe / 5;
-    const streakBonus = user?.streak ? 1 + (user.streak * 0.05) : 1;
-    return Math.floor(base * rpeMultiplier * streakBonus);
-  };
-
-  const updateSet = (index: number, field: keyof Set, value: number | boolean) => {
-    const newSets = [...sets];
-    newSets[index] = { ...newSets[index], [field]: value };
-    setSets(newSets);
-  };
-
-  // Check for badge unlocks - from ilift-gamification skill
-  const checkBadgeUnlocks = (totalXP: number, streak: number, existingBadges: string[]) => {
-    const newBadges = [...existingBadges];
-    const earnedBadgeIds = [];
-    
-    // First workout
-    if (!existingBadges.includes('first_workout')) {
-      newBadges.push('first_workout');
-      earnedBadgeIds.push('first_workout');
-    }
-    // Streak badges
-    if (streak >= 7 && !existingBadges.includes('streak_7')) {
-      newBadges.push('streak_7');
-      earnedBadgeIds.push('streak_7');
-    }
-    if (streak >= 30 && !existingBadges.includes('streak_30')) {
-      newBadges.push('streak_30');
-      earnedBadgeIds.push('streak_30');
-    }
-    if (streak >= 100 && !existingBadges.includes('streak_100')) {
-      newBadges.push('streak_100');
-      earnedBadgeIds.push('streak_100');
-    }
-    // XP badges
-    if (totalXP >= 1000 && !existingBadges.includes('xp_1000')) {
-      newBadges.push('xp_1000');
-      earnedBadgeIds.push('xp_1000');
-    }
-    if (totalXP >= 5000 && !existingBadges.includes('xp_5000')) {
-      newBadges.push('xp_5000');
-      earnedBadgeIds.push('xp_5000');
-    }
-    if (totalXP >= 10000 && !existingBadges.includes('xp_10000')) {
-      newBadges.push('xp_10000');
-      earnedBadgeIds.push('xp_10000');
-    }
-    
-    return { badges: newBadges, earned: earnedBadgeIds };
-  };
-
-  const quickLog = async (exerciseName: string) => {
-    const score = calculateScore();
-    setFloatingXP(score);
-    
-    // Call API to save workout
-    if (user && group) {
-      try {
-        await fetch('/api/workout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            exercises: [{ name: exerciseName, sets: 3, reps: 10, weight: 135, rpe }],
-            score,
-            userName: user.name,
-            userId: user.id,
-            groupId: group.id
-          })
-        });
-      } catch (e) {
-        console.error('Failed to save workout', e);
-      }
-    }
-    
-    if (user) { 
-      const newXP = (user.totalXP || 0) + score; 
-      const newStreak = (user.streak || 0) + 1; 
-      const { badges: newBadges, earned } = checkBadgeUnlocks(newXP, newStreak, user.badges || []);
-      const updatedUser = { ...user, totalXP: newXP, streak: newStreak, badges: newBadges }; 
-      setUser(updatedUser); 
-      localStorage.setItem('ilift_user', JSON.stringify(updatedUser)); 
-      
-      // Show badge unlock notification if earned
-      if (earned.length > 0) {
-        // Could show a toast notification here
-        console.log('Badges earned:', earned);
-      }
-    }
-    setShowQuickLog(false);
-    setSubmitted(true);
-    setTimeout(() => { setSubmitted(false); }, 2500);
-  };
-
-  const logout = () => { 
-    localStorage.removeItem('ilift_user'); 
-    localStorage.removeItem('ilift_group');
-    localStorage.removeItem('ilift_onboarding');
-    router.push('/'); 
-  };
-
-  const leaderboardData = {
-    daily: [
-      { name: 'Brenlee', score: 245, rank: 1, isTop3: true },
-      { name: 'Taurus', score: 210, rank: 2, isTop3: true },
-      { name: 'Sonk', score: 180, rank: 3, isTop3: true },
-      { name: user?.name || 'You', score: calculateScore(), rank: 4, isYou: true },
-    ],
-    weekly: [
-      { name: 'Brenlee', score: 1245, rank: 1, isTop3: true },
-      { name: 'Sonk', score: 980, rank: 2, isTop3: true },
-      { name: 'Taurus', score: 850, rank: 3, isTop3: true },
-      { name: user?.name || 'You', score: calculateScore() * 5, rank: 4, isYou: true },
-    ],
-    monthly: [
-      { name: 'Brenlee', score: 5245, rank: 1, isTop3: true },
-      { name: 'Taurus', score: 3890, rank: 2, isTop3: true },
-      { name: 'Sonk', score: 2450, rank: 3, isTop3: true },
-      { name: user?.name || 'You', score: calculateScore() * 20, rank: 4, isYou: true },
-    ],
-    lifetime: [
-      { name: 'Brenlee', score: 24500, rank: 1, isTop3: true },
-      { name: 'Taurus', score: 18900, rank: 2, isTop3: true },
-      { name: 'Sonk', score: 12450, rank: 3, isTop3: true },
-      { name: user?.name || 'You', score: user?.totalXP || 0, rank: 4, isYou: true },
-    ],
-  };
-  
-  const currentLeaderboard = leaderboardData[leaderboardPeriod];
-  const yourRank = currentLeaderboard.find(e => e.isYou)?.rank || 4;
-
-  const feedPosts = [
-    { id: 1, user: 'Brenlee', avatar: '👩', workout: 'Upper Body', exercises: ['Bench Press 3×10', 'Pull-ups 3×8', 'Overhead Press 3×10', 'Dips 3×12', 'Barbell Row 3×10'], minutes: 75, time: '2h ago', xp: 245, rpe: 8 },
-    { id: 2, user: 'Taurus', avatar: '👨', workout: 'Leg Day', exercises: ['Squat 4×8', 'Leg Press 3×12', 'RDL 3×10', 'Leg Curl 3×12', 'Calf Raise 4×15'], minutes: 90, time: '4h ago', xp: 310, rpe: 9 },
-  ];
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-400 font-medium">Syncing your profile...</p>
-        </div>
-      </div>
-    );
+    return <div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">Loading...</div>;
   }
 
   if (!user) return null;
 
   return (
-    <>
-      <style>{styles}</style>
-      <div className="min-h-screen bg-gray-950 text-white">
-        {/* Header */}
-        <header className="px-4 pt-4 flex justify-between items-center pb-2">
-          <h1 className="text-2xl font-black tracking-tight"><span className="text-yellow-400">i</span>LIFT</h1>
-          <button onClick={logout} className="text-gray-500 hover:text-gray-300 transition-colors">✕</button>
-        </header>
+    <div className="min-h-screen bg-gray-950 text-white pb-20">
+      {/* Header */}
+      <header className="px-4 pt-4 flex justify-between items-center">
+        <h1 className="text-2xl font-black"><span className="text-yellow-400">i</span>LIFT</h1>
+        <button onClick={logout}><X size={24} className="text-gray-400" /></button>
+      </header>
 
-        {/* Bottom Navigation - Mobile First */}
-        <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-lg border-t border-gray-800 px-2 py-2 pb-6 md:pb-2 z-50">
-          <div className="flex justify-around items-center">
-            {[
-              { id: 'home', icon: Home, full: 'Home' },
-              { id: 'log', icon: Dumbbell, full: 'Log' },
-              { id: 'squad', icon: Users, full: 'Squad' },
-              { id: 'history', icon: History, full: 'History' },
-              { id: 'awards', icon: Award, full: 'Awards' },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all ${
-                  activeTab === tab.id 
-                    ? 'text-yellow-400 scale-110' 
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
-              >
-                <tab.icon size={22} strokeWidth={activeTab === tab.id ? 2.5 : 1.5} />
-                <span className="text-[10px] font-bold mt-0.5">{tab.full}</span>
-              </button>
-            ))}
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 px-2 py-2 pb-6 z-50">
+        <div className="flex justify-around">
+          {[
+            { id: 'home', icon: Home, label: 'Home' },
+            { id: 'log', icon: Dumbbell, label: 'Log' },
+            { id: 'history', icon: History, label: 'History' },
+            { id: 'awards', icon: Award, label: 'Awards' },
+            { id: 'profile', icon: Target, label: 'Profile' },
+          ].map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex flex-col items-center py-2 px-3 ${activeTab === tab.id ? 'text-yellow-400' : 'text-gray-500'}`}>
+              <tab.icon size={22} />
+              <span className="text-xs mt-1">{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      {/* Home Tab */}
+      {activeTab === 'home' && (
+        <div className="p-4 space-y-4">
+          <div className="bg-gray-900 rounded-xl p-4">
+            <p className="text-gray-400 text-sm">Your XP</p>
+            <p className="text-4xl font-black text-yellow-400">{(user.totalXP || 0).toLocaleString()}</p>
+            <div className="flex justify-between text-sm mt-2">
+              <span className="text-gray-500">Level {currentLevel}</span>
+              <span className="text-gray-500">{xpToNextLevel} to Level {currentLevel + 1}</span>
+            </div>
+            <div className="bg-gray-800 h-2 rounded-full mt-2">
+              <div className="bg-yellow-400 h-2 rounded-full" style={{ width: `${xpProgress}%` }}></div>
+            </div>
+          </div>
+
+          <div className="bg-gray-900 rounded-xl p-4">
+            <p className="text-gray-400 text-sm mb-2">Quick Log</p>
+            <div className="grid grid-cols-4 gap-2">
+              {QUICK_EXERCISES.slice(0, 8).map(ex => (
+                <button key={ex.name} onClick={() => quickLog(ex.name)} className="py-3 bg-gray-800 rounded-lg text-xs font-bold hover:bg-gray-700">
+                  {ex.name}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
+      )}
 
-        <div className="p-4 pb-24 md:pb-8">
-          {activeTab === 'home' && (
-            <>
-              {/* Your Rank Card - PROMINENT */}
-              <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-gray-700 p-5 mb-4 shadow-lg-custom relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/5 rounded-full blur-3xl"></div>
-                <p className="text-gray-400 text-xs uppercase tracking-widest mb-2">Your Rank Today</p>
-                <div className="flex items-center gap-5">
-                  <div className="relative">
-                    <span className="text-6xl font-black text-yellow-400 drop-shadow-lg">#{yourRank}</span>
-                    {yourRank <= 3 && <div className="absolute -top-1 -right-2 text-2xl">🔥</div>}
-                  </div>
-                  <div className="flex-1">
-                    <div className="bg-gray-800 rounded-full h-3 mb-2 shadow-inner">
-                      <div className="bg-gradient-to-r from-yellow-400 to-orange-400 h-3 rounded-full transition-all duration-500" style={{ width: `${(5 - yourRank) * 20}%` }}></div>
-                    </div>
-                    <p className="text-gray-500 text-sm font-medium">{calculateScore()} XP today</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Leaderboard Period Toggle */}
-              <div className="flex gap-2 mb-4">
-                {(['daily', 'weekly', 'monthly', 'lifetime'] as const).map(p => (
-                  <button 
-                    key={p} 
-                    onClick={() => setLeaderboardPeriod(p)} 
-                    className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${
-                      leaderboardPeriod === p 
-                        ? 'bg-yellow-400 text-black shadow-lg shadow-yellow-400/30 scale-105' 
-                        : 'bg-gray-800 text-gray-400 border border-gray-700 hover:border-gray-600'
-                    }`}
-                  >
-                    {p === 'lifetime' ? '🏆 All Time' : p.charAt(0).toUpperCase() + p.slice(1)}
-                  </button>
-                ))}
-              </div>
-
-              {/* Leaderboard - HIERARCHY */}
-              <div className="space-y-2">
-                {currentLeaderboard.map((entry, i) => (
-                  <div 
-                    key={i} 
-                    className={`flex items-center gap-3 p-4 rounded-xl border transition-all duration-200 hover:scale-[1.01] ${
-                      entry.isYou 
-                        ? 'bg-gradient-to-r from-yellow-400/10 to-transparent border-yellow-400/50 shadow-lg shadow-yellow-400/10' 
-                        : entry.isTop3
-                        ? 'bg-gradient-to-r from-gray-800 to-gray-900 border-gray-600'
-                        : 'bg-gray-900 border-gray-800'
-                    }`}
-                  >
-                    <span className={`text-2xl font-black w-10 text-center ${entry.isTop3 ? 'text-yellow-400' : 'text-gray-600'}`}>
-                      {entry.rank === 1 ? <Trophy size={24} className="inline" /> : entry.rank === 2 ? <Medal size={24} className="inline" /> : entry.rank === 3 ? <Award size={24} className="inline" /> : `#${entry.rank}`}
-                    </span>
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${entry.isYou ? 'bg-yellow-400/20 ring-2 ring-yellow-400' : 'bg-gray-800'}`}>
-                      {entry.isYou ? <Target className="text-yellow-400" size={24} /> : <User size={24} />}
-                    </div>
-                    <div className="flex-1">
-                      <p className={`font-bold text-lg ${entry.isYou ? 'text-yellow-400' : 'text-white'}`}>
-                        {entry.name} {entry.isYou && <span className="text-xs text-gray-500 ml-2">(You)</span>}
-                      </p>
-                      {entry.isTop3 && <p className="text-xs text-yellow-400/60">Top 3</p>}
-                    </div>
-                    <span className={`text-xl font-black ${entry.isYou ? 'text-yellow-400' : entry.isTop3 ? 'text-white' : 'text-gray-500'}`}>
-                      {entry.score.toLocaleString()}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* PRIMARY CTA - LOG WORKOUT */}
-              <button 
-                onClick={() => setActiveTab('log')} 
-                className="w-full mt-6 py-5 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl font-black text-2xl text-black shadow-xl shadow-yellow-400/30 hover:shadow-yellow-400/50 hover:scale-[1.02] transition-all animate-pulse-glow"
-              >
-                💪 LOG WORKOUT
-              </button>
-            </>
-          )}
-
-          {activeTab === 'log' && (
-            <>
-              {/* Challenge Banner */}
-              <div className="bg-gradient-to-r from-purple-900/50 to-purple-800/30 rounded-xl border border-purple-500/30 p-4 mb-4">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <Trophy size={18} className="text-purple-300" />
-                    <span className="text-purple-300 font-bold">{DAILY_CHALLENGE.title}</span>
-                  </div>
-                  <span className="text-yellow-400 font-black text-lg">+{DAILY_CHALLENGE.bonusXP}</span>
-                </div>
-              </div>
-
-              {!showQuickLog ? (
-                <button 
-                  onClick={() => setShowQuickLog(true)} 
-                  className="w-full py-6 bg-gray-800 rounded-xl border-2 border-dashed border-gray-600 text-gray-400 font-bold hover:border-yellow-400 hover:text-yellow-400 transition-all mb-4"
-                >
-                  ⚡ Quick Log
+      {/* Log Tab */}
+      {activeTab === 'log' && (
+        <div className="p-4 space-y-4">
+          <input
+            type="text"
+            placeholder="Search exercises..."
+            value={exerciseSearch}
+            onChange={(e) => setExerciseSearch(e.target.value.toLowerCase())}
+            className="w-full p-3 bg-gray-900 rounded-xl border border-gray-700"
+          />
+          
+          {!currentExercise ? (
+            <div className="grid grid-cols-3 gap-2">
+              {QUICK_EXERCISES.filter(e => !exerciseSearch || e.name.toLowerCase().includes(exerciseSearch)).map(ex => (
+                <button key={ex.name} onClick={() => quickLog(ex.name)} className="py-4 bg-gray-800 rounded-xl font-bold text-sm hover:bg-gray-700">
+                  {ex.name}
                 </button>
-              ) : (
-                <div className="space-y-3 mb-4">
-                  <p className="text-gray-400 text-sm text-center font-medium">Tap to log:</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {QUICK_EXERCISES
-                      .filter(ex => !exerciseSearch || ex.name.toLowerCase().includes(exerciseSearch))
-                      .map((ex, i) => (
-                      <button 
-                        key={i} 
-                        onClick={() => quickLog(ex.name)} 
-                        className="py-5 bg-gray-800 rounded-xl border border-gray-700 text-white font-bold hover:border-yellow-400 hover:scale-105 transition-all flex flex-col items-center gap-1"
-                      >
-                        <Dumbbell size={20} />
-                        <span className="text-[10px]">{ex.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                  <button onClick={() => setShowQuickLog(false)} className="w-full py-2 text-gray-500 text-sm hover:text-gray-400">← Back</button>
-                </div>
-              )}
-
-              {/* Detailed Workout */}
-              <div className="bg-gray-900 rounded-xl border border-gray-700 p-4 shadow-lg-custom">
-                <input
-                  type="text"
-                  placeholder="Exercise name"
-                  value={currentExercise}
-                  onChange={(e) => setCurrentExercise(e.target.value)}
-                  className="w-full p-4 rounded-lg bg-gray-800 border border-gray-700 text-white mb-4 focus:border-yellow-400 focus:outline-none transition-colors"
-                />
-
-                <div className="space-y-2 mb-4">
-                  <div className="flex gap-2 text-xs text-gray-500 font-bold uppercase tracking-wide px-1">
-                    <span className="w-8">Set</span>
-                    <span className="flex-1 text-center">lbs</span>
-                    <span className="flex-1 text-center">Reps</span>
-                    <span className="flex-1 text-center">RPE</span>
-                    <span className="w-8"></span>
-                  </div>
-                  {sets.map((set, i) => (
-                    <div key={i} className="flex gap-2 items-center">
-                      <span className="w-8 text-gray-400 font-bold">{i + 1}</span>
-                      <input 
-                        type="number" 
-                        value={set.weight}
-                        onChange={(e) => updateSet(i, 'weight', parseInt(e.target.value) || 0)}
-                        className="flex-1 p-3 rounded-lg bg-gray-800 border border-gray-700 text-white text-center font-bold focus:border-yellow-400 focus:outline-none"
-                      />
-                      <input 
-                        type="number" 
-                        value={set.reps}
-                        onChange={(e) => updateSet(i, 'reps', parseInt(e.target.value) || 0)}
-                        className="flex-1 p-3 rounded-lg bg-gray-800 border border-gray-700 text-white text-center font-bold focus:border-yellow-400 focus:outline-none"
-                      />
-                      <input 
-                        type="number" 
-                        value={set.rpe}
-                        onChange={(e) => updateSet(i, 'rpe', parseInt(e.target.value) || 0)}
-                        className={`flex-1 p-3 rounded-lg text-center font-black ${
-                          set.rpe >= 8 ? 'bg-red-500/20 text-red-400 border border-red-500/50' :
-                          set.rpe >= 6 ? 'bg-yellow-400/20 text-yellow-400 border border-yellow-400/50' :
-                          'bg-gray-700 text-gray-400 border border-gray-600'
-                        }`}
-                      />
-                      <button 
-                        onClick={() => updateSet(i, 'done', !set.done)}
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold transition-all ${
-                          set.done ? 'bg-green-500 text-white shadow-lg shadow-green-500/30' : 'bg-gray-700 text-gray-500 hover:bg-gray-600'
-                        }`}
-                      >
-                        ✓
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                <button 
-                  onClick={() => setSets([...sets, { weight: sets[sets.length-1]?.weight || 135, reps: sets[sets.length-1]?.reps || 10, rpe: 7, done: false }])}
-                  className="w-full py-3 text-gray-500 text-sm border border-dashed border-gray-600 rounded-lg mb-4 hover:border-gray-500 hover:text-gray-400 transition-all"
-                >
-                  + Add Set
-                </button>
-
-                {/* RPE Bar */}
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-gray-400 font-medium">Effort Level</span>
-                  <span className="text-yellow-400 font-black text-xl">{rpe}</span>
-                </div>
-                <div className="flex gap-1 mb-2">
-                  {[5, 6, 7, 8, 9, 10].map(num => (
-                    <button
-                      key={num}
-                      onClick={() => setRpe(num)}
-                      className={`flex-1 py-3 rounded-lg text-sm font-bold transition-all hover:scale-105 ${
-                        rpe >= num 
-                          ? rpe >= 8 ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' : rpe >= 6 ? 'bg-yellow-400 text-black shadow-lg shadow-yellow-400/30' : 'bg-gray-600 text-white'
-                          : 'bg-gray-700 text-gray-500'
-                      }`}
-                    >
-                      {num}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Rest Timer */}
-                <div className="mt-4">
-                  <p className="text-gray-400 text-sm font-medium mb-2">⏱️ Rest Timer</p>
-                  <div className="flex gap-2">
-                    {[60, 90, 120, 180].map(seconds => (
-                      <button
-                        key={seconds}
-                        onClick={() => startRestTimer(seconds)}
-                        className="flex-1 py-2 bg-gray-800 rounded-lg text-sm font-bold text-gray-400 hover:bg-gray-700 hover:text-white transition-all border border-gray-700"
-                      >
-                        {seconds}s
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Score Preview */}
-                <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-5 text-center mt-4 border border-gray-700 shadow-inner-glow">
-                  <p className="text-gray-400 text-sm font-medium mb-1">You'll earn</p>
-                  <p className="text-5xl font-black text-yellow-400 drop-shadow-lg">{calculateScore()} XP</p>
-                </div>
-
-                {/* Complete Workout Button */}
-                <button 
-                  onClick={async () => {
-                    const score = calculateScore();
-                    const exerciseName = currentExercise || 'Workout';
-                    setFloatingXP(score);
-                    
-                    if (user && group) {
-                      try {
-                        const res = await fetch('/api/workout', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            exercises: sets.filter(s => s.done).map(s => ({
-                              name: currentExercise,
-                              sets: 1,
-                              reps: s.reps,
-                              weight: s.weight,
-                              rpe: s.rpe
-                            })),
-                            score,
-                            userName: user.name,
-                            userId: user.id,
-                            groupId: group.id
-                          })
-                        });
-                        const data = await res.json();
-                        if (!data.success) {
-                          showToast('Failed to save workout', 'error');
-                        }
-                      } catch (e) {
-                        console.error('Failed to save workout', e);
-                        showToast('Failed to save workout', 'error');
-                      }
-                    }
-                    
-                    if (user) { 
-                      const newXP = (user.totalXP || 0) + score; 
-                      const newStreak = (user.streak || 0) + 1; 
-                      const { badges: newBadges, earned } = checkBadgeUnlocks(newXP, newStreak, user.badges || []);
-                      const updatedUser = { ...user, totalXP: newXP, streak: newStreak, badges: newBadges }; 
-                      setUser(updatedUser); 
-                      localStorage.setItem('ilift_user', JSON.stringify(updatedUser)); 
-                    }
-                    setSubmitted(true);
-                    showToast(`Workout saved! +${calculateScore()} XP`);
-                    setTimeout(() => { setSubmitted(false); setSets([
-                      { weight: 135, reps: 10, rpe: 7, done: false },
-                      { weight: 135, reps: 10, rpe: 7, done: false },
-                      { weight: 135, reps: 10, rpe: 7, done: false },
-                    ]); setCurrentExercise(''); }, 2500);
-                  }}
-                  disabled={!sets.some(s => s.done)}
-                  className="w-full mt-4 py-4 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl font-black text-lg text-black shadow-lg shadow-yellow-400/30 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  ✓ Complete Workout
-                </button>
-              </div>
-            </>
-          )}
-
-          {activeTab === 'squad' && (
-            <SquadView user={user} group={group} />
-          )}
-
-          {activeTab === 'history' && (
-            <WorkoutHistory user={user} />
-          )}
-
-          {activeTab === 'awards' && (
+              ))}
+            </div>
+          ) : (
             <div className="space-y-3">
-              <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl border border-gray-700 p-4 mb-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-gray-400 text-sm">Your Badges</p>
-                    <p className="text-3xl font-black text-yellow-400">
-                      {user?.badges?.length || 0} / {ACHIEVEMENTS.length}
-                    </p>
-                  </div>
-                  <button 
-                    onClick={() => {
-                      const text = `I just earned ${user?.badges?.length || 0} badges on iLift!`;
-                      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
-                    }}
-                    className="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg font-bold text-sm border border-blue-500/30 hover:bg-blue-500/30"
-                  >
-                    Share
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold">{currentExercise}</h3>
+                <button onClick={() => setCurrentExercise('')} className="text-gray-400">✕</button>
+              </div>
+              
+              {sets.map((set, i) => (
+                <div key={i} className={`p-3 rounded-xl flex items-center gap-3 ${set.done ? 'bg-green-900/30 border border-green-500/30' : 'bg-gray-800'}`}>
+                  <span className="text-gray-400 font-bold w-8">Set {i + 1}</span>
+                  <input type="number" value={set.weight} onChange={(e) => {
+                    const newSets = [...sets];
+                    newSets[i].weight = parseInt(e.target.value) || 0;
+                    setSets(newSets);
+                  }} className="w-20 p-2 bg-gray-900 rounded-lg text-center" placeholder="lbs" />
+                  <span className="text-gray-500">×</span>
+                  <input type="number" value={set.reps} onChange={(e) => {
+                    const newSets = [...sets];
+                    newSets[i].reps = parseInt(e.target.value) || 0;
+                    setSets(newSets);
+                  }} className="w-16 p-2 bg-gray-900 rounded-lg text-center" placeholder="Reps" />
+                  <span className="text-gray-500">@</span>
+                  <select value={set.rpe} onChange={(e) => {
+                    const newSets = [...sets];
+                    newSets[i].rpe = parseInt(e.target.value);
+                    setSets(newSets);
+                  }} className="bg-gray-900 p-2 rounded-lg">
+                    {[5,6,7,8,9,10].map(r => <option key={r} value={r}>RPE {r}</option>)}
+                  </select>
+                  <button onClick={() => {
+                    const newSets = [...sets];
+                    newSets[i].done = !newSets[i].done;
+                    setSets(newSets);
+                  }} className={`ml-auto px-3 py-1 rounded-lg font-bold ${set.done ? 'bg-green-500 text-black' : 'bg-gray-700'}`}>
+                    {set.done ? '✓' : 'Done'}
                   </button>
                 </div>
-              </div>
+              ))}
               
-              {/* Video Upload Section */}
-              <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 mb-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <Video size={24} className="text-purple-400" />
-                  <div>
-                    <p className="font-bold text-white">Proof of Work</p>
-                    <p className="text-gray-500 text-sm">Upload a video to earn the Verified badge</p>
-                  </div>
-                </div>
-                
-                {user?.badges?.includes('verified') ? (
-                  <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-3 text-green-400 text-sm font-medium">
-                    ✓ Video verified! You earned the Verified badge.
-                  </div>
-                ) : (
-                  <label className={`flex items-center justify-center gap-2 py-3 rounded-lg font-bold cursor-pointer transition-all ${
-                    videoUploading 
-                      ? 'bg-gray-700 text-gray-500' 
-                      : 'bg-purple-500/20 text-purple-400 border border-purple-500/30 hover:bg-purple-500/30'
-                  }`}>
-                    {videoUploading ? (
-                      <>Uploading...</>
-                    ) : (
-                      <>
-                        <Video size={18} />
-                        <span>Upload Video Proof</span>
-                      </>
-                    )}
-                    <input 
-                      type="file" 
-                      accept="video/*" 
-                      className="hidden" 
-                      disabled={videoUploading}
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        
-                        // Check file size (limit to 10MB for localStorage)
-                        if (file.size > 10 * 1024 * 1024) {
-                          alert('Video must be under 10MB for this demo');
-                          return;
-                        }
-                        
-                        setVideoUploading(true);
-                        
-                        try {
-                          // Convert to base64 for local storage demo
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            const videoData = reader.result as string;
-                            
-                            // Save video data
-                            localStorage.setItem('ilift_video_proof', videoData);
-                            
-                            // Update user badges
-                            const updatedUser = { 
-                              ...user, 
-                              badges: [...(user?.badges || []), 'verified'],
-                              videoProof: videoData
-                            };
-                            setUser(updatedUser);
-                            localStorage.setItem('ilift_user', JSON.stringify(updatedUser));
-                            setVideoUploading(false);
-                            alert('Video uploaded! You earned the Verified badge!');
-                          };
-                          reader.readAsDataURL(file);
-                        } catch (err) {
-                          setVideoUploading(false);
-                          alert('Failed to upload video');
-                        }
-                      }}
-                    />
-                  </label>
-                )}
-              </div>
-
-              {ACHIEVEMENTS.map(ach => {
-                const earned = user?.badges?.includes(ach.id);
-                return (
-                  <div 
-                    key={ach.id} 
-                    className={`rounded-xl border p-4 flex items-center gap-4 transition-all ${
-                      earned 
-                        ? 'bg-gray-900 border-yellow-400/50' 
-                        : 'bg-gray-900/50 border-gray-800 opacity-50'
-                    }`}
-                  >
-                    {ach.icon && (
-                      <div className={`${earned ? 'text-yellow-400' : 'text-gray-600'}`}>
-                        <ach.icon size={28} strokeWidth={earned ? 2.5 : 1.5} />
-                      </div>
-                    )}
-                    <div className="flex-1">
-                      <p className={`font-bold ${earned ? 'text-white' : 'text-gray-500'}`}>{ach.name}</p>
-                      <p className="text-gray-500 text-sm">{ach.desc}</p>
-                    </div>
-                    <div className={`font-black text-lg ${earned ? 'text-yellow-400' : 'text-gray-600'}`}>
-                      {earned ? `+${ach.points}` : ach.points}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {activeTab === 'profile' && (
-            <div className="space-y-4">
-              <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-gray-700 p-6 text-center shadow-lg-custom">
-                <div className="relative inline-block">
-                  <div className="w-24 h-24 rounded-2xl bg-gray-800 flex items-center justify-center text-5xl mx-auto mb-4 ring-4 ring-yellow-400/20 overflow-hidden">
-                    {(user as any)?.avatar ? (
-                      <img src={(user as any).avatar} alt="Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <Target className="text-gray-600" size={48} />
-                    )}
-                  </div>
-                  <label className="absolute bottom-0 right-1/2 translate-x-1/2 translate-y-1 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center cursor-pointer hover:bg-yellow-300">
-                    <Camera size={14} className="text-black" />
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          const updatedUser = { ...user, avatar: reader.result };
-                          setUser(updatedUser);
-                          localStorage.setItem('ilift_user', JSON.stringify(updatedUser));
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }} />
-                  </label>
-                </div>
-                <h2 className="text-2xl font-black text-white">{user.name}</h2>
-                <p className="text-gray-400">{user.email}</p>
-                
-                {/* Goal Badge */}
-                <div className="mt-3 inline-block bg-purple-500/20 text-purple-400 px-4 py-1 rounded-full text-sm font-bold">
-                  Goal: {(user as any)?.onboarding?.fitness_goal || 'General Fitness'}
-                </div>
-                
-                {/* Level Progress */}
-                <div className="mt-5 bg-gray-900 rounded-xl p-4 border border-gray-700">
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="bg-gradient-to-r from-yellow-400 to-orange-400 text-black text-sm font-bold px-3 py-1 rounded-lg">Lvl {currentLevel}</span>
-                    <span className="text-gray-500 text-sm">{xpToNextLevel} XP to Level {currentLevel + 1}</span>
-                  </div>
-                  <div className="bg-gray-800 rounded-full h-3 shadow-inner">
-                    <div className="bg-gradient-to-r from-yellow-400 to-orange-400 h-3 rounded-full transition-all duration-500" style={{ width: `${xpProgress}%` }}></div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Stats Grid */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-gray-900 rounded-xl border border-gray-800 p-4 text-center hover:border-yellow-400/50 transition-all">
-                  <p className="text-3xl font-black text-yellow-400">{(user.totalXP || 0).toLocaleString()}</p>
-                  <p className="text-gray-500 text-xs font-medium mt-1">Total XP</p>
-                </div>
-                <div className="bg-gray-900 rounded-xl border border-gray-800 p-4 text-center hover:border-orange-400/50 transition-all">
-                  <p className="text-3xl font-black text-orange-400 flex items-center justify-center gap-1"><Flame size={28} /> {user.streak || 0}</p>
-                  <p className="text-gray-500 text-xs font-medium mt-1">Streak</p>
-                </div>
-                <div className="bg-gray-900 rounded-xl border border-gray-800 p-4 text-center hover:border-gray-600 transition-all">
-                  <p className="text-3xl font-black text-white">{user.badges?.length || 0}</p>
-                  <p className="text-gray-500 text-xs font-medium mt-1">Badges</p>
-                </div>
-              </div>
-
-              {/* My Stats - from onboarding */}
-              {(user as any)?.onboarding && (
-                <div className="bg-gray-900 rounded-xl border border-gray-700 p-4">
-                  <h3 className="text-white font-bold mb-3 flex items-center gap-2">
-                    <Activity size={18} className="text-yellow-400" />
-                    My Stats
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    {(user as any)?.onboarding?.weight && (
-                      <div className="bg-gray-800 rounded-lg p-3">
-                        <p className="text-gray-500">Weight</p>
-                        <p className="text-white font-bold">{(user as any).onboarding.weight} lbs</p>
-                      </div>
-                    )}
-                    {(user as any)?.onboarding?.height && (
-                      <div className="bg-gray-800 rounded-lg p-3">
-                        <p className="text-gray-500">Height</p>
-                        <p className="text-white font-bold">{Math.floor((user as any).onboarding.height / 12)}'{(user as any).onboarding.height % 12}"</p>
-                      </div>
-                    )}
-                    {(user as any)?.onboarding?.body_fat && (
-                      <div className="bg-gray-800 rounded-lg p-3">
-                        <p className="text-gray-500">Body Fat</p>
-                        <p className="text-white font-bold">{(user as any).onboarding.body_fat}%</p>
-                      </div>
-                    )}
-                    {(user as any)?.onboarding?.experience && (
-                      <div className="bg-gray-800 rounded-lg p-3">
-                        <p className="text-gray-500">Experience</p>
-                        <p className="text-white font-bold">{(user as any).onboarding.experience}</p>
-                      </div>
-                    )}
-                    {(user as any)?.onboarding?.age && (
-                      <div className="bg-gray-800 rounded-lg p-3">
-                        <p className="text-gray-500">Age</p>
-                        <p className="text-white font-bold">{(user as any).onboarding.age}</p>
-                      </div>
-                    )}
-                    {(user as any)?.onboarding?.workouts_per_week && (
-                      <div className="bg-gray-800 rounded-lg p-3">
-                        <p className="text-gray-500">Workouts/Week</p>
-                        <p className="text-white font-bold">{(user as any).onboarding.workouts_per_week}x</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Group Code */}
-              <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl border border-gray-700 p-5">
-                <p className="text-gray-400 text-sm mb-2">Squad Code</p>
-                <p className="text-4xl font-black text-yellow-400 tracking-widest">{group?.code || 'TEST'}</p>
-              </div>
+              <button onClick={() => setSets([...sets, { weight: 135, reps: 10, rpe: 7, done: false }])} className="w-full py-2 bg-gray-800 rounded-xl text-gray-400">+ Add Set</button>
               
-              {/* Share Button */}
-              <button 
-                onClick={() => {
-                  const text = `I'm level ${currentLevel} on iLift with ${user?.totalXP || 0} XP and a ${user?.streak || 0} day streak! Join my squad:`;
-                  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent('https://ilift.app')}`, '_blank');
-                }}
-                className="w-full py-3 bg-blue-500/20 text-blue-400 rounded-xl font-bold border border-blue-500/30 hover:bg-blue-500/30"
-              >
-                Share My Progress
+              <button onClick={completeWorkout} className="w-full py-4 bg-yellow-400 rounded-xl font-black text-black text-lg">
+                Complete Workout (+{calculateScore()} XP)
               </button>
             </div>
           )}
         </div>
-        
-        {floatingXP && <FloatingXP amount={floatingXP} />}
-        
-        {/* Rest Timer Modal */}
-        {restTimer !== null && restTimer > 0 && (
-          <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
-            <div className="text-center">
-              <p className="text-gray-400 text-xl mb-4">Rest Timer</p>
-              <div className="text-8xl font-black text-yellow-400 mb-8">{restTimeLeft}</div>
-              <div className="flex gap-3 justify-center">
-                <button 
-                  onClick={() => { setRestTimer(null); setRestTimeLeft(0); }}
-                  className="px-6 py-3 bg-gray-700 rounded-xl font-bold text-white"
-                >
-                  Skip
-                </button>
-                <button 
-                  onClick={() => setRestTimeLeft(restTimeLeft + 30)}
-                  className="px-6 py-3 bg-yellow-400 rounded-xl font-bold text-black"
-                >
-                  +30s
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {submitted && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-40">
-            <div className="text-center animate-bounce">
-              <div className="text-8xl mb-4">🎉</div>
-              <h2 className="text-5xl font-black text-white mb-2">LOGGED!</h2>
-              <p className="text-3xl text-yellow-400 font-black">+{calculateScore()} XP</p>
-            </div>
-          </div>
-        )}
+      )}
 
-        {/* Toast Notification */}
-        {toast && (
-          <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-xl font-bold shadow-2xl animate-scale-in ${
-            toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-          }`}>
-            {toast.message}
+      {/* History Tab */}
+      {activeTab === 'history' && (
+        <div className="p-4 space-y-3">
+          <h2 className="text-xl font-bold">Workout History</h2>
+          {workouts.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">No workouts yet</p>
+          ) : (
+            workouts.map(w => (
+              <div key={w.id} className="bg-gray-900 rounded-xl p-4">
+                <div className="flex justify-between">
+                  <span className="font-bold">{w.exercise}</span>
+                  <span className="text-yellow-400 font-black">+{w.score} XP</span>
+                </div>
+                <p className="text-gray-500 text-sm">{new Date(w.date).toLocaleDateString()}</p>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Awards Tab */}
+      {activeTab === 'awards' && (
+        <div className="p-4 space-y-3">
+          <div className="bg-gray-900 rounded-xl p-4 flex justify-between items-center">
+            <div>
+              <p className="text-gray-400">Badges</p>
+              <p className="text-3xl font-black text-yellow-400">{user.badges?.length || 0} / {ACHIEVEMENTS.length}</p>
+            </div>
           </div>
-        )}
-      </div>
-    </>
+          
+          {ACHIEVEMENTS.map(ach => {
+            const earned = user.badges?.includes(ach.id);
+            return (
+              <div key={ach.id} className={`p-4 rounded-xl flex items-center gap-4 ${earned ? 'bg-gray-900 border-yellow-400/30' : 'bg-gray-900/50 opacity-50'}`}>
+                <div className={earned ? 'text-yellow-400' : 'text-gray-600'}>
+                  {ach.icon && <ach.icon size={28} />}
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold">{ach.name}</p>
+                  <p className="text-gray-500 text-sm">{ach.desc}</p>
+                </div>
+                <span className="text-yellow-400 font-bold">+{ach.points}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Profile Tab */}
+      {activeTab === 'profile' && (
+        <div className="p-4 space-y-4">
+          <div className="bg-gray-900 rounded-xl p-6 text-center">
+            <div className="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-3">
+              <Target size={40} className="text-gray-600" />
+            </div>
+            <h2 className="text-2xl font-black">{user.name}</h2>
+            <p className="text-gray-400">{user.email}</p>
+            <div className="mt-4 bg-gray-800 rounded-lg p-3">
+              <p className="text-gray-400 text-sm">Level {currentLevel}</p>
+              <p className="text-3xl font-black text-yellow-400">{(user.totalXP || 0).toLocaleString()} XP</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-gray-900 rounded-xl p-4 text-center">
+              <Flame size={28} className="mx-auto text-orange-400 mb-2" />
+              <p className="text-2xl font-black">{user.streak || 0}</p>
+              <p className="text-gray-500 text-sm">Day Streak</p>
+            </div>
+            <div className="bg-gray-900 rounded-xl p-4 text-center">
+              <Award size={28} className="mx-auto text-purple-400 mb-2" />
+              <p className="text-2xl font-black">{user.badges?.length || 0}</p>
+              <p className="text-gray-500 text-sm">Badges</p>
+            </div>
+          </div>
+          
+          <div className="bg-gray-900 rounded-xl p-4">
+            <p className="text-gray-400 text-sm mb-2">Squad Code</p>
+            <p className="text-4xl font-black text-yellow-400">{group?.code || 'TEST'}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Success Overlay */}
+      {submitted && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-40">
+          <div className="text-center animate-bounce">
+            <div className="text-8xl mb-4">🎉</div>
+            <h2 className="text-5xl font-black">LOGGED!</h2>
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 bg-green-500 rounded-xl font-bold">
+          {toast.message}
+        </div>
+      )}
+    </div>
   );
 }
