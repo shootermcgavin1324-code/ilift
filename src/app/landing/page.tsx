@@ -25,8 +25,8 @@ export default function Landing() {
   };
 
   const handleSignIn = () => {
-    // For returning users - go directly to dashboard
-    router.push('/dashboard');
+    // Go to dedicated sign in page
+    router.push('/signin');
   };
 
   return (
