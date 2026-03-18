@@ -1,0 +1,100 @@
+{
+  "users": [
+    {
+      "id": "1773808423747",
+      "name": "Jordan Kolakoski",
+      "email": "jkolakoski4@gmail.com",
+      "inviteCode": "TEST",
+      "createdAt": "2026-03-18T04:33:43.747Z",
+      "totalXP": 143,
+      "streak": 1,
+      "lastWorkout": "2026-03-18T06:19:26.966Z"
+    },
+    {
+      "id": "1773814178305",
+      "name": "Test User",
+      "email": "test@example.com",
+      "totalXP": 0,
+      "streak": 0,
+      "lastWorkout": null,
+      "badges": [],
+      "createdAt": "2026-03-18T06:09:38.305Z"
+    },
+    {
+      "id": "1773814313511",
+      "name": "New User",
+      "email": "newuser@test.com",
+      "totalXP": 0,
+      "streak": 0,
+      "lastWorkout": null,
+      "badges": [],
+      "createdAt": "2026-03-18T06:11:53.511Z"
+    }
+  ],
+  "groups": [
+    {
+      "id": "1773808423748",
+      "name": "Jordan Kolakoski's Group",
+      "code": "TEST",
+      "members": [
+        "1773808423747",
+        "1773814178305",
+        "1773814313511"
+      ],
+      "createdAt": "2026-03-18T04:33:43.748Z"
+    }
+  ],
+  "workouts": [
+    {
+      "id": "1773808540068",
+      "userId": "1",
+      "groupId": "1",
+      "exercises": [
+        {
+          "name": "Squat",
+          "sets": 3,
+          "reps": 10,
+          "weight": 100,
+          "rpe": 7
+        }
+      ],
+      "date": "2026-03-18T04:35:40.068Z",
+      "completed": true
+    },
+    {
+      "id": "1773812211883",
+      "userId": "1773808423747",
+      "groupId": "1773808423748",
+      "userName": "Jordan Kolakoski",
+      "exercises": [
+        {
+          "name": "Bench Press",
+          "sets": 3,
+          "reps": 10,
+          "weight": 135,
+          "rpe": 7
+        }
+      ],
+      "score": 70,
+      "date": "2026-03-18T05:36:51.883Z"
+    },
+    {
+      "id": "1773814766966",
+      "userId": "1773808423747",
+      "groupId": "1773808423748",
+      "userName": "Jordan Kolakoski",
+      "exercises": [
+        {
+          "name": "Bench Press",
+          "sets": 3,
+          "reps": 10,
+          "weight": 135,
+          "rpe": 7
+        }
+      ],
+      "score": 73,
+      "date": "2026-03-18T06:19:26.966Z"
+    }
+  ],
+  "exercises": []
+}
