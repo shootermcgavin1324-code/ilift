@@ -904,8 +904,29 @@ export default function Dashboard() {
           {activeTab === 'profile' && (
             <div className="space-y-4">
               <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-gray-700 p-6 text-center shadow-lg-custom">
-                <div className="w-24 h-24 rounded-2xl bg-gray-800 flex items-center justify-center text-5xl mx-auto mb-4 ring-4 ring-yellow-400/20">
-                  🎯
+                <div className="relative inline-block">
+                  <div className="w-24 h-24 rounded-2xl bg-gray-800 flex items-center justify-center text-5xl mx-auto mb-4 ring-4 ring-yellow-400/20 overflow-hidden">
+                    {(user as any)?.avatar ? (
+                      <img src={(user as any).avatar} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <Target className="text-gray-600" size={48} />
+                    )}
+                  </div>
+                  <label className="absolute bottom-0 right-1/2 translate-x-1/2 translate-y-1 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center cursor-pointer hover:bg-yellow-300">
+                    <Camera size={14} className="text-black" />
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          const updatedUser = { ...user, avatar: reader.result };
+                          setUser(updatedUser);
+                          localStorage.setItem('ilift_user', JSON.stringify(updatedUser));
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }} />
+                  </label>
                 </div>
                 <h2 className="text-2xl font-black text-white">{user.name}</h2>
                 <p className="text-gray-400">{user.email}</p>
@@ -934,7 +955,7 @@ export default function Dashboard() {
                   <p className="text-gray-500 text-xs font-medium mt-1">Total XP</p>
                 </div>
                 <div className="bg-gray-900 rounded-xl border border-gray-800 p-4 text-center hover:border-orange-400/50 transition-all">
-                  <p className="text-3xl font-black text-orange-400 flex items-center gap-2"><Flame size={32} /> {user.streak || 0}</p>
+                  <p className="text-3xl font-black text-orange-400 flex items-center justify-center gap-1"><Flame size={28} /> {user.streak || 0}</p>
                   <p className="text-gray-500 text-xs font-medium mt-1">Streak</p>
                 </div>
                 <div className="bg-gray-900 rounded-xl border border-gray-800 p-4 text-center hover:border-gray-600 transition-all">
@@ -942,6 +963,54 @@ export default function Dashboard() {
                   <p className="text-gray-500 text-xs font-medium mt-1">Badges</p>
                 </div>
               </div>
+
+              {/* My Stats - from onboarding */}
+              {(user as any)?.onboarding && (
+                <div className="bg-gray-900 rounded-xl border border-gray-700 p-4">
+                  <h3 className="text-white font-bold mb-3 flex items-center gap-2">
+                    <Activity size={18} className="text-yellow-400" />
+                    My Stats
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    {(user as any)?.onboarding?.weight && (
+                      <div className="bg-gray-800 rounded-lg p-3">
+                        <p className="text-gray-500">Weight</p>
+                        <p className="text-white font-bold">{(user as any).onboarding.weight} lbs</p>
+                      </div>
+                    )}
+                    {(user as any)?.onboarding?.height && (
+                      <div className="bg-gray-800 rounded-lg p-3">
+                        <p className="text-gray-500">Height</p>
+                        <p className="text-white font-bold">{Math.floor((user as any).onboarding.height / 12)}'{(user as any).onboarding.height % 12}"</p>
+                      </div>
+                    )}
+                    {(user as any)?.onboarding?.body_fat && (
+                      <div className="bg-gray-800 rounded-lg p-3">
+                        <p className="text-gray-500">Body Fat</p>
+                        <p className="text-white font-bold">{(user as any).onboarding.body_fat}%</p>
+                      </div>
+                    )}
+                    {(user as any)?.onboarding?.experience && (
+                      <div className="bg-gray-800 rounded-lg p-3">
+                        <p className="text-gray-500">Experience</p>
+                        <p className="text-white font-bold">{(user as any).onboarding.experience}</p>
+                      </div>
+                    )}
+                    {(user as any)?.onboarding?.age && (
+                      <div className="bg-gray-800 rounded-lg p-3">
+                        <p className="text-gray-500">Age</p>
+                        <p className="text-white font-bold">{(user as any).onboarding.age}</p>
+                      </div>
+                    )}
+                    {(user as any)?.onboarding?.workouts_per_week && (
+                      <div className="bg-gray-800 rounded-lg p-3">
+                        <p className="text-gray-500">Workouts/Week</p>
+                        <p className="text-white font-bold">{(user as any).onboarding.workouts_per_week}x</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Group Code */}
               <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl border border-gray-700 p-5">
@@ -952,7 +1021,7 @@ export default function Dashboard() {
               {/* Share Button */}
               <button 
                 onClick={() => {
-                  const text = `I'm level ${currentLevel} on iLift with ${user?.totalXP || 0} XP and a ${user?.streak || 0} day streak! 💪🔥 Join my squad:`;
+                  const text = `I'm level ${currentLevel} on iLift with ${user?.totalXP || 0} XP and a ${user?.streak || 0} day streak! Join my squad:`;
                   window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent('https://ilift.app')}`, '_blank');
                 }}
                 className="w-full py-3 bg-blue-500/20 text-blue-400 rounded-xl font-bold border border-blue-500/30 hover:bg-blue-500/30"
