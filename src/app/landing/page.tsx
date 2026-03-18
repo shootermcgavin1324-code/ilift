@@ -23,6 +23,14 @@ export default function Landing() {
   }, [router]);
 
   const handleJoin = () => {
+    // Check if already logged in
+    const userData = localStorage.getItem('ilift_user');
+    const hasOnboarding = localStorage.getItem('ilift_onboarding');
+    if (userData && hasOnboarding) {
+      router.push('/dashboard');
+      return;
+    }
+    
     // Store email and code to pass to onboarding
     if (email) localStorage.setItem('ilift_pending_email', email);
     if (code) localStorage.setItem('ilift_pending_code', code.toUpperCase());
@@ -30,7 +38,19 @@ export default function Landing() {
   };
 
   const handleEnter = () => {
-    router.push('/');
+    // Check if already logged in
+    const userData = localStorage.getItem('ilift_user');
+    const hasOnboarding = localStorage.getItem('ilift_onboarding');
+    if (userData) {
+      if (hasOnboarding) {
+        router.push('/dashboard');
+      } else {
+        router.push('/onboarding');
+      }
+    } else {
+      // Stay on landing, focus email input
+      document.getElementById('email-input')?.focus();
+    }
   };
 
   return (
@@ -180,6 +200,7 @@ export default function Landing() {
               
               <input
                 type="email"
+                id="email-input"
                 placeholder="Your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
