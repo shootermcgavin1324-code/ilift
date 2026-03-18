@@ -603,6 +603,11 @@ export default function Dashboard() {
             </div>
             <h2 className="text-2xl font-black">{user.name}</h2>
             <p className="text-gray-400">{user.email}</p>
+            {user.onboarding?.fitness_goal && (
+              <p className="mt-2 inline-block bg-purple-500/20 text-purple-400 px-3 py-1 rounded-full text-sm font-bold">
+                Goal: {user.onboarding.fitness_goal}
+              </p>
+            )}
             <div className="mt-4 bg-gray-800 rounded-lg p-3">
               <p className="text-gray-400 text-sm">Level {currentLevel}</p>
               <p className="text-3xl font-black text-yellow-400">{(user.total_xp || 0).toLocaleString()} XP</p>
@@ -622,10 +627,54 @@ export default function Dashboard() {
             </div>
           </div>
           
+          {/* Onboarding Stats */}
+          {user.onboarding && (
+            <div className="bg-gray-900 rounded-xl p-4">
+              <p className="text-gray-400 text-sm mb-3">My Stats</p>
+              <div className="grid grid-cols-2 gap-2">
+                {user.onboarding.weight && (
+                  <div className="bg-gray-800 rounded-lg p-3">
+                    <p className="text-gray-500 text-xs">Weight</p>
+                    <p className="text-white font-bold">{user.onboarding.weight} lbs</p>
+                  </div>
+                )}
+                {user.onboarding.height && (
+                  <div className="bg-gray-800 rounded-lg p-3">
+                    <p className="text-gray-500 text-xs">Height</p>
+                    <p className="text-white font-bold">{Math.floor(user.onboarding.height / 12)}'{user.onboarding.height % 12}"</p>
+                  </div>
+                )}
+                {user.onboarding.experience && (
+                  <div className="bg-gray-800 rounded-lg p-3">
+                    <p className="text-gray-500 text-xs">Experience</p>
+                    <p className="text-white font-bold">{user.onboarding.experience}</p>
+                  </div>
+                )}
+                {user.onboarding.age && (
+                  <div className="bg-gray-800 rounded-lg p-3">
+                    <p className="text-gray-500 text-xs">Age</p>
+                    <p className="text-white font-bold">{user.onboarding.age}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
           <div className="bg-gray-900 rounded-xl p-4">
             <p className="text-gray-400 text-sm mb-2">Squad Code</p>
             <p className="text-4xl font-black text-yellow-400">{user.group_code || 'TEST'}</p>
           </div>
+          
+          {/* Share Button */}
+          <button 
+            onClick={() => {
+              const text = `I'm level ${currentLevel} on iLift with ${user.total_xp || 0} XP! 💪🔥`;
+              window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+            }}
+            className="w-full py-3 bg-blue-500/20 text-blue-400 rounded-xl font-bold border border-blue-500/30"
+          >
+            Share Progress
+          </button>
         </div>
       )}
 
