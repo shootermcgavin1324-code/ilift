@@ -96,7 +96,7 @@ export default function Dashboard() {
           total_xp: 0,
           streak: 0,
           badges: [],
-          group_code: onboarding.groupCode || 'TEST',
+          group_id: onboarding.groupCode || 'TEST',
           onboarding
         };
         const result = await createUser(newUser);
@@ -111,7 +111,7 @@ export default function Dashboard() {
       setWorkouts(userWorkouts);
       
       // Load leaderboard
-      const lb = await getLeaderboard(userData.group_code);
+      const lb = await getLeaderboard(userData.group_id);
       setLeaderboard(lb);
       
     } catch (e) {
@@ -183,7 +183,7 @@ export default function Dashboard() {
       const userWorkouts = await getUserWorkouts(user.id);
       setWorkouts(userWorkouts);
       
-      const lb = await getLeaderboard(user.group_code);
+      const lb = await getLeaderboard(user.group_id);
       setLeaderboard(lb);
       
       setSubmitted(true);
@@ -359,13 +359,13 @@ export default function Dashboard() {
       {activeTab === 'squad' && (
         <div className="p-4 space-y-4">
           <h2 className="text-xl font-bold">Your Squad</h2>
-          <p className="text-gray-400 text-sm">People in your group ({user.group_code})</p>
+          <p className="text-gray-400 text-sm">People in your group ({user.group_id})</p>
           
           {leaderboard.length === 0 ? (
             <div className="text-center py-8 bg-gray-900/50 rounded-xl">
               <Users size={40} className="mx-auto text-gray-700 mb-3" />
               <p className="text-gray-500">No one else in your squad yet!</p>
-              <p className="text-gray-600 text-sm mt-1">Share the squad code: <span className="text-yellow-400 font-bold">{user.group_code}</span></p>
+              <p className="text-gray-600 text-sm mt-1">Share the squad code: <span className="text-yellow-400 font-bold">{user.group_id}</span></p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -697,7 +697,7 @@ export default function Dashboard() {
           
           <div className="bg-gray-900 rounded-xl p-4">
             <p className="text-gray-400 text-sm mb-2">Squad Code</p>
-            <p className="text-4xl font-black text-yellow-400">{user.group_code || 'TEST'}</p>
+            <p className="text-4xl font-black text-yellow-400">{user.group_id || 'TEST'}</p>
           </div>
           
           {/* Share Button */}

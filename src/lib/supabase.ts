@@ -69,7 +69,7 @@ export async function getUserWorkouts(userId: string) {
 }
 
 export async function getLeaderboard(groupCode: string) {
-  const { data } = await supabase.from('users').select('*').eq('group_code', groupCode).order('total_xp', { ascending: false });
+  const { data } = await supabase.from('users').select('*').eq('group_id', groupCode).order('total_xp', { ascending: false });
   return data || [];
 }
 
