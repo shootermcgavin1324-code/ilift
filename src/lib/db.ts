@@ -209,3 +209,11 @@ export function getBadges() {
   const db = readDB();
   return db.badges || [];
 }
+
+export function getWorkoutsByUser(userId: string) {
+  const db = readDB();
+  const userWorkouts = db.workouts.filter((w: any) => w.userId === userId);
+  return userWorkouts
+    .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 20); // Last 20 workouts
+}

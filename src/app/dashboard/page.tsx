@@ -57,6 +57,81 @@ function FloatingXP({ amount }: { amount: number }) {
   );
 }
 
+// Workout History Component - fetches from API
+function WorkoutHistory({ user }: { user: { id: string; name: string } | null }) {
+  const [workouts, setWorkouts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    const userId = user.id;
+    
+    async function fetchHistory() {
+      try {
+        const res = await fetch(`/api/workout?type=user&userId=${userId}`);
+        const data = await res.json();
+        if (data.success) {
+          setWorkouts(data.workouts || []);
+        }
+      } catch (e) {
+        console.error('Failed to fetch history', e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchHistory();
+  }, [user?.id]);
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (date.toDateString() === today.toDateString()) return 'Today';
+    if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold text-white mb-4">📋 Workout History</h2>
+        <p className="text-gray-500 text-center">Loading...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-xl font-bold text-white mb-4">📋 Workout History</h2>
+      
+      {workouts.length === 0 ? (
+        <p className="text-gray-500 text-center">No workouts yet. Start logging!</p>
+      ) : (
+        workouts.map((workout) => (
+          <div key={workout.id} className="bg-gray-900 rounded-xl border border-gray-800 p-4">
+            <div className="flex justify-between items-center mb-2">
+              <p className="font-bold text-white">
+                {workout.exercises?.[0]?.name || 'Workout'}
+              </p>
+              <span className="text-yellow-400 font-black">+{workout.score} XP</span>
+            </div>
+            <p className="text-gray-500 text-sm">{formatDate(workout.date)}</p>
+            {workout.exercises?.length > 0 && (
+              <p className="text-gray-400 text-sm mt-2">
+                {workout.exercises.length} exercise{workout.exercises.length > 1 ? 's' : ''}
+              </p>
+            )}
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
 interface Set {
   weight: number;
   reps: number;
@@ -567,57 +642,39 @@ export default function Dashboard() {
           )}
 
           {activeTab === 'history' && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold text-white mb-4">📋 Workout History</h2>
-              
-              {/* Mock history - in production, fetch from API */}
-              <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <p className="font-bold text-white">Bench Press</p>
-                  <span className="text-yellow-400 font-black">+77 XP</span>
-                </div>
-                <p className="text-gray-500 text-sm">Today, 2:30 AM</p>
-                <p className="text-gray-400 text-sm mt-2">3 sets × 10 reps @ 135 lbs • RPE 7</p>
-              </div>
-
-              <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <p className="font-bold text-white">Squat</p>
-                  <span className="text-yellow-400 font-black">+70 XP</span>
-                </div>
-                <p className="text-gray-500 text-sm">Yesterday</p>
-                <p className="text-gray-400 text-sm mt-2">3 sets × 10 reps @ 100 lbs • RPE 7</p>
-              </div>
-
-              <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <p className="font-bold text-white">Upper Body</p>
-                  <span className="text-yellow-400 font-black">+50 XP</span>
-                </div>
-                <p className="text-gray-500 text-sm">Mar 16, 2026</p>
-                <p className="text-gray-400 text-sm mt-2">First workout! 🎉</p>
-              </div>
-
-              <p className="text-gray-500 text-center text-sm mt-8">More history coming soon...</p>
-            </div>
+            <WorkoutHistory user={user} />
           )}
 
           {activeTab === 'awards' && (
             <div className="space-y-3">
               <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl border border-gray-700 p-4 mb-4">
-                <p className="text-gray-400 text-sm">Total Available</p>
-                <p className="text-3xl font-black text-yellow-400">{ACHIEVEMENTS.reduce((a, b) => a + b.points, 0)} XP</p>
+                <p className="text-gray-400 text-sm">Your Badges</p>
+                <p className="text-3xl font-black text-yellow-400">
+                  {user?.badges?.length || 0} / {ACHIEVEMENTS.length}
+                </p>
               </div>
-              {ACHIEVEMENTS.map(ach => (
-                <div key={ach.id} className="bg-gray-900 rounded-xl border border-gray-800 p-4 flex items-center gap-4 hover:border-gray-700 transition-all">
-                  <div className="text-3xl">{ach.emoji}</div>
-                  <div className="flex-1">
-                    <p className="font-bold text-white">{ach.name}</p>
-                    <p className="text-gray-500 text-sm">{ach.desc}</p>
+              {ACHIEVEMENTS.map(ach => {
+                const earned = user?.badges?.includes(ach.id);
+                return (
+                  <div 
+                    key={ach.id} 
+                    className={`rounded-xl border p-4 flex items-center gap-4 transition-all ${
+                      earned 
+                        ? 'bg-gray-900 border-yellow-400/50' 
+                        : 'bg-gray-900/50 border-gray-800 opacity-50'
+                    }`}
+                  >
+                    <div className={`text-3xl ${earned ? '' : 'grayscale'}`}>{ach.emoji}</div>
+                    <div className="flex-1">
+                      <p className={`font-bold ${earned ? 'text-white' : 'text-gray-500'}`}>{ach.name}</p>
+                      <p className="text-gray-500 text-sm">{ach.desc}</p>
+                    </div>
+                    <div className={`font-black text-lg ${earned ? 'text-yellow-400' : 'text-gray-600'}`}>
+                      {earned ? `+${ach.points}` : ach.points}
+                    </div>
                   </div>
-                  <div className="text-yellow-400 font-black text-lg">+{ach.points}</div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 

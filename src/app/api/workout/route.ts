@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { logWorkout, getLeaderboard, getTodayWorkouts, getUserById } from '@/lib/db';
+import { logWorkout, getLeaderboard, getTodayWorkouts, getUserById, getWorkoutsByUser } from '@/lib/db';
 
 export async function POST(request: Request) {
   try {
@@ -23,6 +23,14 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const groupId = searchParams.get('groupId') || '1';
+    const userId = searchParams.get('userId');
+    const type = searchParams.get('type') || 'group';
+    
+    if (type === 'user' && userId) {
+      // Get user's workout history
+      const workouts = getWorkoutsByUser(userId);
+      return NextResponse.json({ success: true, workouts });
+    }
     
     const leaderboard = getLeaderboard(groupId);
     const todayWorkouts = getTodayWorkouts(groupId);
