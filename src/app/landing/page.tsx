@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Scale, Flame, Trophy, TrendingUp, ArrowRight } from 'lucide-react';
 
 export default function Landing() {
   const router = useRouter();
@@ -125,7 +126,7 @@ export default function Landing() {
           {/* Features */}
           <div className="max-w-md mx-auto space-y-3 mb-10 animate-slide-up delay-200">
             <div className="flex items-center gap-4 bg-gray-900/60 backdrop-blur rounded-2xl p-4 border border-gray-800/50">
-              <div className="w-12 h-12 rounded-xl bg-yellow-400/10 flex items-center justify-center text-2xl">⚖️</div>
+              <div className="w-12 h-12 rounded-xl bg-yellow-400/10 flex items-center justify-center"><Scale size={24} className="text-yellow-400" /></div>
               <div>
                 <p className="font-bold text-white">Fair Competition</p>
                 <p className="text-gray-500 text-sm">RPE-based scoring means anyone can win</p>
@@ -133,7 +134,7 @@ export default function Landing() {
             </div>
             
             <div className="flex items-center gap-4 bg-gray-900/60 backdrop-blur rounded-2xl p-4 border border-gray-800/50">
-              <div className="w-12 h-12 rounded-xl bg-orange-400/10 flex items-center justify-center text-2xl">🔥</div>
+              <div className="w-12 h-12 rounded-xl bg-orange-400/10 flex items-center justify-center"><Flame size={24} className="text-orange-400" /></div>
               <div>
                 <p className="font-bold text-white">Streaks & Levels</p>
                 <p className="text-gray-500 text-sm">Build habits, earn badges, level up</p>
@@ -141,7 +142,7 @@ export default function Landing() {
             </div>
             
             <div className="flex items-center gap-4 bg-gray-900/60 backdrop-blur rounded-2xl p-4 border border-gray-800/50">
-              <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-2xl">🏆</div>
+              <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center"><Trophy size={24} className="text-purple-400" /></div>
               <div>
                 <p className="font-bold text-white">Daily Battles</p>
                 <p className="text-gray-500 text-sm">See where you rank every single day</p>
@@ -174,7 +175,7 @@ export default function Landing() {
                 onClick={handleJoin}
                 className="w-full py-4 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl font-black text-lg text-black shadow-xl shadow-yellow-400/20 hover:shadow-yellow-400/40 hover:scale-[1.02] transition-all animate-glow"
               >
-                START COMPETING →
+                START COMPETING <ArrowRight size={20} className="inline ml-2" />
               </button>
             </div>
             
