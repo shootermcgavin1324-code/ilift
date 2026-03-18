@@ -7,6 +7,7 @@ interface OnboardingData {
   fitness_goal: string;
   weight: number;
   height: number;
+  body_fat?: number;
   age: number;
   experience: string;
   lifting_since: number;
@@ -29,6 +30,7 @@ export default function Onboarding() {
     fitness_goal: '',
     weight: 150,
     height: 70,
+    body_fat: undefined,
     age: 25,
     experience: '',
     lifting_since: 2020,
@@ -87,7 +89,6 @@ export default function Onboarding() {
   };
 
   const goals = ['Muscle Gain', 'Weight Loss', 'Endurance', 'General Fitness'];
-  const experiences = ['Beginner', 'Intermediate', 'Advanced'];
 
   return (
     <>
@@ -169,6 +170,17 @@ export default function Onboarding() {
                   value={data.weight}
                   onChange={(e) => setData({ ...data, weight: parseInt(e.target.value) })}
                   className="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="text-gray-400 text-sm">Body Fat % (optional)</label>
+                <input
+                  type="number"
+                  placeholder="e.g. 15"
+                  value={data.body_fat || ''}
+                  onChange={(e) => setData({ ...data, body_fat: e.target.value ? parseInt(e.target.value) : undefined })}
+                  className="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 text-white placeholder-gray-600"
                 />
               </div>
               
