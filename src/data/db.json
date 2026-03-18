@@ -94,6 +94,23 @@
       ],
       "score": 73,
       "date": "2026-03-18T06:19:26.966Z"
+    },
+    {
+      "id": "1773860847915",
+      "userId": "1",
+      "groupId": "1",
+      "userName": "Jordan",
+      "exercises": [
+        {
+          "name": "Bench Press",
+          "sets": 3,
+          "reps": 10,
+          "weight": 135,
+          "rpe": 7
+        }
+      ],
+      "score": 70,
+      "date": "2026-03-18T19:07:27.915Z"
     }
   ],
   "exercises": []

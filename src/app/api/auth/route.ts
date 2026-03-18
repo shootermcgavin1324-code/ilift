@@ -22,13 +22,15 @@ export async function POST(request: Request) {
         user.badges = [];
       }
       
-      // Save onboarding data if provided
-      if (onboarding) {
-        user = updateUser(user.id, { onboarding }) || user;
-      }
-      
       // Join or create group
       const group = joinGroup(user.id, groupCode || 'TEST');
+      
+      // Save onboarding data and groupId if provided
+      if (onboarding) {
+        user = updateUser(user.id, { onboarding, groupId: group.id }) || user;
+      } else {
+        user = updateUser(user.id, { groupId: group.id }) || user;
+      }
       
       return NextResponse.json({ 
         success: true, 
@@ -40,7 +42,8 @@ export async function POST(request: Request) {
           streak: user.streak || 0,
           badges: user.badges || [],
           lastWorkout: user.lastWorkout,
-          onboarding: user.onboarding
+          onboarding: user.onboarding,
+          groupId: group.id
         },
         group: { id: group.id, name: group.name, code: group.code }
       });
