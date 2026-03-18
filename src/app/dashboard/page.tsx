@@ -256,12 +256,19 @@ export default function Dashboard() {
   const [leaderboardPeriod, setLeaderboardPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'lifetime'>('daily');
   const [currentExercise, setCurrentExercise] = useState('');
   const [exerciseSearch, setExerciseSearch] = useState('');
+  const [toast, setToast] = useState<{message: string; type: 'success' | 'error'} | null>(null);
   const [sets, setSets] = useState<Set[]>([
     { weight: 135, reps: 10, rpe: 7, done: false },
     { weight: 135, reps: 10, rpe: 7, done: false },
     { weight: 135, reps: 10, rpe: 7, done: false },
   ]);
   const router = useRouter();
+
+  // Toast helper
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   // Animation styles
   const styles = `
@@ -761,7 +768,7 @@ export default function Dashboard() {
                     
                     if (user && group) {
                       try {
-                        await fetch('/api/workout', {
+                        const res = await fetch('/api/workout', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({
@@ -778,8 +785,13 @@ export default function Dashboard() {
                             groupId: group.id
                           })
                         });
+                        const data = await res.json();
+                        if (!data.success) {
+                          showToast('Failed to save workout', 'error');
+                        }
                       } catch (e) {
                         console.error('Failed to save workout', e);
+                        showToast('Failed to save workout', 'error');
                       }
                     }
                     
@@ -792,6 +804,7 @@ export default function Dashboard() {
                       localStorage.setItem('ilift_user', JSON.stringify(updatedUser)); 
                     }
                     setSubmitted(true);
+                    showToast(`Workout saved! +${calculateScore()} XP`);
                     setTimeout(() => { setSubmitted(false); setSets([
                       { weight: 135, reps: 10, rpe: 7, done: false },
                       { weight: 135, reps: 10, rpe: 7, done: false },
@@ -1106,6 +1119,15 @@ export default function Dashboard() {
               <h2 className="text-5xl font-black text-white mb-2">LOGGED!</h2>
               <p className="text-3xl text-yellow-400 font-black">+{calculateScore()} XP</p>
             </div>
+          </div>
+        )}
+
+        {/* Toast Notification */}
+        {toast && (
+          <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-xl font-bold shadow-2xl animate-scale-in ${
+            toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+          }`}>
+            {toast.message}
           </div>
         )}
       </div>
