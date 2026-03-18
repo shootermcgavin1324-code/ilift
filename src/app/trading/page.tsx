@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { TrendingUp, Wallet, Settings, Users, Copy, ExternalLink, Activity, DollarSign, Percent } from 'lucide-react';
 
 interface Position {
   id: string;
@@ -165,7 +166,7 @@ export default function Trading() {
                 <div key={post.id} className="bg-gray-900 rounded-xl border border-gray-800 p-4">
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl">{post.platform === 'instagram' ? '📸' : '𝕏'}</span>
+                      <span className="text-2xl">{post.platform === 'instagram' ? 'IG' : 'X'}</span>
                       <div>
                         <p className="font-bold text-white">{post.title}</p>
                         <p className="text-gray-500 text-sm">{post.scheduledDate}</p>
@@ -188,7 +189,7 @@ export default function Trading() {
               <div className="pt-4 border-t border-gray-800">
                 <h3 className="text-sm font-bold text-gray-500 mb-3">TODAY</h3>
                 <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-xl border border-purple-500/30 p-4">
-                  <p className="font-bold text-white mb-1">📸 Pokémon Story</p>
+                  <p className="font-bold text-white mb-1">🎮 Pokémon Story</p>
                   <p className="text-gray-400 text-sm">"You trained the AI. Now it's delivering your pizza."</p>
                   <button className="mt-3 w-full py-2 bg-white text-black rounded-lg font-bold text-sm">
                     Post Now
@@ -199,7 +200,7 @@ export default function Trading() {
               <div className="pt-4">
                 <h3 className="text-sm font-bold text-gray-500 mb-3">TOMORROW</h3>
                 <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-xl border border-blue-500/30 p-4">
-                  <p className="font-bold text-white mb-1">📸 5-Story Roundup</p>
+                  <p className="font-bold text-white mb-1">📑 5-Story Roundup</p>
                   <p className="text-gray-400 text-sm">Cuba, Midterms, Epstein, Mamdani, Immigration</p>
                   <button className="mt-3 w-full py-2 bg-gray-700 text-gray-400 rounded-lg font-bold text-sm">
                     Schedule
