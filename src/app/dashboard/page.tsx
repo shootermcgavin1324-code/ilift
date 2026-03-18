@@ -764,10 +764,23 @@ export default function Dashboard() {
           {activeTab === 'awards' && (
             <div className="space-y-3">
               <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl border border-gray-700 p-4 mb-4">
-                <p className="text-gray-400 text-sm">Your Badges</p>
-                <p className="text-3xl font-black text-yellow-400">
-                  {user?.badges?.length || 0} / {ACHIEVEMENTS.length}
-                </p>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-gray-400 text-sm">Your Badges</p>
+                    <p className="text-3xl font-black text-yellow-400">
+                      {user?.badges?.length || 0} / {ACHIEVEMENTS.length}
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      const text = `I just earned ${user?.badges?.length || 0} badges on iLift! 💪🔥`;
+                      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+                    }}
+                    className="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg font-bold text-sm border border-blue-500/30 hover:bg-blue-500/30"
+                  >
+                    Share
+                  </button>
+                </div>
               </div>
               {ACHIEVEMENTS.map(ach => {
                 const earned = user?.badges?.includes(ach.id);
@@ -803,6 +816,11 @@ export default function Dashboard() {
                 <h2 className="text-2xl font-black text-white">{user.name}</h2>
                 <p className="text-gray-400">{user.email}</p>
                 
+                {/* Goal Badge */}
+                <div className="mt-3 inline-block bg-purple-500/20 text-purple-400 px-4 py-1 rounded-full text-sm font-bold">
+                  Goal: {(user as any)?.onboarding?.fitness_goal || 'General Fitness'}
+                </div>
+                
                 {/* Level Progress */}
                 <div className="mt-5 bg-gray-900 rounded-xl p-4 border border-gray-700">
                   <div className="flex justify-between items-center mb-3">
@@ -836,6 +854,17 @@ export default function Dashboard() {
                 <p className="text-gray-400 text-sm mb-2">Squad Code</p>
                 <p className="text-4xl font-black text-yellow-400 tracking-widest">{group?.code || 'TEST'}</p>
               </div>
+              
+              {/* Share Button */}
+              <button 
+                onClick={() => {
+                  const text = `I'm level ${currentLevel} on iLift with ${user?.totalXP || 0} XP and a ${user?.streak || 0} day streak! 💪🔥 Join my squad:`;
+                  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent('https://ilift.app')}`, '_blank');
+                }}
+                className="w-full py-3 bg-blue-500/20 text-blue-400 rounded-xl font-bold border border-blue-500/30 hover:bg-blue-500/30"
+              >
+                Share My Progress
+              </button>
             </div>
           )}
         </div>
