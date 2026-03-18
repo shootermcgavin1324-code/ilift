@@ -208,7 +208,18 @@ export default function Landing() {
               />
               
               <button 
-                onClick={handleJoin}
+                onClick={() => {
+                  const userData = localStorage.getItem('ilift_user');
+                  const hasOnboarding = localStorage.getItem('ilift_onboarding');
+                  console.log('Click - userData:', !!userData, 'hasOnboarding:', !!hasOnboarding);
+                  if (userData && hasOnboarding) {
+                    router.push('/dashboard');
+                    return;
+                  }
+                  if (email) localStorage.setItem('ilift_pending_email', email);
+                  if (code) localStorage.setItem('ilift_pending_code', code.toUpperCase());
+                  router.push('/onboarding');
+                }}
                 className="w-full py-4 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl font-black text-lg text-black shadow-xl shadow-yellow-400/20 hover:shadow-yellow-400/40 hover:scale-[1.02] transition-all animate-glow"
               >
                 START COMPETING <ArrowRight size={20} className="inline ml-2" />
