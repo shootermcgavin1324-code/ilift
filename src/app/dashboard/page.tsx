@@ -2,41 +2,42 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, TrendingUp, Zap, Crown, Star, Dumbbell as Lift, Activity, ChevronRight } from 'lucide-react';
 
 const ACHIEVEMENTS = [
-  { id: 'first_workout', name: 'First Steps', desc: 'Complete first workout', points: 50, emoji: '🎉' },
-  { id: 'streak_7', name: 'On Fire', desc: '7 day streak', points: 100, emoji: '🔥' },
-  { id: 'streak_30', name: 'Unstoppable', desc: '30 day streak', points: 250, emoji: '⚡' },
-  { id: 'streak_100', name: 'Legend', desc: '100 day streak', points: 500, emoji: '👑' },
-  { id: 'workout_100', name: 'Workout Club', desc: 'Complete 100 workouts', points: 300, emoji: '🏋️' },
-  { id: 'xp_1000', name: 'Rising Star', desc: 'Earn 1000 XP', points: 200, emoji: '⭐' },
-  { id: 'xp_5000', name: 'XP Master', desc: 'Earn 5000 XP', points: 500, emoji: '🌟' },
-  { id: 'xp_10000', name: 'XP Legend', desc: 'Earn 10000 XP', points: 1000, emoji: '🏆' },
+  { id: 'first_workout', name: 'First Steps', desc: 'Complete first workout', points: 50, icon: Star },
+  { id: 'streak_7', name: 'On Fire', desc: '7 day streak', points: 100, icon: Flame },
+  { id: 'streak_30', name: 'Unstoppable', desc: '30 day streak', points: 250, icon: Zap },
+  { id: 'streak_100', name: 'Legend', desc: '100 day streak', points: 500, icon: Crown },
+  { id: 'workout_100', name: 'Workout Club', desc: 'Complete 100 workouts', points: 300, icon: Dumbbell },
+  { id: 'xp_1000', name: 'Rising Star', desc: 'Earn 1000 XP', points: 200, icon: Star },
+  { id: 'xp_5000', name: 'XP Master', desc: 'Earn 5000 XP', points: 500, icon: Activity },
+  { id: 'xp_10000', name: 'XP Legend', desc: 'Earn 10000 XP', points: 1000, icon: Trophy },
 ];
 
 const QUICK_EXERCISES = [
-  { name: 'Bench Press', emoji: '🏋️' }, 
-  { name: 'Squat', emoji: '🦵' }, 
-  { name: 'Deadlift', emoji: '💪' }, 
-  { name: 'Pull-ups', emoji: '💪' }, 
-  { name: 'Dips', emoji: '💪' },
-  { name: 'Overhead Press', emoji: '🏋️' },
-  { name: 'Barbell Row', emoji: '🏋️' },
-  { name: 'Leg Press', emoji: '🦵' },
-  { name: 'Romanian Deadlift', emoji: '🦵' },
-  { name: 'Lat Pulldown', emoji: '💪' },
-  { name: 'Cable Fly', emoji: '💪' },
-  { name: 'Leg Curl', emoji: '🦵' },
-  { name: 'Calf Raise', emoji: '🦵' },
-  { name: 'Face Pull', emoji: '💪' },
-  { name: 'Lateral Raise', emoji: '💪' },
-  { name: 'Bicep Curl', emoji: '💪' },
-  { name: 'Tricep Extension', emoji: '💪' },
-  { name: 'Plank', emoji: '⏱️' },
-  { name: 'Push-ups', emoji: '💪' },
-  { name: 'Lunges', emoji: '🦵' },
+  { name: 'Bench Press', icon: Dumbbell }, 
+  { name: 'Squat', icon: Dumbbell }, 
+  { name: 'Deadlift', icon: Dumbbell }, 
+  { name: 'Pull-ups', icon: Dumbbell }, 
+  { name: 'Dips', icon: Dumbbell },
+  { name: 'Overhead Press', icon: Dumbbell },
+  { name: 'Barbell Row', icon: Dumbbell },
+  { name: 'Leg Press', icon: Dumbbell },
+  { name: 'Romanian Deadlift', icon: Dumbbell },
+  { name: 'Lat Pulldown', icon: Dumbbell },
+  { name: 'Cable Fly', icon: Dumbbell },
+  { name: 'Leg Curl', icon: Dumbbell },
+  { name: 'Calf Raise', icon: Dumbbell },
+  { name: 'Face Pull', icon: Dumbbell },
+  { name: 'Lateral Raise', icon: Dumbbell },
+  { name: 'Bicep Curl', icon: Dumbbell },
+  { name: 'Tricep Extension', icon: Dumbbell },
+  { name: 'Plank', icon: Dumbbell },
+  { name: 'Push-ups', icon: Dumbbell },
+  { name: 'Lunges', icon: Dumbbell },
 ];
-const DAILY_CHALLENGE = { title: '50 Pull-ups', bonusXP: 100, emoji: '💪' };
+const DAILY_CHALLENGE = { title: '50 Pull-ups', bonusXP: 100, icon: Dumbbell };
 
 // Animations
 const styles = `
@@ -459,11 +460,11 @@ export default function Dashboard() {
         <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-lg border-t border-gray-800 px-2 py-2 pb-6 md:pb-2 z-50">
           <div className="flex justify-around items-center">
             {[
-              { id: 'home', label: '🏠', full: 'Home' },
-              { id: 'log', label: '💪', full: 'Log' },
-              { id: 'squad', label: '👥', full: 'Squad' },
-              { id: 'history', label: '📋', full: 'History' },
-              { id: 'awards', label: '🏅', full: 'Awards' },
+              { id: 'home', icon: Home, full: 'Home' },
+              { id: 'log', icon: Dumbbell, full: 'Log' },
+              { id: 'squad', icon: Users, full: 'Squad' },
+              { id: 'history', icon: History, full: 'History' },
+              { id: 'awards', icon: Award, full: 'Awards' },
             ].map(tab => (
               <button
                 key={tab.id}
@@ -474,7 +475,7 @@ export default function Dashboard() {
                     : 'text-gray-500 hover:text-gray-300'
                 }`}
               >
-                <span className="text-xl">{tab.label}</span>
+                <tab.icon size={22} strokeWidth={activeTab === tab.id ? 2.5 : 1.5} />
                 <span className="text-[10px] font-bold mt-0.5">{tab.full}</span>
               </button>
             ))}
@@ -566,7 +567,10 @@ export default function Dashboard() {
               {/* Challenge Banner */}
               <div className="bg-gradient-to-r from-purple-900/50 to-purple-800/30 rounded-xl border border-purple-500/30 p-4 mb-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-purple-300 font-bold">🏆 {DAILY_CHALLENGE.title}</span>
+                  <div className="flex items-center gap-2">
+                    <Trophy size={18} className="text-purple-300" />
+                    <span className="text-purple-300 font-bold">{DAILY_CHALLENGE.title}</span>
+                  </div>
                   <span className="text-yellow-400 font-black text-lg">+{DAILY_CHALLENGE.bonusXP}</span>
                 </div>
               </div>
@@ -586,9 +590,10 @@ export default function Dashboard() {
                       <button 
                         key={i} 
                         onClick={() => quickLog(ex.name)} 
-                        className="py-5 bg-gray-800 rounded-xl border border-gray-700 text-white font-bold hover:border-yellow-400 hover:scale-105 transition-all"
+                        className="py-5 bg-gray-800 rounded-xl border border-gray-700 text-white font-bold hover:border-yellow-400 hover:scale-105 transition-all flex flex-col items-center gap-1"
                       >
-                        {ex.emoji} {ex.name}
+                        <Dumbbell size={20} />
+                        <span className="text-[10px]">{ex.name}</span>
                       </button>
                     ))}
                   </div>
@@ -796,7 +801,11 @@ export default function Dashboard() {
                         : 'bg-gray-900/50 border-gray-800 opacity-50'
                     }`}
                   >
-                    <div className={`text-3xl ${earned ? '' : 'grayscale'}`}>{ach.emoji}</div>
+                    {ach.icon && (
+                      <div className={`${earned ? 'text-yellow-400' : 'text-gray-600'}`}>
+                        <ach.icon size={28} strokeWidth={earned ? 2.5 : 1.5} />
+                      </div>
+                    )}
                     <div className="flex-1">
                       <p className={`font-bold ${earned ? 'text-white' : 'text-gray-500'}`}>{ach.name}</p>
                       <p className="text-gray-500 text-sm">{ach.desc}</p>
