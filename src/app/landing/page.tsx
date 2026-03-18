@@ -10,7 +10,9 @@ export default function Landing() {
   const [code, setCode] = useState('');
 
   const handleJoin = () => {
-    localStorage.setItem('ilift_user', JSON.stringify({ name: '', email, totalXP: 0, streak: 0, badges: [] }));
+    // Store email and code to pass to onboarding
+    if (email) localStorage.setItem('ilift_pending_email', email);
+    if (code) localStorage.setItem('ilift_pending_code', code.toUpperCase());
     router.push('/onboarding');
   };
 

@@ -39,10 +39,13 @@ export default function Onboarding() {
   const [groupCode, setGroupCode] = useState('');
   const router = useRouter();
 
-  // Pre-fill from localStorage if user exists
+  // Pre-fill from localStorage if user exists or from landing page
   useEffect(() => {
     const userData = localStorage.getItem('ilift_user');
     const groupData = localStorage.getItem('ilift_group');
+    const pendingEmail = localStorage.getItem('ilift_pending_email');
+    const pendingCode = localStorage.getItem('ilift_pending_code');
+    
     if (userData) {
       const user = JSON.parse(userData);
       setName(user.name || '');
@@ -51,6 +54,15 @@ export default function Onboarding() {
     if (groupData) {
       const group = JSON.parse(groupData);
       setGroupCode(group.code || '');
+    }
+    // Check for pending values from landing page
+    if (pendingEmail) {
+      setEmail(pendingEmail);
+      localStorage.removeItem('ilift_pending_email');
+    }
+    if (pendingCode) {
+      setGroupCode(pendingCode);
+      localStorage.removeItem('ilift_pending_code');
     }
   }, []);
 
