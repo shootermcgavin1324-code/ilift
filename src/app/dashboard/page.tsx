@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, Search, Camera, Video, Zap, Crown, Star, Activity, X } from 'lucide-react';
-import { supabase, getUser, createUser, updateUser, saveWorkout, getUserWorkouts, getLeaderboard } from '@/lib/supabase';
+import { supabase, getUser, createUser, updateUser, saveWorkout, getUserWorkouts, getLeaderboard, uploadVideo } from '@/lib/supabase';
 
 const ACHIEVEMENTS = [
   { id: 'first_workout', name: 'First Steps', desc: 'Complete first workout', points: 50, icon: Star },
@@ -42,6 +42,7 @@ export default function Dashboard() {
   const [toast, setToast] = useState<any>(null);
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [videoUploading, setVideoUploading] = useState(false);
 
   useEffect(() => {
     loadUserData();
@@ -342,6 +343,65 @@ export default function Dashboard() {
               <p className="text-gray-400">Badges</p>
               <p className="text-3xl font-black text-yellow-400">{user.badges?.length || 0} / {ACHIEVEMENTS.length}</p>
             </div>
+          </div>
+          
+          {/* Video Upload */}
+          <div className="bg-gray-900 rounded-xl p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <Video size={24} className="text-purple-400" />
+              <div>
+                <p className="font-bold">Upload Video Proof</p>
+                <p className="text-gray-500 text-sm">Verify your workouts to earn badges</p>
+              </div>
+            </div>
+            
+            {user.badges?.includes('verified') ? (
+              <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-3 text-green-400 text-sm font-medium">
+                ✓ Video verified! You earned the Verified badge.
+              </div>
+            ) : (
+              <label className={`flex items-center justify-center gap-2 py-3 rounded-lg font-bold cursor-pointer ${
+                videoUploading ? 'bg-gray-700 text-gray-500' : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+              }`}>
+                {videoUploading ? 'Uploading...' : (
+                  <>
+                    <Video size={18} />
+                    <span>Choose Video</span>
+                  </>
+                )}
+                <input 
+                  type="file" 
+                  accept="video/*" 
+                  className="hidden" 
+                  disabled={videoUploading}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (file.size > 50 * 1024 * 1024) {
+                      setToast({ message: 'Video must be under 50MB', type: 'error' });
+                      return;
+                    }
+                    setVideoUploading(true);
+                    try {
+                      const { url, error } = await uploadVideo(user.id, file);
+                      if (error) throw error;
+                      
+                      // Update user with verified badge
+                      const newBadges = [...(user.badges || []), 'verified'];
+                      await updateUser(user.id, { badges: newBadges });
+                      setUser({ ...user, badges: newBadges });
+                      
+                      setToast({ message: 'Video uploaded! Badge earned!', type: 'success' });
+                    } catch (err) {
+                      console.error(err);
+                      setToast({ message: 'Upload failed', type: 'error' });
+                    } finally {
+                      setVideoUploading(false);
+                    }
+                  }}
+                />
+              </label>
+            )}
           </div>
           
           {ACHIEVEMENTS.map(ach => {
