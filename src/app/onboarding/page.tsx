@@ -14,8 +14,10 @@ export default function Onboarding() {
   useEffect(() => {
     // Check if already logged in
     const existingEmail = localStorage.getItem('ilift_email');
-    if (existingEmail) {
+    const hasOnboarding = localStorage.getItem('ilift_onboarding');
+    if (existingEmail && hasOnboarding) {
       router.push('/dashboard');
+      return;
     }
     
     // Pre-fill from pending

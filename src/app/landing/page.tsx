@@ -18,11 +18,15 @@ export default function Landing() {
   }, [router]);
 
   const handleStart = () => {
+    // Check if already logged in
     const hasOnboarding = localStorage.getItem('ilift_onboarding');
-    if (hasOnboarding) {
+    const email = localStorage.getItem('ilift_email');
+    if (hasOnboarding && email) {
       router.push('/dashboard');
       return;
     }
+    
+    // New user - go to onboarding
     if (email) localStorage.setItem('ilift_pending_email', email);
     if (code) localStorage.setItem('ilift_pending_code', code.toUpperCase());
     router.push('/onboarding');
