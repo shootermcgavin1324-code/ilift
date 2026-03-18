@@ -8,6 +8,7 @@ export default function Onboarding() {
   const [step, setStep] = useState(1);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [groupCode, setGroupCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -44,12 +45,21 @@ export default function Onboarding() {
       setError('Please enter your email');
       return;
     }
+    if (!password) {
+      setError('Please create a password');
+      return;
+    }
+    if (password.length < 4) {
+      setError('Password must be at least 4 characters');
+      return;
+    }
     
     setLoading(true);
     setError('');
     
     // Save onboarding data
     localStorage.setItem('ilift_email', email.trim());
+    localStorage.setItem('ilift_password', password);
     localStorage.setItem('ilift_onboarding', 'true');
     localStorage.setItem('ilift_onboarding_data', JSON.stringify({
       name: name.trim(),
@@ -65,18 +75,22 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
-      <div className="max-w-sm mx-auto pt-8">
+      <button onClick={() => router.push('/')} className="text-gray-400 text-sm mb-4">
+        ← Back
+      </button>
+      
+      <div className="max-w-sm mx-auto">
         {/* Progress */}
         <div className="flex gap-2 mb-8">
-          {[1, 2, 3].map(i => (
+          {[1, 2, 3, 4].map(i => (
             <div key={i} className={`h-2 flex-1 rounded-full ${i <= step ? 'bg-yellow-400' : 'bg-gray-700'}`} />
           ))}
         </div>
 
         {step === 1 && (
           <div className="space-y-4">
-            <h1 className="text-3xl font-black">Let's get started</h1>
-            <p className="text-gray-400">Create your profile</p>
+            <h1 className="text-3xl font-black">Create Account</h1>
+            <p className="text-gray-400">Set up your login</p>
             
             <input
               type="text"
@@ -90,6 +104,13 @@ export default function Onboarding() {
               placeholder="Your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 text-white"
+            />
+            <input
+              type="password"
+              placeholder="Create password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 text-white"
             />
             <input
@@ -134,7 +155,7 @@ export default function Onboarding() {
         {step === 3 && (
           <div className="space-y-4">
             <h1 className="text-3xl font-black">Your experience</h1>
-            <p className="text-gray-400">This helps us customize your experience</p>
+            <p className="text-gray-400">This helps us customize</p>
             
             {[
               { id: 'beginner', label: 'Beginner', desc: '0-1 years' },
@@ -143,7 +164,7 @@ export default function Onboarding() {
             ].map(exp => (
               <button
                 key={exp.id}
-                onClick={() => { setExperience(exp.label); handleSubmit(); }}
+                onClick={() => { setExperience(exp.label); next(); }}
                 className={`w-full p-4 rounded-xl text-left transition-all ${
                   experience === exp.label
                     ? 'bg-yellow-400 text-black' 
@@ -156,6 +177,28 @@ export default function Onboarding() {
             ))}
             
             <button onClick={back} className="text-gray-400 text-sm">← Back</button>
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="space-y-4">
+            <h1 className="text-3xl font-black">Ready!</h1>
+            <p className="text-gray-400">Review and start competing</p>
+            
+            <div className="bg-gray-800 rounded-xl p-4 space-y-2">
+              <p className="text-white"><span className="text-gray-400">Name:</span> {name}</p>
+              <p className="text-white"><span className="text-gray-400">Email:</span> {email}</p>
+              <p className="text-white"><span className="text-gray-400">Goal:</span> {fitnessGoal}</p>
+              <p className="text-white"><span className="text-gray-400">Level:</span> {experience}</p>
+              <p className="text-white"><span className="text-gray-400">Squad:</span> {groupCode || 'TEST'}</p>
+            </div>
+            
+            <div className="flex gap-2">
+              <button onClick={back} className="flex-1 py-4 text-gray-400">← Back</button>
+              <button onClick={handleSubmit} disabled={loading} className="flex-1 py-4 bg-yellow-400 rounded-xl font-black text-black disabled:opacity-50">
+                {loading ? 'Creating...' : 'START →'}
+              </button>
+            </div>
           </div>
         )}
       </div>
