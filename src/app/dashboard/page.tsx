@@ -255,12 +255,23 @@ export default function Dashboard() {
           {/* Leaderboard */}
           <div className="bg-gray-900 rounded-xl p-4">
             <p className="text-gray-400 text-sm mb-3">Leaderboard</p>
-            {leaderboard.slice(0, 5).map((u, i) => (
-              <div key={u.id} className={`flex justify-between items-center py-2 ${u.id === user.id ? 'text-yellow-400' : 'text-gray-300'}`}>
-                <span className="font-bold">#{i + 1} {u.name}</span>
-                <span className="font-black">{u.total_xp || 0} XP</span>
-              </div>
-            ))}
+            {leaderboard.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">Be the first to log a workout!</p>
+            ) : (
+              leaderboard.slice(0, 5).map((u, i) => (
+                <div key={u.id} className={`flex justify-between items-center py-2 px-2 rounded-lg ${u.id === user.id ? 'bg-yellow-400/10 border border-yellow-400/30' : ''}`}>
+                  <div className="flex items-center gap-2">
+                    {i === 0 && <span className="text-2xl">🥇</span>}
+                    {i === 1 && <span className="text-2xl">🥈</span>}
+                    {i === 2 && <span className="text-2xl">🥉</span>}
+                    {i > 2 && <span className="text-gray-500 font-bold w-6">#{i + 1}</span>}
+                    <span className={`font-bold ${u.id === user.id ? 'text-yellow-400' : 'text-gray-300'}`}>{u.name}</span>
+                    {u.id === user.id && <span className="text-xs bg-yellow-400 text-black px-1 rounded">You</span>}
+                  </div>
+                  <span className="font-black text-gray-400">{u.total_xp || 0} XP</span>
+                </div>
+              ))
+            )}
           </div>
 
           <div className="bg-gray-900 rounded-xl p-4">
@@ -356,17 +367,27 @@ export default function Dashboard() {
               <h3 className="text-lg font-bold">Daily</h3>
             </div>
             <div className="space-y-2">
-              {CHALLENGES.daily.map(ch => (
-                <div key={ch.id} className="bg-gray-900 rounded-xl p-4 flex justify-between items-center">
-                  <div>
-                    <p className="font-bold">{ch.name}</p>
-                    <p className="text-gray-500 text-sm">{ch.desc}</p>
+              {CHALLENGES.daily.map((ch, idx) => {
+                // Calculate progress (for demo, random progress)
+                const progress = Math.min(100, Math.floor(Math.random() * 100));
+                return (
+                  <div key={ch.id} className="bg-gray-900 rounded-xl p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-bold">{ch.name}</p>
+                        <p className="text-gray-500 text-sm">{ch.desc}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-yellow-400 font-black">+{ch.xp} XP</p>
+                      </div>
+                    </div>
+                    <div className="bg-gray-800 rounded-full h-2">
+                      <div className="bg-gradient-to-r from-yellow-400 to-orange-400 h-2 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
+                    </div>
+                    <p className="text-gray-600 text-xs mt-1">{progress}% complete</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-yellow-400 font-black">+{ch.xp} XP</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
           
@@ -377,17 +398,26 @@ export default function Dashboard() {
               <h3 className="text-lg font-bold">Weekly</h3>
             </div>
             <div className="space-y-2">
-              {CHALLENGES.weekly.map(ch => (
-                <div key={ch.id} className="bg-gray-900 rounded-xl p-4 flex justify-between items-center">
-                  <div>
-                    <p className="font-bold">{ch.name}</p>
-                    <p className="text-gray-500 text-sm">{ch.desc}</p>
+              {CHALLENGES.weekly.map(ch => {
+                const progress = Math.min(100, Math.floor(Math.random() * 80));
+                return (
+                  <div key={ch.id} className="bg-gray-900 rounded-xl p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-bold">{ch.name}</p>
+                        <p className="text-gray-500 text-sm">{ch.desc}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-yellow-400 font-black">+{ch.xp} XP</p>
+                      </div>
+                    </div>
+                    <div className="bg-gray-800 rounded-full h-2">
+                      <div className="bg-gradient-to-r from-orange-400 to-red-400 h-2 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
+                    </div>
+                    <p className="text-gray-600 text-xs mt-1">{progress}% complete</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-yellow-400 font-black">+{ch.xp} XP</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
           
@@ -398,17 +428,26 @@ export default function Dashboard() {
               <h3 className="text-lg font-bold">Monthly</h3>
             </div>
             <div className="space-y-2">
-              {CHALLENGES.monthly.map(ch => (
-                <div key={ch.id} className="bg-gray-900 rounded-xl p-4 flex justify-between items-center">
-                  <div>
-                    <p className="font-bold">{ch.name}</p>
-                    <p className="text-gray-500 text-sm">{ch.desc}</p>
+              {CHALLENGES.monthly.map(ch => {
+                const progress = Math.min(100, Math.floor(Math.random() * 60));
+                return (
+                  <div key={ch.id} className="bg-gray-900 rounded-xl p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-bold">{ch.name}</p>
+                        <p className="text-gray-500 text-sm">{ch.desc}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-yellow-400 font-black">+{ch.xp} XP</p>
+                      </div>
+                    </div>
+                    <div className="bg-gray-800 rounded-full h-2">
+                      <div className="bg-gradient-to-r from-purple-400 to-pink-400 h-2 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
+                    </div>
+                    <p className="text-gray-600 text-xs mt-1">{progress}% complete</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-yellow-400 font-black">+{ch.xp} XP</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
           
@@ -419,17 +458,26 @@ export default function Dashboard() {
               <h3 className="text-lg font-bold">All-Time</h3>
             </div>
             <div className="space-y-2">
-              {CHALLENGES.lifetime.map(ch => (
-                <div key={ch.id} className="bg-gray-900 rounded-xl p-4 flex justify-between items-center">
-                  <div>
-                    <p className="font-bold">{ch.name}</p>
-                    <p className="text-gray-500 text-sm">{ch.desc}</p>
+              {CHALLENGES.lifetime.map(ch => {
+                const progress = Math.min(100, Math.floor(Math.random() * 40));
+                return (
+                  <div key={ch.id} className="bg-gray-900 rounded-xl p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-bold">{ch.name}</p>
+                        <p className="text-gray-500 text-sm">{ch.desc}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-yellow-400 font-black">+{ch.xp} XP</p>
+                      </div>
+                    </div>
+                    <div className="bg-gray-800 rounded-full h-2">
+                      <div className="bg-gradient-to-r from-yellow-400 to-amber-500 h-2 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
+                    </div>
+                    <p className="text-gray-600 text-xs mt-1">{progress}% complete</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-yellow-400 font-black">+{ch.xp} XP</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -440,7 +488,11 @@ export default function Dashboard() {
         <div className="p-4 space-y-3">
           <h2 className="text-xl font-bold">Workout History</h2>
           {workouts.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No workouts yet</p>
+            <div className="text-center py-12 bg-gray-900/50 rounded-xl">
+              <Dumbbell size={40} className="mx-auto text-gray-700 mb-3" />
+              <p className="text-gray-500 font-medium">No workouts yet</p>
+              <p className="text-gray-600 text-sm mt-1">Log your first workout to see it here!</p>
+            </div>
           ) : (
             workouts.map(w => (
               <div key={w.id} className="bg-gray-900 rounded-xl p-4">
