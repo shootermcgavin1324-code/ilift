@@ -20,6 +20,21 @@ const QUICK_EXERCISES = [
   { name: 'Deadlift', emoji: '💪' }, 
   { name: 'Pull-ups', emoji: '💪' }, 
   { name: 'Dips', emoji: '💪' },
+  { name: 'Overhead Press', emoji: '🏋️' },
+  { name: 'Barbell Row', emoji: '🏋️' },
+  { name: 'Leg Press', emoji: '🦵' },
+  { name: 'Romanian Deadlift', emoji: '🦵' },
+  { name: 'Lat Pulldown', emoji: '💪' },
+  { name: 'Cable Fly', emoji: '💪' },
+  { name: 'Leg Curl', emoji: '🦵' },
+  { name: 'Calf Raise', emoji: '🦵' },
+  { name: 'Face Pull', emoji: '💪' },
+  { name: 'Lateral Raise', emoji: '💪' },
+  { name: 'Bicep Curl', emoji: '💪' },
+  { name: 'Tricep Extension', emoji: '💪' },
+  { name: 'Plank', emoji: '⏱️' },
+  { name: 'Push-ups', emoji: '💪' },
+  { name: 'Lunges', emoji: '🦵' },
 ];
 const DAILY_CHALLENGE = { title: '50 Pull-ups', bonusXP: 100, emoji: '💪' };
 
@@ -54,6 +69,91 @@ function FloatingXP({ amount }: { amount: number }) {
         <div className="animate-float text-7xl font-black text-yellow-400 drop-shadow-2xl">+{amount} XP</div>
       </div>
     </>
+  );
+}
+
+// Squad View Component - shows all group members
+function SquadView({ user, group }: { user: { id: string; name: string; totalXP: number; streak: number } | null; group: { id: string; name: string; code: string } | null }) {
+  const [members, setMembers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!group?.id) return;
+    
+    const groupId = group.id;
+    
+    async function fetchMembers() {
+      try {
+        const res = await fetch(`/api/group?groupId=${groupId}`);
+        const data = await res.json();
+        if (data.success) {
+          setMembers(data.members || []);
+        }
+      } catch (e) {
+        console.error('Failed to fetch members', e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchMembers();
+  }, [group?.id]);
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold text-white mb-4">👥 Your Squad</h2>
+        <p className="text-gray-500 text-center">Loading...</p>
+      </div>
+    );
+  }
+
+  const sortedMembers = [...members].sort((a, b) => (b.totalXP || 0) - (a.totalXP || 0));
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold text-white">👥 Your Squad</h2>
+        <span className="text-gray-500 text-sm">{group?.name}</span>
+      </div>
+      
+      {members.length === 0 ? (
+        <p className="text-gray-500 text-center">No squad members yet</p>
+      ) : (
+        sortedMembers.map((member, i) => (
+          <div 
+            key={member.id} 
+            className={`bg-gray-900 rounded-xl border p-4 ${
+              member.id === user?.id ? 'border-yellow-400/50' : 'border-gray-800'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="text-2xl font-black text-gray-600 w-8">
+                #{i + 1}
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-gray-800 flex items-center justify-center text-2xl">
+                {member.id === user?.id ? '🎯' : '👤'}
+              </div>
+              <div className="flex-1">
+                <p className={`font-bold ${member.id === user?.id ? 'text-yellow-400' : 'text-white'}`}>
+                  {member.name || 'Unknown'} {member.id === user?.id && '(You)'}
+                </p>
+                <p className="text-gray-500 text-sm">Level {Math.floor((member.totalXP || 0) / 500) + 1}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-yellow-400 font-black text-xl">{(member.totalXP || 0).toLocaleString()}</p>
+                <p className="text-orange-400 text-sm">🔥 {member.streak || 0}</p>
+              </div>
+            </div>
+          </div>
+        ))
+      )}
+      
+      <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4 mt-6">
+        <p className="text-gray-400 text-sm text-center">Share your squad code to invite friends</p>
+        <p className="text-center text-2xl font-black text-yellow-400 mt-2">{group?.code || 'TEST'}</p>
+      </div>
+    </div>
   );
 }
 
@@ -144,7 +244,7 @@ export default function Dashboard() {
   const [group, setGroup] = useState<{id: string; name: string; code: string} | null>(null);
   const [rpe, setRpe] = useState(7);
   const [submitted, setSubmitted] = useState(false);
-  const [activeTab, setActiveTab] = useState<'home' | 'log' | 'feed' | 'awards' | 'profile' | 'history'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'log' | 'squad' | 'awards' | 'profile' | 'history'>('home');
   const [showQuickLog, setShowQuickLog] = useState(false);
   const [floatingXP, setFloatingXP] = useState<number | null>(null);
   const [restTimer, setRestTimer] = useState<number | null>(null);
@@ -348,9 +448,9 @@ export default function Dashboard() {
           {[
             { id: 'home', label: 'Home' },
             { id: 'log', label: 'Log' },
+            { id: 'squad', label: 'Squad' },
             { id: 'history', label: 'History' },
             { id: 'awards', label: 'Awards' },
-            { id: 'profile', label: 'Profile' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -466,7 +566,7 @@ export default function Dashboard() {
               ) : (
                 <div className="space-y-3 mb-4">
                   <p className="text-gray-400 text-sm text-center font-medium">Tap to log:</p>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-3 gap-2">
                     {QUICK_EXERCISES.map((ex, i) => (
                       <button 
                         key={i} 
@@ -639,6 +739,10 @@ export default function Dashboard() {
                 </button>
               </div>
             </>
+          )}
+
+          {activeTab === 'squad' && (
+            <SquadView user={user} group={group} />
           )}
 
           {activeTab === 'history' && (
