@@ -204,21 +204,21 @@ export default function Dashboard() {
   const xpToNextLevel = 500 - ((user?.total_xp || 0) % 500);
 
   if (loading) {
-    return <div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">Loading...</div>;
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center text-gray-900">Loading...</div>;
   }
 
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white pb-20">
+    <div className="min-h-screen bg-gray-50 text-gray-900 pb-20">
       {/* Header */}
       <header className="px-4 pt-4 flex justify-between items-center">
-        <h1 className="text-2xl font-black"><span className="text-yellow-400">i</span>LIFT</h1>
-        <button onClick={logout}><X size={24} className="text-gray-400" /></button>
+        <h1 className="text-2xl font-black"><span className="text-yellow-500">i</span>LIFT</h1>
+        <button onClick={logout}><X size={24} className="text-gray-500" /></button>
       </header>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 px-2 py-2 pb-6 z-50">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-2 py-2 pb-6 z-50">
         <div className="flex justify-around">
           {[
             { id: 'home', icon: Home, label: 'Home' },
@@ -226,7 +226,7 @@ export default function Dashboard() {
             { id: 'squad', icon: Users, label: 'Squad' },
             { id: 'profile', icon: Target, label: 'Profile' },
           ].map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex flex-col items-center py-2 px-3 ${activeTab === tab.id ? 'text-yellow-400' : 'text-gray-500'}`}>
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex flex-col items-center py-2 px-3 ${activeTab === tab.id ? 'text-yellow-500' : 'text-gray-500'}`}>
               <tab.icon size={22} />
               <span className="text-xs mt-1">{tab.label}</span>
             </button>
@@ -243,11 +243,11 @@ export default function Dashboard() {
             const rankAhead = leaderboard[userRank - 2];
             return (
               <div className="bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-xl p-4 border border-yellow-400/30">
-                <p className="text-gray-400 text-sm">Your Rank</p>
-                <p className="text-5xl font-black text-yellow-400">#{userRank}</p>
+                <p className="text-gray-500 text-sm">Your Rank</p>
+                <p className="text-5xl font-black text-yellow-500">#{userRank}</p>
                 {rankAhead && (
-                  <p className="text-gray-400 text-sm mt-2">
-                    <span className="text-white font-bold">{rankAhead.name}</span> is {rankAhead.total_xp - (user.total_xp || 0)} XP ahead
+                  <p className="text-gray-500 text-sm mt-2">
+                    <span className="text-gray-900 font-bold">{rankAhead.name}</span> is {rankAhead.total_xp - (user.total_xp || 0)} XP ahead
                   </p>
                 )}
               </div>
@@ -256,13 +256,13 @@ export default function Dashboard() {
 
           {/* Streak */}
           <div className="flex gap-3">
-            <div className="flex-1 bg-gray-900 rounded-xl p-4">
-              <p className="text-gray-400 text-sm">🔥 Streak</p>
+            <div className="flex-1 bg-white rounded-xl p-4">
+              <p className="text-gray-500 text-sm">🔥 Streak</p>
               <p className="text-2xl font-black text-orange-400">{user.streak || 0} days</p>
             </div>
-            <div className="flex-1 bg-gray-900 rounded-xl p-4">
-              <p className="text-gray-400 text-sm">Level</p>
-              <p className="text-2xl font-black text-yellow-400">{currentLevel}</p>
+            <div className="flex-1 bg-white rounded-xl p-4">
+              <p className="text-gray-500 text-sm">Level</p>
+              <p className="text-2xl font-black text-yellow-500">{currentLevel}</p>
             </div>
           </div>
 
@@ -275,8 +275,8 @@ export default function Dashboard() {
           </button>
 
           {/* Leaderboard Preview */}
-          <div className="bg-gray-900 rounded-xl p-4">
-            <p className="text-gray-400 text-sm mb-3">Today's Squad</p>
+          <div className="bg-white rounded-xl p-4">
+            <p className="text-gray-500 text-sm mb-3">Today's Squad</p>
             {leaderboard.length === 0 ? (
               <p className="text-gray-500 text-center py-4">No workouts yet. Be first!</p>
             ) : (
@@ -287,9 +287,9 @@ export default function Dashboard() {
                     {i === 1 && <span>🥈</span>}
                     {i === 2 && <span>🥉</span>}
                     {i > 2 && <span className="text-gray-500 font-bold w-5">#{i + 1}</span>}
-                    <span className={u.id === user.id ? 'text-yellow-400 font-bold' : 'text-gray-300'}>{u.name}</span>
+                    <span className={u.id === user.id ? 'text-yellow-500 font-bold' : 'text-gray-400'}>{u.name}</span>
                   </div>
-                  <span className="font-black text-gray-400">{u.total_xp || 0}</span>
+                  <span className="font-black text-gray-500">{u.total_xp || 0}</span>
                 </div>
               ))
             )}
@@ -305,13 +305,13 @@ export default function Dashboard() {
             placeholder="Search exercises..."
             value={exerciseSearch}
             onChange={(e) => setExerciseSearch(e.target.value.toLowerCase())}
-            className="w-full p-3 bg-gray-900 rounded-xl border border-gray-700"
+            className="w-full p-3 bg-white rounded-xl border border-gray-200"
           />
 
           {!currentExercise ? (
             <div className="grid grid-cols-3 gap-2">
               {QUICK_EXERCISES.filter(e => !exerciseSearch || e.name.toLowerCase().includes(exerciseSearch)).map(ex => (
-                <button key={ex.name} onClick={() => quickLog(ex.name)} className="py-4 bg-gray-800 rounded-xl font-bold text-sm hover:bg-gray-700">
+                <button key={ex.name} onClick={() => quickLog(ex.name)} className="py-4 bg-gray-100 rounded-xl font-bold text-sm hover:bg-gray-200">
                   {ex.name}
                 </button>
               ))}
@@ -320,54 +320,54 @@ export default function Dashboard() {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <h3 className="text-xl font-bold">{currentExercise}</h3>
-                <button onClick={() => setCurrentExercise('')} className="text-gray-400">✕</button>
+                <button onClick={() => setCurrentExercise('')} className="text-gray-500">✕</button>
               </div>
 
               {sets.map((set, i) => (
-                <div key={i} className={`p-3 rounded-xl flex items-center gap-3 ${set.done ? 'bg-green-900/30 border border-green-500/30' : 'bg-gray-800'}`}>
-                  <span className="text-gray-400 font-bold w-8">Set {i + 1}</span>
+                <div key={i} className={`p-3 rounded-xl flex items-center gap-3 ${set.done ? 'bg-green-900/30 border border-green-500/30' : 'bg-gray-100'}`}>
+                  <span className="text-gray-500 font-bold w-8">Set {i + 1}</span>
                   <input type="number" value={set.weight} onChange={(e) => {
                     const newSets = [...sets];
                     newSets[i].weight = parseInt(e.target.value) || 0;
                     setSets(newSets);
-                  }} className="w-20 p-2 bg-gray-900 rounded-lg text-center" placeholder="lbs" />
+                  }} className="w-20 p-2 bg-white rounded-lg text-center" placeholder="lbs" />
                   <span className="text-gray-500">×</span>
                   <input type="number" value={set.reps} onChange={(e) => {
                     const newSets = [...sets];
                     newSets[i].reps = parseInt(e.target.value) || 0;
                     setSets(newSets);
-                  }} className="w-16 p-2 bg-gray-900 rounded-lg text-center" placeholder="Reps" />
+                  }} className="w-16 p-2 bg-white rounded-lg text-center" placeholder="Reps" />
                   <span className="text-gray-500">@</span>
                   <select value={set.rpe} onChange={(e) => {
                     const newSets = [...sets];
                     newSets[i].rpe = parseInt(e.target.value);
                     setSets(newSets);
-                  }} className="bg-gray-900 p-2 rounded-lg">
+                  }} className="bg-white p-2 rounded-lg">
                     {[5,6,7,8,9,10].map(r => <option key={r} value={r}>RPE {r}</option>)}
                   </select>
                   <button onClick={() => {
                     const newSets = [...sets];
                     newSets[i].done = !newSets[i].done;
                     setSets(newSets);
-                  }} className={`ml-auto px-3 py-1 rounded-lg font-bold ${set.done ? 'bg-green-500 text-black' : 'bg-gray-700'}`}>
+                  }} className={`ml-auto px-3 py-1 rounded-lg font-bold ${set.done ? 'bg-green-500 text-black' : 'bg-gray-200'}`}>
                     {set.done ? '✓' : 'Done'}
                   </button>
                 </div>
               ))}
 
-              <button onClick={() => setSets([...sets, { weight: 135, reps: 10, rpe: 7, done: false }])} className="w-full py-2 bg-gray-800 rounded-xl text-gray-400">+ Add Set</button>
+              <button onClick={() => setSets([...sets, { weight: 135, reps: 10, rpe: 7, done: false }])} className="w-full py-2 bg-gray-100 rounded-xl text-gray-500">+ Add Set</button>
 
               {/* Rest Timer */}
               {restTimer ? (
-                <div className="bg-gray-800 rounded-xl p-4 text-center">
-                  <p className="text-gray-400 text-sm mb-2">Rest Timer</p>
-                  <p className="text-5xl font-black text-yellow-400">{restTimeLeft}s</p>
-                  <button onClick={() => { setRestTimer(null); setRestTimeLeft(0); }} className="mt-2 text-gray-400 text-sm">Cancel</button>
+                <div className="bg-gray-100 rounded-xl p-4 text-center">
+                  <p className="text-gray-500 text-sm mb-2">Rest Timer</p>
+                  <p className="text-5xl font-black text-yellow-500">{restTimeLeft}s</p>
+                  <button onClick={() => { setRestTimer(null); setRestTimeLeft(0); }} className="mt-2 text-gray-500 text-sm">Cancel</button>
                 </div>
               ) : (
                 <div className="flex gap-2">
                   {[60, 90, 120, 180].map(sec => (
-                    <button key={sec} onClick={() => startRestTimer(sec)} className="flex-1 py-2 bg-gray-800 rounded-xl text-gray-400 text-sm font-bold hover:bg-gray-700">
+                    <button key={sec} onClick={() => startRestTimer(sec)} className="flex-1 py-2 bg-gray-100 rounded-xl text-gray-500 text-sm font-bold hover:bg-gray-200">
                       {sec}s
                     </button>
                   ))}
@@ -386,20 +386,20 @@ export default function Dashboard() {
       {activeTab === 'squad' && (
         <div className="p-4 space-y-4">
           <h2 className="text-xl font-bold">Your Squad</h2>
-          <p className="text-gray-400 text-sm">People in your group ({user.group_id})</p>
+          <p className="text-gray-500 text-sm">People in your group ({user.group_id})</p>
 
           {leaderboard.length === 0 ? (
-            <div className="text-center py-8 bg-gray-900/50 rounded-xl">
+            <div className="text-center py-8 bg-white/50 rounded-xl">
               <Users size={40} className="mx-auto text-gray-700 mb-3" />
               <p className="text-gray-500">No one else in your squad yet!</p>
-              <p className="text-gray-600 text-sm mt-1">Share the squad code: <span className="text-yellow-400 font-bold">{user.group_id}</span></p>
+              <p className="text-gray-600 text-sm mt-1">Share the squad code: <span className="text-yellow-500 font-bold">{user.group_id}</span></p>
             </div>
           ) : (
             <div className="space-y-2">
               {leaderboard.map((member, i) => (
-                <div key={member.id} className={`bg-gray-900 rounded-xl p-4 flex items-center gap-4 ${member.id === user.id ? 'border border-yellow-400/30' : ''}`}>
+                <div key={member.id} className={`bg-white rounded-xl p-4 flex items-center gap-4 ${member.id === user.id ? 'border border-yellow-400/30' : ''}`}>
                   <span className="text-2xl font-black text-gray-600 w-8">#{i + 1}</span>
-                  <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
                     <Target size={24} className="text-gray-600" />
                   </div>
                   <div className="flex-1">
@@ -407,7 +407,7 @@ export default function Dashboard() {
                     <p className="text-gray-500 text-sm">Level {Math.floor((member.total_xp || 0) / 500) + 1}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-yellow-400 font-black text-xl">{(member.total_xp || 0).toLocaleString()}</p>
+                    <p className="text-yellow-500 font-black text-xl">{(member.total_xp || 0).toLocaleString()}</p>
                     <p className="text-gray-500 text-xs">XP</p>
                   </div>
                 </div>
@@ -425,7 +425,7 @@ export default function Dashboard() {
           {/* Daily */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <Clock size={18} className="text-yellow-400" />
+              <Clock size={18} className="text-yellow-500" />
               <h3 className="text-lg font-bold">Daily</h3>
             </div>
             <div className="space-y-2">
@@ -433,17 +433,17 @@ export default function Dashboard() {
                 // Calculate progress (for demo, random progress)
                 const progress = Math.min(100, Math.floor(Math.random() * 100));
                 return (
-                  <div key={ch.id} className="bg-gray-900 rounded-xl p-4">
+                  <div key={ch.id} className="bg-white rounded-xl p-4">
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <p className="font-bold">{ch.name}</p>
                         <p className="text-gray-500 text-sm">{ch.desc}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-yellow-400 font-black">+{ch.xp} XP</p>
+                        <p className="text-yellow-500 font-black">+{ch.xp} XP</p>
                       </div>
                     </div>
-                    <div className="bg-gray-800 rounded-full h-2">
+                    <div className="bg-gray-100 rounded-full h-2">
                       <div className="bg-gradient-to-r from-yellow-400 to-orange-400 h-2 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
                     </div>
                     <p className="text-gray-600 text-xs mt-1">{progress}% complete</p>
@@ -463,17 +463,17 @@ export default function Dashboard() {
               {CHALLENGES.weekly.map(ch => {
                 const progress = Math.min(100, Math.floor(Math.random() * 80));
                 return (
-                  <div key={ch.id} className="bg-gray-900 rounded-xl p-4">
+                  <div key={ch.id} className="bg-white rounded-xl p-4">
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <p className="font-bold">{ch.name}</p>
                         <p className="text-gray-500 text-sm">{ch.desc}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-yellow-400 font-black">+{ch.xp} XP</p>
+                        <p className="text-yellow-500 font-black">+{ch.xp} XP</p>
                       </div>
                     </div>
-                    <div className="bg-gray-800 rounded-full h-2">
+                    <div className="bg-gray-100 rounded-full h-2">
                       <div className="bg-gradient-to-r from-orange-400 to-red-400 h-2 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
                     </div>
                     <p className="text-gray-600 text-xs mt-1">{progress}% complete</p>
@@ -493,17 +493,17 @@ export default function Dashboard() {
               {CHALLENGES.monthly.map(ch => {
                 const progress = Math.min(100, Math.floor(Math.random() * 60));
                 return (
-                  <div key={ch.id} className="bg-gray-900 rounded-xl p-4">
+                  <div key={ch.id} className="bg-white rounded-xl p-4">
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <p className="font-bold">{ch.name}</p>
                         <p className="text-gray-500 text-sm">{ch.desc}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-yellow-400 font-black">+{ch.xp} XP</p>
+                        <p className="text-yellow-500 font-black">+{ch.xp} XP</p>
                       </div>
                     </div>
-                    <div className="bg-gray-800 rounded-full h-2">
+                    <div className="bg-gray-100 rounded-full h-2">
                       <div className="bg-gradient-to-r from-purple-400 to-pink-400 h-2 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
                     </div>
                     <p className="text-gray-600 text-xs mt-1">{progress}% complete</p>
@@ -516,24 +516,24 @@ export default function Dashboard() {
           {/* Lifetime */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <Trophy size={18} className="text-yellow-400" />
+              <Trophy size={18} className="text-yellow-500" />
               <h3 className="text-lg font-bold">All-Time</h3>
             </div>
             <div className="space-y-2">
               {CHALLENGES.lifetime.map(ch => {
                 const progress = Math.min(100, Math.floor(Math.random() * 40));
                 return (
-                  <div key={ch.id} className="bg-gray-900 rounded-xl p-4">
+                  <div key={ch.id} className="bg-white rounded-xl p-4">
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <p className="font-bold">{ch.name}</p>
                         <p className="text-gray-500 text-sm">{ch.desc}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-yellow-400 font-black">+{ch.xp} XP</p>
+                        <p className="text-yellow-500 font-black">+{ch.xp} XP</p>
                       </div>
                     </div>
-                    <div className="bg-gray-800 rounded-full h-2">
+                    <div className="bg-gray-100 rounded-full h-2">
                       <div className="bg-gradient-to-r from-yellow-400 to-amber-500 h-2 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
                     </div>
                     <p className="text-gray-600 text-xs mt-1">{progress}% complete</p>
@@ -550,17 +550,17 @@ export default function Dashboard() {
         <div className="p-4 space-y-3">
           <h2 className="text-xl font-bold">Workout History</h2>
           {workouts.length === 0 ? (
-            <div className="text-center py-12 bg-gray-900/50 rounded-xl">
+            <div className="text-center py-12 bg-white/50 rounded-xl">
               <Dumbbell size={40} className="mx-auto text-gray-700 mb-3" />
               <p className="text-gray-500 font-medium">No workouts yet</p>
               <p className="text-gray-600 text-sm mt-1">Log your first workout to see it here!</p>
             </div>
           ) : (
             workouts.map(w => (
-              <div key={w.id} className="bg-gray-900 rounded-xl p-4">
+              <div key={w.id} className="bg-white rounded-xl p-4">
                 <div className="flex justify-between">
                   <span className="font-bold">{w.exercise}</span>
-                  <span className="text-yellow-400 font-black">+{w.score} XP</span>
+                  <span className="text-yellow-500 font-black">+{w.score} XP</span>
                 </div>
                 <p className="text-gray-500 text-sm">{new Date(w.date).toLocaleDateString()}</p>
               </div>
@@ -572,15 +572,15 @@ export default function Dashboard() {
       {/* Awards Tab */}
       {activeTab === 'awards' && (
         <div className="p-4 space-y-3">
-          <div className="bg-gray-900 rounded-xl p-4 flex justify-between items-center">
+          <div className="bg-white rounded-xl p-4 flex justify-between items-center">
             <div>
-              <p className="text-gray-400">Badges</p>
-              <p className="text-3xl font-black text-yellow-400">{user.badges?.length || 0} / {ACHIEVEMENTS.length}</p>
+              <p className="text-gray-500">Badges</p>
+              <p className="text-3xl font-black text-yellow-500">{user.badges?.length || 0} / {ACHIEVEMENTS.length}</p>
             </div>
           </div>
 
           {/* Video Upload */}
-          <div className="bg-gray-900 rounded-xl p-4">
+          <div className="bg-white rounded-xl p-4">
             <div className="flex items-center gap-3 mb-3">
               <Video size={24} className="text-purple-400" />
               <div>
@@ -595,7 +595,7 @@ export default function Dashboard() {
               </div>
             ) : (
               <label className={`flex items-center justify-center gap-2 py-3 rounded-lg font-bold cursor-pointer ${
-                videoUploading ? 'bg-gray-700 text-gray-500' : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                videoUploading ? 'bg-gray-200 text-gray-500' : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
               }`}>
                 {videoUploading ? 'Uploading...' : (
                   <>
@@ -646,15 +646,15 @@ export default function Dashboard() {
           {ACHIEVEMENTS.map(ach => {
             const earned = user.badges?.includes(ach.id);
             return (
-              <div key={ach.id} className={`p-4 rounded-xl flex items-center gap-4 ${earned ? 'bg-gray-900 border-yellow-400/30' : 'bg-gray-900/50 opacity-50'}`}>
-                <div className={earned ? 'text-yellow-400' : 'text-gray-600'}>
+              <div key={ach.id} className={`p-4 rounded-xl flex items-center gap-4 ${earned ? 'bg-white border-yellow-400/30' : 'bg-white/50 opacity-50'}`}>
+                <div className={earned ? 'text-yellow-500' : 'text-gray-600'}>
                   {ach.icon && <ach.icon size={28} />}
                 </div>
                 <div className="flex-1">
                   <p className="font-bold">{ach.name}</p>
                   <p className="text-gray-500 text-sm">{ach.desc}</p>
                 </div>
-                <span className="text-yellow-400 font-bold">+{ach.points}</span>
+                <span className="text-yellow-500 font-bold">+{ach.points}</span>
               </div>
             );
           })}
@@ -664,30 +664,30 @@ export default function Dashboard() {
       {/* Profile Tab */}
       {activeTab === 'profile' && (
         <div className="p-4 space-y-4">
-          <div className="bg-gray-900 rounded-xl p-6 text-center">
-            <div className="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-3">
+          <div className="bg-white rounded-xl p-6 text-center">
+            <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
               <Target size={40} className="text-gray-600" />
             </div>
             <h2 className="text-2xl font-black">{user.name}</h2>
-            <p className="text-gray-400">{user.email}</p>
+            <p className="text-gray-500">{user.email}</p>
             {user.onboarding?.fitnessGoal && (
               <p className="mt-2 inline-block bg-purple-500/20 text-purple-400 px-3 py-1 rounded-full text-sm font-bold">
                 Goal: {user.onboarding.fitnessGoal}
               </p>
             )}
-            <div className="mt-4 bg-gray-800 rounded-lg p-3">
-              <p className="text-gray-400 text-sm">Level {currentLevel}</p>
-              <p className="text-3xl font-black text-yellow-400">{(user.total_xp || 0).toLocaleString()} XP</p>
+            <div className="mt-4 bg-gray-100 rounded-lg p-3">
+              <p className="text-gray-500 text-sm">Level {currentLevel}</p>
+              <p className="text-3xl font-black text-yellow-500">{(user.total_xp || 0).toLocaleString()} XP</p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-gray-900 rounded-xl p-4 text-center">
+            <div className="bg-white rounded-xl p-4 text-center">
               <Flame size={28} className="mx-auto text-orange-400 mb-2" />
               <p className="text-2xl font-black">{user.streak || 0}</p>
               <p className="text-gray-500 text-sm">Day Streak</p>
             </div>
-            <div className="bg-gray-900 rounded-xl p-4 text-center">
+            <div className="bg-white rounded-xl p-4 text-center">
               <Award size={28} className="mx-auto text-purple-400 mb-2" />
               <p className="text-2xl font-black">{user.badges?.length || 0}</p>
               <p className="text-gray-500 text-sm">Badges</p>
@@ -696,46 +696,46 @@ export default function Dashboard() {
 
           {/* Onboarding Stats */}
           {user.onboarding && (
-            <div className="bg-gray-900 rounded-xl p-4">
-              <p className="text-gray-400 text-sm mb-3">My Stats</p>
+            <div className="bg-white rounded-xl p-4">
+              <p className="text-gray-500 text-sm mb-3">My Stats</p>
               <div className="grid grid-cols-2 gap-2">
                 {user.onboarding.weight && (
-                  <div className="bg-gray-800 rounded-lg p-3">
+                  <div className="bg-gray-100 rounded-lg p-3">
                     <p className="text-gray-500 text-xs">Weight</p>
-                    <p className="text-white font-bold">{user.onboarding.weight} lbs</p>
+                    <p className="text-gray-900 font-bold">{user.onboarding.weight} lbs</p>
                   </div>
                 )}
                 {user.onboarding.height && (
-                  <div className="bg-gray-800 rounded-lg p-3">
+                  <div className="bg-gray-100 rounded-lg p-3">
                     <p className="text-gray-500 text-xs">Height</p>
-                    <p className="text-white font-bold">{Math.floor(user.onboarding.height / 12)}'{user.onboarding.height % 12}"</p>
+                    <p className="text-gray-900 font-bold">{Math.floor(user.onboarding.height / 12)}'{user.onboarding.height % 12}"</p>
                   </div>
                 )}
                 {user.onboarding.experience && (
-                  <div className="bg-gray-800 rounded-lg p-3">
+                  <div className="bg-gray-100 rounded-lg p-3">
                     <p className="text-gray-500 text-xs">Experience</p>
-                    <p className="text-white font-bold">{user.onboarding.experience}</p>
+                    <p className="text-gray-900 font-bold">{user.onboarding.experience}</p>
                   </div>
                 )}
                 {user.onboarding.bodyFat && (
-                  <div className="bg-gray-800 rounded-lg p-3">
+                  <div className="bg-gray-100 rounded-lg p-3">
                     <p className="text-gray-500 text-xs">Body Fat</p>
-                    <p className="text-white font-bold">{user.onboarding.bodyFat}%</p>
+                    <p className="text-gray-900 font-bold">{user.onboarding.bodyFat}%</p>
                   </div>
                 )}
                 {user.onboarding.age && (
-                  <div className="bg-gray-800 rounded-lg p-3">
+                  <div className="bg-gray-100 rounded-lg p-3">
                     <p className="text-gray-500 text-xs">Age</p>
-                    <p className="text-white font-bold">{user.onboarding.age}</p>
+                    <p className="text-gray-900 font-bold">{user.onboarding.age}</p>
                   </div>
                 )}
               </div>
             </div>
           )}
 
-          <div className="bg-gray-900 rounded-xl p-4">
-            <p className="text-gray-400 text-sm mb-2">Squad Code</p>
-            <p className="text-4xl font-black text-yellow-400">{user.group_id || 'TEST'}</p>
+          <div className="bg-white rounded-xl p-4">
+            <p className="text-gray-500 text-sm mb-2">Squad Code</p>
+            <p className="text-4xl font-black text-yellow-500">{user.group_id || 'TEST'}</p>
           </div>
 
           {/* Share Button */}
