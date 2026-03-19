@@ -58,6 +58,8 @@ export default function Dashboard() {
   const [currentExercise, setCurrentExercise] = useState('');
   const [exerciseSearch, setExerciseSearch] = useState('');
   const [sets, setSets] = useState([{ weight: 135, reps: 10, rpe: 7, done: false }]);
+  const [restTimer, setRestTimer] = useState<number | null>(null);
+  const [restTimeLeft, setRestTimeLeft] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [rpe, setRpe] = useState(7);
   const [toast, setToast] = useState<any>(null);
@@ -81,6 +83,28 @@ export default function Dashboard() {
 
     return () => clearTimeout(timer);
   }, []);
+
+  // Rest timer countdown
+  useEffect(() => {
+    if (restTimer && restTimeLeft > 0) {
+      const interval = setInterval(() => {
+        setRestTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            setRestTimer(null);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [restTimer, restTimeLeft]);
+
+  function startRestTimer(seconds: number) {
+    setRestTimer(seconds);
+    setRestTimeLeft(seconds);
+  }
 
   async function loadUserData() {
     const email = localStorage.getItem('ilift_email');
@@ -327,6 +351,23 @@ export default function Dashboard() {
               ))}
 
               <button onClick={() => setSets([...sets, { weight: 135, reps: 10, rpe: 7, done: false }])} className="w-full py-2 bg-gray-800 rounded-xl text-gray-400">+ Add Set</button>
+
+              {/* Rest Timer */}
+              {restTimer ? (
+                <div className="bg-gray-800 rounded-xl p-4 text-center">
+                  <p className="text-gray-400 text-sm mb-2">Rest Timer</p>
+                  <p className="text-5xl font-black text-yellow-400">{restTimeLeft}s</p>
+                  <button onClick={() => { setRestTimer(null); setRestTimeLeft(0); }} className="mt-2 text-gray-400 text-sm">Cancel</button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  {[60, 90, 120, 180].map(sec => (
+                    <button key={sec} onClick={() => startRestTimer(sec)} className="flex-1 py-2 bg-gray-800 rounded-xl text-gray-400 text-sm font-bold hover:bg-gray-700">
+                      {sec}s
+                    </button>
+                  ))}
+                </div>
+              )}
 
               <button onClick={completeWorkout} className="w-full py-4 bg-yellow-400 rounded-xl font-black text-black text-lg">
                 Complete Workout (+{calculateScore()} XP)
