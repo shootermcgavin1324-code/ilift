@@ -32,7 +32,7 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 flex flex-col">
+    <div className="min-h-screen bg-gray-950 text-white flex flex-col">
       {/* Header */}
       <header className="p-6">
         <h1 className="text-3xl font-black"><span className="text-yellow-400">i</span>LIFT</h1>
@@ -48,7 +48,7 @@ export default function Landing() {
           </div>
 
           {/* SIGN UP SECTION */}
-          <div className="bg-gray-100 rounded-2xl p-6 border border-gray-200 mb-4">
+          <div className="bg-gray-900 rounded-2xl p-6 border border-gray-700 mb-4">
             <h3 className="text-xl font-black text-white mb-4">NEW USER? JOIN A SQUAD</h3>
             
             <div className="space-y-3">
@@ -57,18 +57,18 @@ export default function Landing() {
                 placeholder="Squad code"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                className="w-full p-3 rounded-lg bg-white border border-gray-300 text-gray-900"
+                className="w-full p-3 rounded-lg bg-gray-950 border bg-gray-600 text-white"
               />
               <input
                 type="email"
                 placeholder="Your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-3 rounded-lg bg-white border border-gray-300 text-gray-900"
+                className="w-full p-3 rounded-lg bg-gray-950 border bg-gray-600 text-white"
               />
               <button 
                 onClick={handleNewUser}
-                className="w-full py-3 bg-yellow-400 rounded-lg font-black text-gray-900"
+                className="w-full py-3 bg-yellow-400 rounded-lg font-black text-white"
               >
                 SIGN UP →
               </button>
@@ -78,7 +78,7 @@ export default function Landing() {
           {/* SIGN IN SECTION */}
           <button 
             onClick={handleSignIn}
-            className="w-full py-4 bg-white rounded-2xl font-bold text-gray-900 border border-gray-300 hover:border-yellow-400"
+            className="w-full py-4 bg-gray-950 rounded-2xl font-bold text-white border bg-gray-600 hover:border-yellow-400"
           >
             ALREADY A MEMBER? SIGN IN →
           </button>

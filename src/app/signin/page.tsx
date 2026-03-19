@@ -55,33 +55,33 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 p-6 flex flex-col">
-      <button onClick={() => router.push('/')} className="text-gray-500 text-sm mb-8">
+    <div className="min-h-screen bg-gray-950 text-white p-6 flex flex-col">
+      <button onClick={() => router.push('/')} className="text-gray-400 text-sm mb-8">
         ← Back
       </button>
 
       <div className="max-w-sm mx-auto flex-1">
         <h1 className="text-4xl font-black mb-2">WELCOME<br/>BACK</h1>
-        <p className="text-gray-500 mb-8">Sign in to continue training</p>
+        <p className="text-gray-400 mb-8">Sign in to continue training</p>
         
         <div className="space-y-4">
           <div>
-            <label className="text-gray-500 text-sm">Your email</label>
+            <label className="text-gray-400 text-sm">Your email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
-              className="w-full p-4 rounded-xl bg-gray-100 border border-gray-300 text-gray-900 mt-1"
+              className="w-full p-4 rounded-xl bg-gray-900 border bg-gray-600 text-white mt-1"
             />
           </div>
           
           <div>
-            <label className="text-gray-500 text-sm">Your password</label>
+            <label className="text-gray-400 text-sm">Your password</label>
             <input
               type="password"
               placeholder="Your password"
-              className="w-full p-4 rounded-xl bg-gray-100 border border-gray-300 text-gray-900 mt-1"
+              className="w-full p-4 rounded-xl bg-gray-900 border bg-gray-600 text-white mt-1"
             />
           </div>
           
@@ -96,7 +96,7 @@ export default function SignIn() {
           </button>
         </div>
 
-        <p className="text-center text-gray-500 text-sm mt-8">
+        <p className="text-center text-gray-400 text-sm mt-8">
           New user? <span onClick={() => router.push('/')} className="text-yellow-400">Sign up instead</span>
         </p>
       </div>

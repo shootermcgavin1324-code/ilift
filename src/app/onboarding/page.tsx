@@ -81,8 +81,8 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 p-6">
-      <button onClick={() => router.push('/')} className="text-gray-500 text-sm mb-4">
+    <div className="min-h-screen bg-gray-950 text-white p-6">
+      <button onClick={() => router.push('/')} className="text-gray-400 text-sm mb-4">
         ← Back
       </button>
       
@@ -90,42 +90,42 @@ export default function Onboarding() {
         {/* Progress */}
         <div className="flex gap-2 mb-8">
           {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} className={`h-2 flex-1 rounded-full ${i <= step ? 'bg-yellow-400' : 'bg-gray-200'}`} />
+            <div key={i} className={`h-2 flex-1 rounded-full ${i <= step ? 'bg-yellow-400' : 'bg-gray-800'}`} />
           ))}
         </div>
 
         {step === 1 && (
           <div className="space-y-4">
             <h1 className="text-3xl font-black">Create Account</h1>
-            <p className="text-gray-500">Set up your login</p>
+            <p className="text-gray-400">Set up your login</p>
             
             <input
               type="text"
               placeholder="Your name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full p-4 rounded-xl bg-white border border-gray-200 text-gray-900"
+              className="w-full p-4 rounded-xl bg-gray-950 border border-gray-700 text-white"
             />
             <input
               type="email"
               placeholder="Your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-4 rounded-xl bg-white border border-gray-200 text-gray-900"
+              className="w-full p-4 rounded-xl bg-gray-950 border border-gray-700 text-white"
             />
             <input
               type="password"
               placeholder="Create password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-4 rounded-xl bg-white border border-gray-200 text-gray-900"
+              className="w-full p-4 rounded-xl bg-gray-950 border border-gray-700 text-white"
             />
             <input
               type="text"
               placeholder="Squad code (optional)"
               value={groupCode}
               onChange={(e) => setGroupCode(e.target.value.toUpperCase())}
-              className="w-full p-4 rounded-xl bg-white border border-gray-200 text-gray-900"
+              className="w-full p-4 rounded-xl bg-gray-950 border border-gray-700 text-white"
             />
             
             {error && <p className="text-red-400 text-sm">{error}</p>}
@@ -139,36 +139,36 @@ export default function Onboarding() {
         {step === 2 && (
           <div className="space-y-4">
             <h1 className="text-3xl font-black">Your Stats</h1>
-            <p className="text-gray-500">Help us personalize your experience</p>
+            <p className="text-gray-400">Help us personalize your experience</p>
             
             <div>
-              <label className="text-gray-500 text-sm">Weight (lbs)</label>
+              <label className="text-gray-400 text-sm">Weight (lbs)</label>
               <input
                 type="number"
                 value={weight}
                 onChange={(e) => setWeight(parseInt(e.target.value) || 0)}
-                className="w-full p-4 rounded-xl bg-white border border-gray-200 text-gray-900 mt-1"
+                className="w-full p-4 rounded-xl bg-gray-950 border border-gray-700 text-white mt-1"
               />
             </div>
             
             <div>
-              <label className="text-gray-500 text-sm">Height (inches)</label>
+              <label className="text-gray-400 text-sm">Height (inches)</label>
               <input
                 type="number"
                 value={height}
                 onChange={(e) => setHeight(parseInt(e.target.value) || 0)}
-                className="w-full p-4 rounded-xl bg-white border border-gray-200 text-gray-900 mt-1"
+                className="w-full p-4 rounded-xl bg-gray-950 border border-gray-700 text-white mt-1"
               />
             </div>
             
             <div>
-              <label className="text-gray-500 text-sm">Body Fat % (optional)</label>
+              <label className="text-gray-400 text-sm">Body Fat % (optional)</label>
               <input
                 type="number"
                 value={bodyFat}
                 onChange={(e) => setBodyFat(e.target.value ? parseInt(e.target.value) : '')}
                 placeholder="e.g. 15"
-                className="w-full p-4 rounded-xl bg-white border border-gray-200 text-gray-900 mt-1"
+                className="w-full p-4 rounded-xl bg-gray-950 border border-gray-700 text-white mt-1"
               />
             </div>
             
@@ -176,14 +176,14 @@ export default function Onboarding() {
               Continue →
             </button>
             
-            <button onClick={back} className="text-gray-500 text-sm">← Back</button>
+            <button onClick={back} className="text-gray-400 text-sm">← Back</button>
           </div>
         )}
 
         {step === 3 && (
           <div className="space-y-4">
             <h1 className="text-3xl font-black">What's your goal?</h1>
-            <p className="text-gray-500">Choose your fitness focus</p>
+            <p className="text-gray-400">Choose your fitness focus</p>
             
             {['Muscle Gain', 'Weight Loss', 'Endurance', 'General Fitness'].map(goal => (
               <button
@@ -192,21 +192,21 @@ export default function Onboarding() {
                 className={`w-full p-4 rounded-xl text-left font-bold transition-all ${
                   fitnessGoal === goal
                     ? 'bg-yellow-400 text-black' 
-                    : 'bg-gray-100 border border-gray-200 text-gray-900 hover:border-yellow-400'
+                    : 'bg-gray-900 border border-gray-700 text-white hover:border-yellow-400'
                 }`}
               >
                 {goal}
               </button>
             ))}
             
-            <button onClick={back} className="text-gray-500 text-sm">← Back</button>
+            <button onClick={back} className="text-gray-400 text-sm">← Back</button>
           </div>
         )}
 
         {step === 4 && (
           <div className="space-y-4">
             <h1 className="text-3xl font-black">Your experience</h1>
-            <p className="text-gray-500">This helps us customize</p>
+            <p className="text-gray-400">This helps us customize</p>
             
             {[
               { id: 'beginner', label: 'Beginner', desc: '0-1 years' },
@@ -219,7 +219,7 @@ export default function Onboarding() {
                 className={`w-full p-4 rounded-xl text-left transition-all ${
                   experience === exp.label
                     ? 'bg-yellow-400 text-black' 
-                    : 'bg-gray-100 border border-gray-200 text-gray-900 hover:border-yellow-400'
+                    : 'bg-gray-900 border border-gray-700 text-white hover:border-yellow-400'
                 }`}
               >
                 <span className="font-bold">{exp.label}</span>
@@ -227,28 +227,28 @@ export default function Onboarding() {
               </button>
             ))}
             
-            <button onClick={back} className="text-gray-500 text-sm">← Back</button>
+            <button onClick={back} className="text-gray-400 text-sm">← Back</button>
           </div>
         )}
 
         {step === 5 && (
           <div className="space-y-4">
             <h1 className="text-3xl font-black">Ready!</h1>
-            <p className="text-gray-500">Review and start competing</p>
+            <p className="text-gray-400">Review and start competing</p>
             
-            <div className="bg-gray-100 rounded-xl p-4 space-y-2">
-              <p className="text-gray-900"><span className="text-gray-500">Name:</span> {name}</p>
-              <p className="text-gray-900"><span className="text-gray-500">Email:</span> {email}</p>
-              <p className="text-gray-900"><span className="text-gray-500">Weight:</span> {weight} lbs</p>
-              <p className="text-gray-900"><span className="text-gray-500">Height:</span> {Math.floor(height/12)}'{height%12}"</p>
-              {bodyFat && <p className="text-gray-900"><span className="text-gray-500">Body Fat:</span> {bodyFat}%</p>}
-              <p className="text-gray-900"><span className="text-gray-500">Goal:</span> {fitnessGoal}</p>
-              <p className="text-gray-900"><span className="text-gray-500">Level:</span> {experience}</p>
-              <p className="text-gray-900"><span className="text-gray-500">Squad:</span> {groupCode || 'TEST'}</p>
+            <div className="bg-gray-900 rounded-xl p-4 space-y-2">
+              <p className="text-white"><span className="text-gray-400">Name:</span> {name}</p>
+              <p className="text-white"><span className="text-gray-400">Email:</span> {email}</p>
+              <p className="text-white"><span className="text-gray-400">Weight:</span> {weight} lbs</p>
+              <p className="text-white"><span className="text-gray-400">Height:</span> {Math.floor(height/12)}'{height%12}"</p>
+              {bodyFat && <p className="text-white"><span className="text-gray-400">Body Fat:</span> {bodyFat}%</p>}
+              <p className="text-white"><span className="text-gray-400">Goal:</span> {fitnessGoal}</p>
+              <p className="text-white"><span className="text-gray-400">Level:</span> {experience}</p>
+              <p className="text-white"><span className="text-gray-400">Squad:</span> {groupCode || 'TEST'}</p>
             </div>
             
             <div className="flex gap-2">
-              <button onClick={back} className="flex-1 py-4 text-gray-500">← Back</button>
+              <button onClick={back} className="flex-1 py-4 text-gray-400">← Back</button>
               <button onClick={handleSubmit} disabled={loading} className="flex-1 py-4 bg-yellow-400 rounded-xl font-black text-black disabled:opacity-50">
                 {loading ? 'Creating...' : 'START →'}
               </button>
