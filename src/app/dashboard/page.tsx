@@ -66,12 +66,6 @@ export default function Dashboard() {
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [videoUploading, setVideoUploading] = useState(false);
-  const [challenges, setChallenges] = useState<any>({
-    daily: [],
-    weekly: [],
-    monthly: [],
-    lifetime: []
-  });
 
   useEffect(() => {
     loadUserData();
@@ -230,8 +224,6 @@ export default function Dashboard() {
             { id: 'home', icon: Home, label: 'Home' },
             { id: 'log', icon: Dumbbell, label: 'Log' },
             { id: 'squad', icon: Users, label: 'Squad' },
-            { id: 'challenges', icon: TargetIcon, label: 'Prizes' },
-            { id: 'awards', icon: Award, label: 'Awards' },
             { id: 'profile', icon: Target, label: 'Profile' },
           ].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex flex-col items-center py-2 px-3 ${activeTab === tab.id ? 'text-yellow-400' : 'text-gray-500'}`}>
@@ -242,52 +234,65 @@ export default function Dashboard() {
         </div>
       </nav>
 
-      {/* Home Tab */}
+      {/* Home Tab - Leaderboard First */}
       {activeTab === 'home' && (
         <div className="p-4 space-y-4">
-          <div className="bg-gray-900 rounded-xl p-4">
-            <p className="text-gray-400 text-sm">Your XP</p>
-            <p className="text-4xl font-black text-yellow-400">{(user.total_xp || 0).toLocaleString()}</p>
-            <div className="flex justify-between text-sm mt-2">
-              <span className="text-gray-500">Level {currentLevel}</span>
-              <span className="text-gray-500">{xpToNextLevel} to Level {currentLevel + 1}</span>
+          {/* User Rank - Prominent */}
+          {leaderboard.length > 0 && (() => {
+            const userRank = leaderboard.findIndex((u: any) => u.id === user.id) + 1;
+            const rankAhead = leaderboard[userRank - 2];
+            return (
+              <div className="bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-xl p-4 border border-yellow-400/30">
+                <p className="text-gray-400 text-sm">Your Rank</p>
+                <p className="text-5xl font-black text-yellow-400">#{userRank}</p>
+                {rankAhead && (
+                  <p className="text-gray-400 text-sm mt-2">
+                    <span className="text-white font-bold">{rankAhead.name}</span> is {rankAhead.total_xp - (user.total_xp || 0)} XP ahead
+                  </p>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* Streak */}
+          <div className="flex gap-3">
+            <div className="flex-1 bg-gray-900 rounded-xl p-4">
+              <p className="text-gray-400 text-sm">🔥 Streak</p>
+              <p className="text-2xl font-black text-orange-400">{user.streak || 0} days</p>
             </div>
-            <div className="bg-gray-800 h-2 rounded-full mt-2">
-              <div className="bg-yellow-400 h-2 rounded-full" style={{ width: `${xpProgress}%` }}></div>
+            <div className="flex-1 bg-gray-900 rounded-xl p-4">
+              <p className="text-gray-400 text-sm">Level</p>
+              <p className="text-2xl font-black text-yellow-400">{currentLevel}</p>
             </div>
           </div>
 
-          {/* Leaderboard */}
+          {/* Primary CTA - Log Workout */}
+          <button 
+            onClick={() => setActiveTab('log')}
+            className="w-full py-5 bg-yellow-400 rounded-xl font-black text-black text-xl"
+          >
+            LOG WORKOUT →
+          </button>
+
+          {/* Leaderboard Preview */}
           <div className="bg-gray-900 rounded-xl p-4">
-            <p className="text-gray-400 text-sm mb-3">Leaderboard</p>
+            <p className="text-gray-400 text-sm mb-3">Today's Squad</p>
             {leaderboard.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">Be the first to log a workout!</p>
+              <p className="text-gray-500 text-center py-4">No workouts yet. Be first!</p>
             ) : (
-              leaderboard.slice(0, 5).map((u, i) => (
+              leaderboard.slice(0, 5).map((u: any, i: number) => (
                 <div key={u.id} className={`flex justify-between items-center py-2 px-2 rounded-lg ${u.id === user.id ? 'bg-yellow-400/10 border border-yellow-400/30' : ''}`}>
                   <div className="flex items-center gap-2">
-                    {i === 0 && <span className="text-2xl">🥇</span>}
-                    {i === 1 && <span className="text-2xl">🥈</span>}
-                    {i === 2 && <span className="text-2xl">🥉</span>}
-                    {i > 2 && <span className="text-gray-500 font-bold w-6">#{i + 1}</span>}
-                    <span className={`font-bold ${u.id === user.id ? 'text-yellow-400' : 'text-gray-300'}`}>{u.name}</span>
-                    {u.id === user.id && <span className="text-xs bg-yellow-400 text-black px-1 rounded">You</span>}
+                    {i === 0 && <span>🥇</span>}
+                    {i === 1 && <span>🥈</span>}
+                    {i === 2 && <span>🥉</span>}
+                    {i > 2 && <span className="text-gray-500 font-bold w-5">#{i + 1}</span>}
+                    <span className={u.id === user.id ? 'text-yellow-400 font-bold' : 'text-gray-300'}>{u.name}</span>
                   </div>
-                  <span className="font-black text-gray-400">{u.total_xp || 0} XP</span>
+                  <span className="font-black text-gray-400">{u.total_xp || 0}</span>
                 </div>
               ))
             )}
-          </div>
-
-          <div className="bg-gray-900 rounded-xl p-4">
-            <p className="text-gray-400 text-sm mb-2">Quick Log</p>
-            <div className="grid grid-cols-4 gap-2">
-              {QUICK_EXERCISES.slice(0, 8).map(ex => (
-                <button key={ex.name} onClick={() => quickLog(ex.name)} className="py-3 bg-gray-800 rounded-lg text-xs font-bold hover:bg-gray-700">
-                  {ex.name}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
       )}
