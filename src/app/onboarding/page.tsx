@@ -13,7 +13,10 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  // Additional fields
+  // Stats
+  const [weight, setWeight] = useState(150);
+  const [height, setHeight] = useState(70);
+  const [bodyFat, setBodyFat] = useState<number | ''>('');
   const [fitnessGoal, setFitnessGoal] = useState('');
   const [experience, setExperience] = useState('');
 
@@ -57,20 +60,24 @@ export default function Onboarding() {
     setLoading(true);
     setError('');
     
-    // Save onboarding data
+    // Save to localStorage first, then redirect
     localStorage.setItem('ilift_email', email.trim());
     localStorage.setItem('ilift_password', password);
     localStorage.setItem('ilift_onboarding', 'true');
     localStorage.setItem('ilift_onboarding_data', JSON.stringify({
       name: name.trim(),
       groupCode: groupCode || 'TEST',
+      weight,
+      height,
+      bodyFat: bodyFat || undefined,
       fitnessGoal,
       experience
     }));
     
+    // Small delay to ensure localStorage is saved, then redirect
     setTimeout(() => {
       router.push('/dashboard');
-    }, 500);
+    }, 100);
   };
 
   return (
@@ -82,7 +89,7 @@ export default function Onboarding() {
       <div className="max-w-sm mx-auto">
         {/* Progress */}
         <div className="flex gap-2 mb-8">
-          {[1, 2, 3, 4].map(i => (
+          {[1, 2, 3, 4, 5].map(i => (
             <div key={i} className={`h-2 flex-1 rounded-full ${i <= step ? 'bg-yellow-400' : 'bg-gray-700'}`} />
           ))}
         </div>
@@ -131,6 +138,50 @@ export default function Onboarding() {
 
         {step === 2 && (
           <div className="space-y-4">
+            <h1 className="text-3xl font-black">Your Stats</h1>
+            <p className="text-gray-400">Help us personalize your experience</p>
+            
+            <div>
+              <label className="text-gray-400 text-sm">Weight (lbs)</label>
+              <input
+                type="number"
+                value={weight}
+                onChange={(e) => setWeight(parseInt(e.target.value) || 0)}
+                className="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 text-white mt-1"
+              />
+            </div>
+            
+            <div>
+              <label className="text-gray-400 text-sm">Height (inches)</label>
+              <input
+                type="number"
+                value={height}
+                onChange={(e) => setHeight(parseInt(e.target.value) || 0)}
+                className="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 text-white mt-1"
+              />
+            </div>
+            
+            <div>
+              <label className="text-gray-400 text-sm">Body Fat % (optional)</label>
+              <input
+                type="number"
+                value={bodyFat}
+                onChange={(e) => setBodyFat(e.target.value ? parseInt(e.target.value) : '')}
+                placeholder="e.g. 15"
+                className="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 text-white mt-1"
+              />
+            </div>
+            
+            <button onClick={next} className="w-full py-4 bg-yellow-400 rounded-xl font-black text-black">
+              Continue →
+            </button>
+            
+            <button onClick={back} className="text-gray-400 text-sm">← Back</button>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="space-y-4">
             <h1 className="text-3xl font-black">What's your goal?</h1>
             <p className="text-gray-400">Choose your fitness focus</p>
             
@@ -152,7 +203,7 @@ export default function Onboarding() {
           </div>
         )}
 
-        {step === 3 && (
+        {step === 4 && (
           <div className="space-y-4">
             <h1 className="text-3xl font-black">Your experience</h1>
             <p className="text-gray-400">This helps us customize</p>
@@ -180,7 +231,7 @@ export default function Onboarding() {
           </div>
         )}
 
-        {step === 4 && (
+        {step === 5 && (
           <div className="space-y-4">
             <h1 className="text-3xl font-black">Ready!</h1>
             <p className="text-gray-400">Review and start competing</p>
@@ -188,6 +239,9 @@ export default function Onboarding() {
             <div className="bg-gray-800 rounded-xl p-4 space-y-2">
               <p className="text-white"><span className="text-gray-400">Name:</span> {name}</p>
               <p className="text-white"><span className="text-gray-400">Email:</span> {email}</p>
+              <p className="text-white"><span className="text-gray-400">Weight:</span> {weight} lbs</p>
+              <p className="text-white"><span className="text-gray-400">Height:</span> {Math.floor(height/12)}'{height%12}"</p>
+              {bodyFat && <p className="text-white"><span className="text-gray-400">Body Fat:</span> {bodyFat}%</p>}
               <p className="text-white"><span className="text-gray-400">Goal:</span> {fitnessGoal}</p>
               <p className="text-white"><span className="text-gray-400">Level:</span> {experience}</p>
               <p className="text-white"><span className="text-gray-400">Squad:</span> {groupCode || 'TEST'}</p>

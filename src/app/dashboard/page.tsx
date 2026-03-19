@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, Search, Camera, Video, Zap, Crown, Star, Activity, X, Target as TargetIcon, Calendar, Clock } from 'lucide-react';
-import { supabase, getUser, createUser, updateUser, saveWorkout, getUserWorkouts, getLeaderboard, uploadVideo } from '@/lib/supabase';
 
 const ACHIEVEMENTS = [
   { id: 'first_workout', name: 'First Steps', desc: 'Complete first workout', points: 50, icon: Star },
@@ -74,6 +73,13 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadUserData();
+    
+    // Fallback: always set loading to false after 3 seconds
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 3000);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   async function loadUserData() {
@@ -83,41 +89,23 @@ export default function Dashboard() {
       return;
     }
     
-    try {
-      // Try to get existing user from Supabase
-      let userData = await getUser(email);
-      
-      if (!userData) {
-        // Create new user from onboarding data if not found
-        const onboarding = JSON.parse(localStorage.getItem('ilift_onboarding_data') || '{}');
-        const newUser = {
-          email,
-          name: onboarding.name || email.split('@')[0],
-          total_xp: 0,
-          streak: 0,
-          badges: [],
-          group_id: onboarding.groupCode || 'TEST',
-          onboarding
-        };
-        const result = await createUser(newUser);
-        userData = result.data;
-      }
-      
-      setUser(userData);
-      localStorage.setItem('ilift_user_id', userData.id);
-      
-      // Load workouts
-      const userWorkouts = await getUserWorkouts(userData.id);
-      setWorkouts(userWorkouts);
-      
-      // Load leaderboard
-      const lb = await getLeaderboard(userData.group_id);
-      setLeaderboard(lb);
-      
-    } catch (e) {
-      console.error('Failed to load user:', e);
-    }
+    // For local testing: get data from localStorage
+    const onboardingData = localStorage.getItem('ilift_onboarding_data');
+    const onboarding = onboardingData ? JSON.parse(onboardingData) : {};
     
+    const userData = {
+      email,
+      name: onboarding.name || email.split('@')[0],
+      total_xp: onboarding.totalXP || 0,
+      streak: onboarding.streak || 0,
+      badges: onboarding.badges || [],
+      group_id: onboarding.groupCode || 'TEST',
+      onboarding
+    };
+    
+    setUser(userData);
+    setWorkouts([]);
+    setLeaderboard([userData]); // Just show yourself for now
     setLoading(false);
   }
 
@@ -146,7 +134,7 @@ export default function Dashboard() {
     setShowQuickLog(false);
   };
 
-  const completeWorkout = async () => {
+  const completeWorkout = () => {
     if (!currentExercise || sets.filter(s => s.done).length === 0) return;
     
     const score = calculateScore();
@@ -159,45 +147,33 @@ export default function Dashboard() {
     if (newXP >= 1000 && !newBadges.includes('xp_1000')) newBadges.push('xp_1000');
     if (newStreak >= 7 && !newBadges.includes('streak_7')) newBadges.push('streak_7');
     
-    try {
-      // Update user in Supabase
-      await updateUser(user.id, { 
-        total_xp: newXP, 
-        streak: newStreak, 
-        badges: newBadges 
-      });
-      
-      // Save workout to Supabase
-      await saveWorkout({
-        user_id: user.id,
-        exercise: currentExercise,
-        sets: sets.filter(s => s.done),
-        score
-      });
-      
-      // Update local state
-      const updatedUser = { ...user, total_xp: newXP, streak: newStreak, badges: newBadges };
-      setUser(updatedUser);
-      
-      // Reload data
-      const userWorkouts = await getUserWorkouts(user.id);
-      setWorkouts(userWorkouts);
-      
-      const lb = await getLeaderboard(user.group_id);
-      setLeaderboard(lb);
-      
-      setSubmitted(true);
-      setToast({ message: `Workout saved! +${score} XP`, type: 'success' });
-      setTimeout(() => setSubmitted(false), 2500);
-      setTimeout(() => {
-        setSets([{ weight: 135, reps: 10, rpe: 7, done: false }]);
-        setCurrentExercise('');
-      }, 2500);
-      
-    } catch (e) {
-      console.error('Failed to save workout:', e);
-      setToast({ message: 'Failed to save workout', type: 'error' });
-    }
+    // Update local state
+    const updatedUser = { ...user, total_xp: newXP, streak: newStreak, badges: newBadges };
+    setUser(updatedUser);
+    
+    // Save to localStorage
+    localStorage.setItem('ilift_user', JSON.stringify(updatedUser));
+    localStorage.setItem('ilift_onboarding_data', JSON.stringify(updatedUser));
+    
+    // Add workout to history
+    const workout = {
+      id: Date.now().toString(),
+      exercise: currentExercise,
+      sets: sets.filter(s => s.done),
+      score,
+      date: new Date().toISOString()
+    };
+    const newWorkouts = [workout, ...workouts].slice(0, 50);
+    setWorkouts(newWorkouts);
+    localStorage.setItem('ilift_workouts', JSON.stringify(newWorkouts));
+    
+    setSubmitted(true);
+    setToast({ message: `Workout saved! +${score} XP`, type: 'success' });
+    setTimeout(() => setSubmitted(false), 2500);
+    setTimeout(() => {
+      setSets([{ weight: 135, reps: 10, rpe: 7, done: false }]);
+      setCurrentExercise('');
+    }, 2500);
   };
 
   const currentLevel = Math.floor((user?.total_xp || 0) / 500) + 1;
@@ -589,22 +565,27 @@ export default function Dashboard() {
                       return;
                     }
                     setVideoUploading(true);
-                    try {
-                      const { url, error } = await uploadVideo(user.id, file);
-                      if (error) throw error;
+                    
+                    // Save video as base64 for demo
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      const videoData = reader.result as string;
+                      if (videoData) {
+                        localStorage.setItem('ilift_video', videoData);
+                      }
                       
-                      // Update user with verified badge
-                      const newBadges = [...(user.badges || []), 'verified'];
-                      await updateUser(user.id, { badges: newBadges });
+                      // Add verified badge
+                      const newBadges = [...(user.badges || [])];
+                      if (!newBadges.includes('verified')) {
+                        newBadges.push('verified');
+                      }
                       setUser({ ...user, badges: newBadges });
+                      localStorage.setItem('ilift_user', JSON.stringify({ ...user, badges: newBadges }));
                       
-                      setToast({ message: 'Video uploaded! Badge earned!', type: 'success' });
-                    } catch (err) {
-                      console.error(err);
-                      setToast({ message: 'Upload failed', type: 'error' });
-                    } finally {
+                      setToast({ message: 'Video saved! Badge earned!', type: 'success' });
                       setVideoUploading(false);
-                    }
+                    };
+                    reader.readAsDataURL(file);
                   }}
                 />
               </label>
