@@ -73,12 +73,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadUserData();
-    
+
     // Fallback: always set loading to false after 3 seconds
     const timer = setTimeout(() => {
       setLoading(false);
     }, 3000);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -88,11 +88,11 @@ export default function Dashboard() {
       router.push('/');
       return;
     }
-    
+
     // For local testing: get data from localStorage
     const onboardingData = localStorage.getItem('ilift_onboarding_data');
     const onboarding = onboardingData ? JSON.parse(onboardingData) : {};
-    
+
     const userData = {
       email,
       name: onboarding.name || email.split('@')[0],
@@ -102,16 +102,21 @@ export default function Dashboard() {
       group_id: onboarding.groupCode || 'TEST',
       onboarding
     };
-    
+
     setUser(userData);
     setWorkouts([]);
     setLeaderboard([userData]); // Just show yourself for now
     setLoading(false);
   }
 
-  const logout = () => {
+  const logout = () => { 
     localStorage.removeItem('ilift_email');
+    localStorage.removeItem('ilift_password');
+    localStorage.removeItem('ilift_onboarding');
+    localStorage.removeItem('ilift_onboarding_data');
+    localStorage.removeItem('ilift_user');
     localStorage.removeItem('ilift_user_id');
+    localStorage.removeItem('ilift_workouts');
     router.push('/');
   };
 
@@ -136,25 +141,25 @@ export default function Dashboard() {
 
   const completeWorkout = () => {
     if (!currentExercise || sets.filter(s => s.done).length === 0) return;
-    
+
     const score = calculateScore();
     const newXP = (user.total_xp || 0) + score;
     const newStreak = (user.streak || 0) + 1;
-    
+
     // Check badges
     const newBadges = [...(user.badges || [])];
     if (newBadges.length === 0) newBadges.push('first_workout');
     if (newXP >= 1000 && !newBadges.includes('xp_1000')) newBadges.push('xp_1000');
     if (newStreak >= 7 && !newBadges.includes('streak_7')) newBadges.push('streak_7');
-    
+
     // Update local state
     const updatedUser = { ...user, total_xp: newXP, streak: newStreak, badges: newBadges };
     setUser(updatedUser);
-    
+
     // Save to localStorage
     localStorage.setItem('ilift_user', JSON.stringify(updatedUser));
     localStorage.setItem('ilift_onboarding_data', JSON.stringify(updatedUser));
-    
+
     // Add workout to history
     const workout = {
       id: Date.now().toString(),
@@ -166,7 +171,7 @@ export default function Dashboard() {
     const newWorkouts = [workout, ...workouts].slice(0, 50);
     setWorkouts(newWorkouts);
     localStorage.setItem('ilift_workouts', JSON.stringify(newWorkouts));
-    
+
     setSubmitted(true);
     setToast({ message: `Workout saved! +${score} XP`, type: 'success' });
     setTimeout(() => setSubmitted(false), 2500);
@@ -273,7 +278,7 @@ export default function Dashboard() {
             onChange={(e) => setExerciseSearch(e.target.value.toLowerCase())}
             className="w-full p-3 bg-gray-900 rounded-xl border border-gray-700"
           />
-          
+
           {!currentExercise ? (
             <div className="grid grid-cols-3 gap-2">
               {QUICK_EXERCISES.filter(e => !exerciseSearch || e.name.toLowerCase().includes(exerciseSearch)).map(ex => (
@@ -288,7 +293,7 @@ export default function Dashboard() {
                 <h3 className="text-xl font-bold">{currentExercise}</h3>
                 <button onClick={() => setCurrentExercise('')} className="text-gray-400">✕</button>
               </div>
-              
+
               {sets.map((set, i) => (
                 <div key={i} className={`p-3 rounded-xl flex items-center gap-3 ${set.done ? 'bg-green-900/30 border border-green-500/30' : 'bg-gray-800'}`}>
                   <span className="text-gray-400 font-bold w-8">Set {i + 1}</span>
@@ -320,9 +325,9 @@ export default function Dashboard() {
                   </button>
                 </div>
               ))}
-              
+
               <button onClick={() => setSets([...sets, { weight: 135, reps: 10, rpe: 7, done: false }])} className="w-full py-2 bg-gray-800 rounded-xl text-gray-400">+ Add Set</button>
-              
+
               <button onClick={completeWorkout} className="w-full py-4 bg-yellow-400 rounded-xl font-black text-black text-lg">
                 Complete Workout (+{calculateScore()} XP)
               </button>
@@ -336,7 +341,7 @@ export default function Dashboard() {
         <div className="p-4 space-y-4">
           <h2 className="text-xl font-bold">Your Squad</h2>
           <p className="text-gray-400 text-sm">People in your group ({user.group_id})</p>
-          
+
           {leaderboard.length === 0 ? (
             <div className="text-center py-8 bg-gray-900/50 rounded-xl">
               <Users size={40} className="mx-auto text-gray-700 mb-3" />
@@ -370,7 +375,7 @@ export default function Dashboard() {
       {activeTab === 'challenges' && (
         <div className="p-4 space-y-6">
           <h2 className="text-xl font-bold">Challenges</h2>
-          
+
           {/* Daily */}
           <div>
             <div className="flex items-center gap-2 mb-3">
@@ -401,7 +406,7 @@ export default function Dashboard() {
               })}
             </div>
           </div>
-          
+
           {/* Weekly */}
           <div>
             <div className="flex items-center gap-2 mb-3">
@@ -431,7 +436,7 @@ export default function Dashboard() {
               })}
             </div>
           </div>
-          
+
           {/* Monthly */}
           <div>
             <div className="flex items-center gap-2 mb-3">
@@ -461,7 +466,7 @@ export default function Dashboard() {
               })}
             </div>
           </div>
-          
+
           {/* Lifetime */}
           <div>
             <div className="flex items-center gap-2 mb-3">
@@ -527,7 +532,7 @@ export default function Dashboard() {
               <p className="text-3xl font-black text-yellow-400">{user.badges?.length || 0} / {ACHIEVEMENTS.length}</p>
             </div>
           </div>
-          
+
           {/* Video Upload */}
           <div className="bg-gray-900 rounded-xl p-4">
             <div className="flex items-center gap-3 mb-3">
@@ -537,7 +542,7 @@ export default function Dashboard() {
                 <p className="text-gray-500 text-sm">Verify your workouts to earn badges</p>
               </div>
             </div>
-            
+
             {user.badges?.includes('verified') ? (
               <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-3 text-green-400 text-sm font-medium">
                 ✓ Video verified! You earned the Verified badge.
@@ -552,10 +557,10 @@ export default function Dashboard() {
                     <span>Choose Video</span>
                   </>
                 )}
-                <input 
-                  type="file" 
-                  accept="video/*" 
-                  className="hidden" 
+                <input
+                  type="file"
+                  accept="video/*"
+                  className="hidden"
                   disabled={videoUploading}
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
@@ -565,7 +570,7 @@ export default function Dashboard() {
                       return;
                     }
                     setVideoUploading(true);
-                    
+
                     // Save video as base64 for demo
                     const reader = new FileReader();
                     reader.onloadend = () => {
@@ -573,7 +578,7 @@ export default function Dashboard() {
                       if (videoData) {
                         localStorage.setItem('ilift_video', videoData);
                       }
-                      
+
                       // Add verified badge
                       const newBadges = [...(user.badges || [])];
                       if (!newBadges.includes('verified')) {
@@ -581,7 +586,7 @@ export default function Dashboard() {
                       }
                       setUser({ ...user, badges: newBadges });
                       localStorage.setItem('ilift_user', JSON.stringify({ ...user, badges: newBadges }));
-                      
+
                       setToast({ message: 'Video saved! Badge earned!', type: 'success' });
                       setVideoUploading(false);
                     };
@@ -591,7 +596,7 @@ export default function Dashboard() {
               </label>
             )}
           </div>
-          
+
           {ACHIEVEMENTS.map(ach => {
             const earned = user.badges?.includes(ach.id);
             return (
@@ -619,9 +624,9 @@ export default function Dashboard() {
             </div>
             <h2 className="text-2xl font-black">{user.name}</h2>
             <p className="text-gray-400">{user.email}</p>
-            {user.onboarding?.fitness_goal && (
+            {user.onboarding?.fitnessGoal && (
               <p className="mt-2 inline-block bg-purple-500/20 text-purple-400 px-3 py-1 rounded-full text-sm font-bold">
-                Goal: {user.onboarding.fitness_goal}
+                Goal: {user.onboarding.fitnessGoal}
               </p>
             )}
             <div className="mt-4 bg-gray-800 rounded-lg p-3">
@@ -629,7 +634,7 @@ export default function Dashboard() {
               <p className="text-3xl font-black text-yellow-400">{(user.total_xp || 0).toLocaleString()} XP</p>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-gray-900 rounded-xl p-4 text-center">
               <Flame size={28} className="mx-auto text-orange-400 mb-2" />
@@ -642,7 +647,7 @@ export default function Dashboard() {
               <p className="text-gray-500 text-sm">Badges</p>
             </div>
           </div>
-          
+
           {/* Onboarding Stats */}
           {user.onboarding && (
             <div className="bg-gray-900 rounded-xl p-4">
@@ -666,6 +671,12 @@ export default function Dashboard() {
                     <p className="text-white font-bold">{user.onboarding.experience}</p>
                   </div>
                 )}
+                {user.onboarding.bodyFat && (
+                  <div className="bg-gray-800 rounded-lg p-3">
+                    <p className="text-gray-500 text-xs">Body Fat</p>
+                    <p className="text-white font-bold">{user.onboarding.bodyFat}%</p>
+                  </div>
+                )}
                 {user.onboarding.age && (
                   <div className="bg-gray-800 rounded-lg p-3">
                     <p className="text-gray-500 text-xs">Age</p>
@@ -675,14 +686,14 @@ export default function Dashboard() {
               </div>
             </div>
           )}
-          
+
           <div className="bg-gray-900 rounded-xl p-4">
             <p className="text-gray-400 text-sm mb-2">Squad Code</p>
             <p className="text-4xl font-black text-yellow-400">{user.group_id || 'TEST'}</p>
           </div>
-          
+
           {/* Share Button */}
-          <button 
+          <button
             onClick={() => {
               const text = `I'm level ${currentLevel} on iLift with ${user.total_xp || 0} XP! 💪🔥`;
               window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
@@ -691,9 +702,9 @@ export default function Dashboard() {
           >
             Share Progress
           </button>
-          
+
           {/* Logout Button */}
-          <button 
+          <button
             onClick={logout}
             className="w-full py-3 bg-red-500/20 text-red-400 rounded-xl font-bold border border-red-500/30"
           >
