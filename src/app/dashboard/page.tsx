@@ -63,6 +63,7 @@ export default function Dashboard() {
   const [submitted, setSubmitted] = useState(false);
   const [rpe, setRpe] = useState(7);
   const [toast, setToast] = useState<any>(null);
+  const [showPR, setShowPR] = useState<any>(null);
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [videoUploading, setVideoUploading] = useState(false);
@@ -179,16 +180,44 @@ export default function Dashboard() {
     localStorage.setItem('ilift_onboarding_data', JSON.stringify(updatedUser));
 
     // Add workout to history
+    const doneSets = sets.filter(s => s.done);
+    const volume = doneSets.reduce((acc, s) => acc + (s.weight * s.reps), 0);
+    
     const workout = {
       id: Date.now().toString(),
       exercise: currentExercise,
-      sets: sets.filter(s => s.done),
+      sets: doneSets,
+      volume,
       score,
       date: new Date().toISOString()
     };
     const newWorkouts = [workout, ...workouts].slice(0, 50);
     setWorkouts(newWorkouts);
     localStorage.setItem('ilift_workouts', JSON.stringify(newWorkouts));
+
+    // Check for PR
+    const prs = JSON.parse(localStorage.getItem('ilift_prs') || '{}');
+    const exerciseKey = currentExercise.toLowerCase();
+    let isPR = false;
+    let oldPR = 0;
+    
+    // Check weight PR for each set
+    doneSets.forEach(set => {
+      if (set.weight > (prs[exerciseKey]?.maxWeight || 0)) {
+        isPR = true;
+        oldPR = prs[exerciseKey]?.maxWeight || 0;
+        prs[exerciseKey] = {
+          ...prs[exerciseKey],
+          maxWeight: set.weight,
+          date: new Date().toISOString()
+        };
+      }
+    });
+    
+    if (isPR) {
+      localStorage.setItem('ilift_prs', JSON.stringify(prs));
+      setShowPR({ exercise: currentExercise, weight: doneSets[0].weight, oldPR });
+    }
 
     setSubmitted(true);
     setToast({ message: `Workout saved! +${score} XP`, type: 'success' });
@@ -733,6 +762,26 @@ export default function Dashboard() {
             </div>
           )}
 
+          {/* PRs Section */}
+          {(() => {
+            const prs = JSON.parse(localStorage.getItem('ilift_prs') || '{}');
+            const prList = Object.entries(prs).filter(([_, v]: any) => v.maxWeight);
+            if (prList.length === 0) return null;
+            return (
+              <div className="bg-gray-950 rounded-xl p-4">
+                <p className="text-gray-400 text-sm mb-3">Personal Records 🏆</p>
+                <div className="space-y-2">
+                  {prList.slice(0, 5).map(([exercise, data]: any) => (
+                    <div key={exercise} className="flex justify-between items-center bg-gray-900 rounded-lg p-3">
+                      <span className="text-white font-bold capitalize">{exercise}</span>
+                      <span className="text-yellow-400 font-black">{data.maxWeight} lbs</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
           <div className="bg-gray-950 rounded-xl p-4">
             <p className="text-gray-400 text-sm mb-2">Squad Code</p>
             <p className="text-4xl font-black text-yellow-500">{user.group_id || 'TEST'}</p>
@@ -773,6 +822,25 @@ export default function Dashboard() {
       {toast && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 bg-green-500 rounded-xl font-bold">
           {toast.message}
+        </div>
+      )}
+
+      {/* PR Celebration */}
+      {showPR && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="text-center animate-bounce">
+            <Trophy size={80} className="text-yellow-400 mx-auto mb-4" />
+            <h2 className="text-4xl font-black text-yellow-400 mb-2">NEW PR!</h2>
+            <p className="text-xl text-white mb-2">{showPR.exercise}</p>
+            <p className="text-3xl font-bold text-white">{showPR.weight} lbs</p>
+            <p className="text-gray-400 text-sm mt-2">Previous: {showPR.oldPR} lbs</p>
+            <button 
+              onClick={() => setShowPR(null)}
+              className="mt-6 px-8 py-3 bg-yellow-400 text-black font-bold rounded-xl"
+            >
+              AWESOME!
+            </button>
+          </div>
         </div>
       )}
     </div>
