@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, Search, Camera, Video, Zap, Crown, Star, Activity, X, Target as TargetIcon, Calendar, Clock } from 'lucide-react';
 
 // Tab Components
-import { HomeTab, SquadTab, ChallengesTab, HistoryTab, ProfileTab } from '@/components';
+import { HomeTab, SquadTab, ChallengesTab, HistoryTab } from '@/components';
 
 // Components available for integration:
 // import { RankCard, Leaderboard, RestTimer, PostWorkoutModal } from '@/components';
