@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, Search, Camera, Video, Zap, Crown, Star, Activity, X, Target as TargetIcon, Calendar, Clock } from 'lucide-react';
 
+// Components available for integration:
+// import { RankCard, Leaderboard, RestTimer, PostWorkoutModal } from '@/components';
+
 const ACHIEVEMENTS = [
   { id: 'first_workout', name: 'First Steps', desc: 'Complete first workout', points: 50, icon: Star },
   { id: 'verified', name: 'Verified', desc: 'Upload video proof', points: 150, icon: Video },
