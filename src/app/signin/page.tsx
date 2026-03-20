@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { getUser } from '@/lib/data';
 
 export default function SignIn() {
   const router = useRouter();
@@ -29,13 +29,9 @@ export default function SignIn() {
     setError('');
     
     try {
-      const { data: user, error: fetchError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', email.trim())
-        .single();
+      const user = await getUser(email.trim());
       
-      if (fetchError || !user) {
+      if (!user.email) {
         setError('No account found. Sign up first.');
         setLoading(false);
         return;

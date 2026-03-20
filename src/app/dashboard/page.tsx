@@ -6,6 +6,7 @@ import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, Search, C
 
 // Tab Components
 import { HomeTab, SquadTab, ChallengesTab, HistoryTab } from '@/components';
+import { updateUser } from '@/lib/data';
 
 // Components available for integration:
 // import { RankCard, Leaderboard, RestTimer, PostWorkoutModal } from '@/components';
@@ -164,7 +165,7 @@ export default function Dashboard() {
     setShowQuickLog(false);
   };
 
-  const completeWorkout = () => {
+  const completeWorkout = async () => {
     if (!currentExercise || sets.filter(s => s.done).length === 0) return;
 
     const score = calculateScore();
@@ -184,6 +185,9 @@ export default function Dashboard() {
     // Save to localStorage
     localStorage.setItem('ilift_user', JSON.stringify(updatedUser));
     localStorage.setItem('ilift_onboarding_data', JSON.stringify(updatedUser));
+    
+    // Save to Supabase (hybrid - won't break if fails)
+    await updateUser(updatedUser);
 
     // Add workout to history
     const doneSets = sets.filter(s => s.done);
@@ -259,6 +263,7 @@ export default function Dashboard() {
             { id: 'home', icon: Home, label: 'Home' },
             { id: 'log', icon: Dumbbell, label: 'Log' },
             { id: 'squad', icon: Users, label: 'Squad' },
+            { id: 'challenges', icon: Trophy, label: 'Goals' },
             { id: 'profile', icon: Target, label: 'Profile' },
           ].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex flex-col items-center py-2 px-3 ${activeTab === tab.id ? 'text-yellow-500' : 'text-gray-400'}`}>
@@ -366,6 +371,8 @@ export default function Dashboard() {
 
       {/* Squad Tab */}
       {activeTab === 'squad' && <SquadTab user={user} leaderboard={leaderboard} />}
+      
+      {activeTab === 'challenges' && <ChallengesTab />}
 
       {/* Challenges Tab */}
       {activeTab === 'challenges' && <ChallengesTab />}

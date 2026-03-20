@@ -27,7 +27,7 @@ export default function SquadTab({ user, leaderboard }: SquadTabProps) {
         <div className="space-y-2">
           {leaderboard.map((member: any, i: number) => (
             <div 
-              key={member.id} 
+              key={member.id || member.email || i} 
               className={`bg-gray-950 rounded-xl p-4 flex items-center gap-4 ${member.id === user.id ? 'border border-yellow-400/30' : ''}`}
             >
               {i === 0 && <span className="text-2xl">🥇</span>}

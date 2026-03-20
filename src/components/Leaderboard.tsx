@@ -21,7 +21,7 @@ export default function Leaderboard({ leaderboard, user }: LeaderboardProps) {
         const isUser = u.id === user.id;
         return (
           <div 
-            key={u.id} 
+            key={u.id || u.email || i} 
             className="rounded-xl p-3 flex items-center gap-3 transition-all duration-200 hover:scale-[1.01]"
             style={{ 
               background: isUser 

@@ -126,7 +126,7 @@ export default function HomeTab({ user, leaderboard, currentLevel, onLogWorkout 
         ) : (
           leaderboard.slice(0, 5).map((u: any, i: number) => (
             <div 
-              key={u.id} 
+              key={u.id || u.email || i} 
               className={`flex justify-between items-center py-2 px-2 rounded-lg ${u.id === user.id ? 'bg-yellow-400/10 border border-yellow-400/30' : ''}`}
             >
               <div className="flex items-center gap-2">

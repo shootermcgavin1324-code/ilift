@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { createUser } from '@/lib/data';
 import { icons } from '@/lib/icons';
 
 export default function Onboarding() {
@@ -77,18 +78,27 @@ export default function Onboarding() {
     setLoading(true);
     setError('');
     
-    localStorage.setItem('ilift_email', email.trim());
-    localStorage.setItem('ilift_password', password);
-    localStorage.setItem('ilift_onboarding', 'true');
-    localStorage.setItem('ilift_onboarding_data', JSON.stringify({
+    const userData = {
+      email: email.trim(),
       name: name.trim(),
-      groupCode: groupCode || 'GOOP',
-      weight,
-      height,
-      bodyFat: bodyFat || undefined,
-      fitnessGoal,
-      experience
-    }));
+      total_xp: 0,
+      streak: 0,
+      badges: [],
+      group_id: groupCode || 'GOOP',
+      onboarding: {
+        name: name.trim(),
+        groupCode: groupCode || 'GOOP',
+        weight,
+        height,
+        bodyFat: bodyFat || undefined,
+        fitnessGoal,
+        experience
+      }
+    };
+    
+    // Save using hybrid data layer (localStorage + Supabase)
+    await createUser(userData);
+    localStorage.setItem('ilift_onboarding', 'true');
     
     // Go to welcome screen instead of directly to dashboard
     setTimeout(() => {
