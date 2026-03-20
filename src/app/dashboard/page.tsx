@@ -6,7 +6,7 @@ import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, Search, C
 
 // Tab Components
 import { HomeTab, SquadTab, ChallengesTab, HistoryTab } from '@/components';
-import { getUser, updateUser, saveWorkout } from '@/lib/data';
+import { getUser, updateUser, saveWorkout, processWorkout } from '@/lib/data';
 
 // Components available for integration:
 // import { RankCard, Leaderboard, RestTimer, PostWorkoutModal } from '@/components';
@@ -159,21 +159,31 @@ export default function Dashboard() {
 
     const score = calculateScore();
     const newXP = (user.total_xp || 0) + score;
-    const newStreak = (user.streak || 0) + 1;
 
+    // Process workout with proper streak logic
+    const { updatedUser, streakChanged, message } = processWorkout(user);
+    
+    // Add XP to the updated user
+    updatedUser.total_xp = newXP;
+    
     // Check badges
-    const newBadges = [...(user.badges || [])];
+    const newBadges = [...(updatedUser.badges || [])];
     if (newBadges.length === 0) newBadges.push('first_workout');
     if (newXP >= 1000 && !newBadges.includes('xp_1000')) newBadges.push('xp_1000');
-    if (newStreak >= 7 && !newBadges.includes('streak_7')) newBadges.push('streak_7');
+    if (updatedUser.streak >= 7 && !newBadges.includes('streak_7')) newBadges.push('streak_7');
+    updatedUser.badges = newBadges;
 
     // Update local state
-    const updatedUser = { ...user, total_xp: newXP, streak: newStreak, badges: newBadges };
     setUser(updatedUser);
 
     // Save to localStorage
     localStorage.setItem('ilift_user', JSON.stringify(updatedUser));
     localStorage.setItem('ilift_onboarding_data', JSON.stringify(updatedUser));
+    
+    // Show streak message
+    if (message) {
+      console.log(message);
+    }
     
     // Save to Supabase (hybrid - won't break if fails)
     await updateUser(updatedUser);

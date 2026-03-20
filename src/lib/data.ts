@@ -13,6 +13,7 @@ export interface User {
   streak: number;
   badges: string[];
   group_id: string;
+  lastWorkoutDate?: string; // YYYY-MM-DD format
   onboarding?: any;
 }
 
@@ -26,6 +27,43 @@ export interface Workout {
 }
 
 // ============================================
+// STREAK LOGIC
+// ============================================
+
+function getTodayDate(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
+function getYesterdayDate(): string {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return yesterday.toISOString().split('T')[0];
+}
+
+function calculateStreak(user: User): { streak: number; reason: string } {
+  const today = getTodayDate();
+  const yesterday = getYesterdayDate();
+  const lastWorkout = user.lastWorkoutDate;
+  
+  if (!lastWorkout) {
+    // First workout ever - start streak at 1
+    return { streak: 1, reason: 'first' };
+  }
+  
+  if (lastWorkout === today) {
+    // Already worked out today - don't increment streak
+    return { streak: user.streak, reason: 'already' };
+  }
+  
+  if (lastWorkout === yesterday) {
+    // Worked out yesterday - increment streak
+    return { streak: user.streak + 1, reason: 'increment' };
+  }
+  
+  // Missed a day - reset streak
+  return { streak: 1, reason: 'reset' };
+}
+
 // LOCAL STORAGE FUNCTIONS (Always Work)
 // ============================================
 
@@ -42,6 +80,7 @@ function getLocalUser(): User | null {
     streak: onboarding.streak || 0,
     badges: onboarding.badges || [],
     group_id: onboarding.groupCode || 'TEST',
+    lastWorkoutDate: onboarding.lastWorkoutDate,
     onboarding
   };
 }
@@ -54,6 +93,7 @@ function saveLocalUser(user: User): void {
     totalXP: user.total_xp,
     streak: user.streak,
     badges: user.badges,
+    lastWorkoutDate: user.lastWorkoutDate,
     ...user.onboarding
   }));
 }
@@ -223,6 +263,34 @@ export async function updateUser(user: User): Promise<void> {
   
   // Try to update Supabase
   await updateSupabaseUser(user);
+}
+
+// Process workout and update streak properly
+export function processWorkout(user: User): { updatedUser: User; streakChanged: boolean; message: string } {
+  const today = getTodayDate();
+  const { streak, reason } = calculateStreak(user);
+  
+  // Check if streak changed
+  const streakChanged = reason === 'increment' || reason === 'reset' || reason === 'first';
+  
+  let message = '';
+  if (reason === 'already') {
+    message = 'Streak maintained - workout logged today';
+  } else if (reason === 'increment') {
+    message = `🔥 Streak increased to ${streak}!`;
+  } else if (reason === 'reset') {
+    message = 'Streak reset - start fresh!';
+  } else if (reason === 'first') {
+    message = '🔥 Streak started!';
+  }
+  
+  const updatedUser = {
+    ...user,
+    streak,
+    lastWorkoutDate: today
+  };
+  
+  return { updatedUser, streakChanged, message };
 }
 
 // Get workouts - local only for now
