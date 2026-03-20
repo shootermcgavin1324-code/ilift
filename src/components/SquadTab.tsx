@@ -9,7 +9,13 @@ interface SquadTabProps {
 export default function SquadTab({ user, leaderboard }: SquadTabProps) {
   return (
     <div className="p-4 space-y-4">
-      <h2 className="text-xl font-bold">Your Squad</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold">SQUAD</h2>
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+          <span className="text-xs text-green-500 font-bold">LIVE</span>
+        </div>
+      </div>
       <p className="text-gray-400 text-sm">People in your group ({user.group_id})</p>
 
       {leaderboard.length === 0 ? (
@@ -24,7 +30,10 @@ export default function SquadTab({ user, leaderboard }: SquadTabProps) {
               key={member.id} 
               className={`bg-gray-950 rounded-xl p-4 flex items-center gap-4 ${member.id === user.id ? 'border border-yellow-400/30' : ''}`}
             >
-              <span className="text-2xl font-black text-gray-600 w-8">#{i + 1}</span>
+              {i === 0 && <span className="text-2xl">🥇</span>}
+              {i === 1 && <span className="text-2xl">🥈</span>}
+              {i === 2 && <span className="text-2xl">🥉</span>}
+              {i > 2 && <span className="text-2xl font-black text-gray-600 w-8">#{i + 1}</span>}
               <div className="w-12 h-12 rounded-full bg-gray-900 flex items-center justify-center">
                 <span className="text-xl font-bold text-gray-600">{member.name?.charAt(0)}</span>
               </div>
