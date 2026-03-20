@@ -1,6 +1,29 @@
 # iLift - System Health & Maintenance Guide
 
 _Created: March 20, 2026_
+_Updated: March 20, 2026 (Added clean script + rules)_
+
+---
+
+## 🚀 Quick Start (ALWAYS USE THIS)
+
+```bash
+# Clean start - USE THIS EVERY TIME
+npm run dev:clean
+```
+
+This kills old processes, clears locks, and starts fresh.
+
+---
+
+## 🔧 Available Scripts
+
+```bash
+npm run dev        # Start dev server (may have stale processes)
+npm run dev:clean  # Clean + start dev server (RECOMMENDED)
+npm run clean      # Just clean, don't start
+npm run build      # Build for production
+```
 
 ---
 
@@ -43,6 +66,13 @@ netstat -an | grep 3000
 
 Before starting work each day:
 
+```bash
+# RECOMMENDED - Use clean script
+cd ~/ilift
+npm run dev:clean
+```
+
+Or manually:
 ```bash
 # 1. Clear any old locks
 rm -f ~/.openclaw/agents/main/sessions/*.lock
