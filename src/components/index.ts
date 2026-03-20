@@ -7,6 +7,8 @@ export { default as Leaderboard } from './Leaderboard';
 export { default as PostWorkoutModal } from './PostWorkoutModal';
 
 // Tabs
+export { default as HomeTab } from './HomeTab';
 export { default as SquadTab } from './SquadTab';
 export { default as ChallengesTab } from './ChallengesTab';
 export { default as HistoryTab } from './HistoryTab';
+export { default as ProfileTab } from './ProfileTab';
