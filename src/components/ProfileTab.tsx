@@ -21,6 +21,8 @@ interface User {
 interface ProfileTabProps {
   user: User;
   currentLevel: number;
+  group_id?: string;
+  onLogout: () => void;
 }
 
 const ACHIEVEMENTS = [
@@ -125,6 +127,52 @@ export default function ProfileTab({ user, currentLevel }: ProfileTabProps) {
           })}
         </div>
       </div>
+
+      {/* PRs Section */}
+      {(() => {
+        if (typeof window === 'undefined') return null;
+        const prs = JSON.parse(localStorage.getItem('ilift_prs') || '{}');
+        const prList = Object.entries(prs).filter(([_, v]: any) => v.maxWeight);
+        if (prList.length === 0) return null;
+        return (
+          <div className="bg-gray-950 rounded-xl p-4">
+            <p className="text-gray-400 text-sm mb-3">Personal Records 🏆</p>
+            <div className="space-y-2">
+              {prList.slice(0, 5).map(([exercise, data]: any) => (
+                <div key={exercise} className="flex justify-between items-center bg-gray-900 rounded-lg p-3">
+                  <span className="text-white font-bold capitalize">{exercise}</span>
+                  <span className="text-yellow-400 font-black">{data.maxWeight} lbs</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Squad Code */}
+      <div className="bg-gray-950 rounded-xl p-4">
+        <p className="text-gray-400 text-sm mb-2">Squad Code</p>
+        <p className="text-4xl font-black text-yellow-500">{group_id || 'TEST'}</p>
+      </div>
+
+      {/* Share Button */}
+      <button
+        onClick={() => {
+          const text = `I'm level ${currentLevel} on iLift with ${user.total_xp || 0} XP! 💪🔥`;
+          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+        }}
+        className="w-full py-3 bg-blue-500/20 text-blue-400 rounded-xl font-bold border border-blue-500/30"
+      >
+        Share Progress
+      </button>
+
+      {/* Logout Button */}
+      <button
+        onClick={onLogout}
+        className="w-full py-3 bg-red-500/20 text-red-400 rounded-xl font-bold border border-red-500/30"
+      >
+        Log Out
+      </button>
     </div>
   );
 }
