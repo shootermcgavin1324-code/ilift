@@ -1,6 +1,8 @@
 // HomeTab Component
 // Main dashboard view with rank, streak, level, and leaderboard preview
 
+import { Flame, Target, Trophy, Zap } from 'lucide-react';
+
 interface User {
   id: string;
   name: string;
@@ -24,9 +26,40 @@ interface HomeTabProps {
 export default function HomeTab({ user, leaderboard, currentLevel, onLogWorkout }: HomeTabProps) {
   const userRank = leaderboard.findIndex((u: any) => u.id === user.id) + 1;
   const rankAhead = leaderboard[userRank - 2];
+  
+  // Calculate XP progress
+  const currentLevelXP = (currentLevel - 1) * 500;
+  const nextLevelXP = currentLevel * 500;
+  const xpIntoLevel = (user.total_xp || 0) - currentLevelXP;
+  const xpToNextLevel = nextLevelXP - (user.total_xp || 0);
+  const progressPercent = Math.min(100, (xpIntoLevel / 500) * 100);
 
   return (
     <div className="p-4 space-y-4">
+      {/* XP Progress Bar */}
+      <div className="bg-gray-950 rounded-xl p-4 border border-yellow-500/20">
+        <div className="flex justify-between items-center mb-2">
+          <div className="flex items-center gap-2">
+            <Zap size={18} className="text-yellow-400" />
+            <span className="text-gray-400 text-sm">Level {currentLevel}</span>
+          </div>
+          <span className="text-yellow-400 font-bold text-sm">{xpToNextLevel} XP to Level {currentLevel + 1}</span>
+        </div>
+        <div className="h-3 bg-gray-900 rounded-full overflow-hidden">
+          <div 
+            className="h-full rounded-full transition-all duration-500"
+            style={{ 
+              width: `${progressPercent}%`,
+              background: 'linear-gradient(90deg, #facc15, #eab308)',
+              boxShadow: '0 0 10px rgba(250, 204, 21, 0.5)'
+            }}
+          />
+        </div>
+        <p className="text-gray-500 text-xs mt-2">
+          {user.total_xp || 0} / {nextLevelXP} XP
+        </p>
+      </div>
+
       {/* User Rank - Prominent */}
       {leaderboard.length > 0 && (
         <div className="bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-xl p-4 border border-yellow-400/30">
@@ -40,15 +73,31 @@ export default function HomeTab({ user, leaderboard, currentLevel, onLogWorkout 
         </div>
       )}
 
-      {/* Streak & Level */}
-      <div className="flex gap-3">
-        <div className="flex-1 bg-gray-950 rounded-xl p-4">
-          <p className="text-gray-400 text-sm">🔥 Streak</p>
-          <p className="text-2xl font-black text-orange-400">{user.streak || 0} days</p>
+      {/* Streak & Today's Activity */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-gray-950 rounded-xl p-4 border border-orange-500/20">
+          <div className="flex items-center gap-2 mb-1">
+            <Flame size={18} className="text-orange-400" />
+            <p className="text-gray-400 text-xs">STREAK</p>
+          </div>
+          <p className="text-2xl font-black text-orange-400">
+            {user.streak || 0} <span className="text-sm text-gray-500">days</span>
+          </p>
+          {user.streak && user.streak >= 7 && (
+            <p className="text-orange-300 text-xs mt-1">🔥 On fire!</p>
+          )}
         </div>
-        <div className="flex-1 bg-gray-950 rounded-xl p-4">
-          <p className="text-gray-400 text-sm">Level</p>
-          <p className="text-2xl font-black text-yellow-500">{currentLevel}</p>
+        <div className="bg-gray-950 rounded-xl p-4 border border-green-500/20">
+          <div className="flex items-center gap-2 mb-1">
+            <Trophy size={18} className="text-green-400" />
+            <p className="text-gray-400 text-xs">TODAY</p>
+          </div>
+          <p className="text-2xl font-black text-green-400">
+            {leaderboard.length > 0 ? leaderboard.length : 0} <span className="text-sm text-gray-500">workouts</span>
+          </p>
+          <p className="text-gray-500 text-xs mt-1">
+            {leaderboard.length === 0 ? 'Be the first!' : `${leaderboard.length} squad members trained`}
+          </p>
         </div>
       </div>
 
@@ -56,13 +105,22 @@ export default function HomeTab({ user, leaderboard, currentLevel, onLogWorkout 
       <button 
         onClick={onLogWorkout}
         className="w-full py-5 bg-yellow-400 rounded-xl font-black text-black text-xl"
+        style={{ boxShadow: '0 4px 20px rgba(250, 204, 21, 0.4)' }}
       >
         LOG WORKOUT →
       </button>
 
       {/* Leaderboard Preview */}
       <div className="bg-gray-950 rounded-xl p-4">
-        <p className="text-gray-400 text-sm mb-3">Today's Squad</p>
+        <div className="flex justify-between items-center mb-3">
+          <p className="text-gray-400 text-sm">SQUAD LEADERBOARD</p>
+          {leaderboard.length > 0 && (
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              <span className="text-xs text-green-500">LIVE</span>
+            </span>
+          )}
+        </div>
         {leaderboard.length === 0 ? (
           <p className="text-gray-400 text-center py-4">No workouts yet. Be first!</p>
         ) : (
