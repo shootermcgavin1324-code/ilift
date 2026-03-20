@@ -43,9 +43,6 @@ export default function SignIn() {
       
       localStorage.setItem('ilift_email', email.trim());
       localStorage.setItem('ilift_onboarding', 'true');
-      if (user?.id) {
-        localStorage.setItem('ilift_user_id', user.id);
-      }
       router.push('/dashboard');
       
     } catch (err) {
