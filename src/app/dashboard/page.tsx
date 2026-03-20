@@ -6,7 +6,7 @@ import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, Search, C
 
 // Tab Components
 import { HomeTab, SquadTab, ChallengesTab, HistoryTab } from '@/components';
-import { updateUser } from '@/lib/data';
+import { updateUser, saveWorkout } from '@/lib/data';
 
 // Components available for integration:
 // import { RankCard, Leaderboard, RestTimer, PostWorkoutModal } from '@/components';
@@ -204,6 +204,9 @@ export default function Dashboard() {
     const newWorkouts = [workout, ...workouts].slice(0, 50);
     setWorkouts(newWorkouts);
     localStorage.setItem('ilift_workouts', JSON.stringify(newWorkouts));
+    
+    // Save to Supabase (hybrid)
+    await saveWorkout({ ...workout, user_name: user.name });
 
     // Check for PR
     const prs = JSON.parse(localStorage.getItem('ilift_prs') || '{}');

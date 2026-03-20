@@ -118,10 +118,9 @@ async function createSupabaseUser(user: User): Promise<string | null> {
 
 async function saveSupabaseWorkout(workout: Workout): Promise<void> {
   try {
-    const userId = localStorage.getItem('ilift_user_id');
+    const email = localStorage.getItem('ilift_email');
     await supabase.from('workouts').insert({
-      user_id: userId,
-      user_name: workout.user_name,
+      user_name: workout.user_name || email,
       exercise: workout.exercise,
       score: workout.score,
       date: workout.date
@@ -133,14 +132,15 @@ async function saveSupabaseWorkout(workout: Workout): Promise<void> {
 
 async function updateSupabaseUser(user: User): Promise<void> {
   try {
-    const userId = localStorage.getItem('ilift_user_id');
-    if (!userId) return;
+    // Try to update by email (more reliable)
+    const email = localStorage.getItem('ilift_email');
+    if (!email) return;
     
     await supabase.from('users').update({
       total_xp: user.total_xp,
       streak: user.streak,
       badges: user.badges
-    }).eq('id', userId);
+    }).eq('email', email);
   } catch (err) {
     console.log('Supabase updateUser failed:', err);
   }
