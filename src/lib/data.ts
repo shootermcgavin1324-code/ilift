@@ -134,13 +134,26 @@ async function updateSupabaseUser(user: User): Promise<void> {
   try {
     // Try to update by email (more reliable)
     const email = localStorage.getItem('ilift_email');
-    if (!email) return;
+    console.log('Step 1 - Email:', email, 'XP:', user.total_xp);
+    if (!email) {
+      console.log('Step 1 - No email, returning');
+      return;
+    }
     
-    await supabase.from('users').update({
+    console.log('Step 2 - Starting Supabase update...');
+    const { data, error } = await supabase.from('users').update({
       total_xp: user.total_xp,
       streak: user.streak,
       badges: user.badges
-    }).eq('email', email);
+    }).eq('email', email).select();
+    
+    console.log('Step 3 - Result:', { data, error });
+    
+    if (error) {
+      console.log('Supabase update error:', error.message);
+    } else {
+      console.log('Supabase update success:', data);
+    }
   } catch (err) {
     console.log('Supabase updateUser failed:', err);
   }

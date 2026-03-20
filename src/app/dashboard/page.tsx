@@ -6,7 +6,7 @@ import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, Search, C
 
 // Tab Components
 import { HomeTab, SquadTab, ChallengesTab, HistoryTab } from '@/components';
-import { updateUser, saveWorkout } from '@/lib/data';
+import { getUser, updateUser, saveWorkout } from '@/lib/data';
 
 // Components available for integration:
 // import { RankCard, Leaderboard, RestTimer, PostWorkoutModal } from '@/components';
@@ -115,23 +115,12 @@ export default function Dashboard() {
       return;
     }
 
-    // For local testing: get data from localStorage
-    const onboardingData = localStorage.getItem('ilift_onboarding_data');
-    const onboarding = onboardingData ? JSON.parse(onboardingData) : {};
-
-    const userData = {
-      email,
-      name: onboarding.name || email.split('@')[0],
-      total_xp: onboarding.totalXP || 0,
-      streak: onboarding.streak || 0,
-      badges: onboarding.badges || [],
-      group_id: onboarding.groupCode || 'TEST',
-      onboarding
-    };
+    // Use hybrid data layer - tries Supabase first, falls back to localStorage
+    const userData = await getUser(email);
 
     setUser(userData);
     setWorkouts([]);
-    setLeaderboard([userData]); // Just show yourself for now
+    setLeaderboard([userData]);
     setLoading(false);
   }
 
