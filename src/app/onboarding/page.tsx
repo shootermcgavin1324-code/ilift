@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 import { icons } from '@/lib/icons';
 
 export default function Onboarding() {
@@ -77,18 +78,50 @@ export default function Onboarding() {
     setLoading(true);
     setError('');
     
-    localStorage.setItem('ilift_email', email.trim());
-    localStorage.setItem('ilift_password', password);
-    localStorage.setItem('ilift_onboarding', 'true');
-    localStorage.setItem('ilift_onboarding_data', JSON.stringify({
+    const groupId = groupCode || 'GOOP';
+    const onboardingData = {
       name: name.trim(),
-      groupCode: groupCode || 'GOOP',
+      groupCode: groupId,
       weight,
       height,
       bodyFat: bodyFat || undefined,
       fitnessGoal,
       experience
-    }));
+    };
+    
+    // Save to Supabase
+    try {
+      const { data, error: supabaseError } = await supabase
+        .from('users')
+        .insert({
+          email: email.trim(),
+          name: name.trim(),
+          total_xp: 0,
+          streak: 0,
+          group_id: groupId,
+          badges: [],
+          onboarding: onboardingData
+        })
+        .select()
+        .single();
+      
+      if (supabaseError) {
+        console.error('Supabase error:', supabaseError);
+        // Continue with localStorage as fallback
+      }
+      
+      if (data) {
+        localStorage.setItem('ilift_user_id', data.id);
+      }
+    } catch (err) {
+      console.error('Error saving to Supabase:', err);
+    }
+    
+    // Always save to localStorage as fallback
+    localStorage.setItem('ilift_email', email.trim());
+    localStorage.setItem('ilift_password', password);
+    localStorage.setItem('ilift_onboarding', 'true');
+    localStorage.setItem('ilift_onboarding_data', JSON.stringify(onboardingData));
     
     // Go to welcome screen instead of directly to dashboard
     setTimeout(() => {

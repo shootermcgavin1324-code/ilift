@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, Search, Camera, Video, Zap, Crown, Star, Activity, X, Target as TargetIcon, Calendar, Clock } from 'lucide-react';
 
 // Tab Components
@@ -109,28 +110,54 @@ export default function Dashboard() {
 
   async function loadUserData() {
     const email = localStorage.getItem('ilift_email');
+    const userId = localStorage.getItem('ilift_user_id');
+    
     if (!email) {
       router.push('/');
       return;
     }
 
-    // For local testing: get data from localStorage
-    const onboardingData = localStorage.getItem('ilift_onboarding_data');
-    const onboarding = onboardingData ? JSON.parse(onboardingData) : {};
-
-    const userData = {
-      email,
-      name: onboarding.name || email.split('@')[0],
-      total_xp: onboarding.totalXP || 0,
-      streak: onboarding.streak || 0,
-      badges: onboarding.badges || [],
-      group_id: onboarding.groupCode || 'TEST',
-      onboarding
-    };
+    // Try to load from Supabase first
+    let userData: any = null;
+    
+    try {
+      if (userId) {
+        const { data: supabaseUser, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', userId)
+          .single();
+        
+        if (!error && supabaseUser) {
+          userData = {
+            ...supabaseUser,
+            onboarding: supabaseUser.onboarding || {}
+          };
+        }
+      }
+    } catch (err) {
+      console.error('Error loading from Supabase:', err);
+    }
+    
+    // Fallback to localStorage if Supabase fails or no user found
+    if (!userData) {
+      const onboardingData = localStorage.getItem('ilift_onboarding_data');
+      const onboarding = onboardingData ? JSON.parse(onboardingData) : {};
+      
+      userData = {
+        email,
+        name: onboarding.name || email.split('@')[0],
+        total_xp: onboarding.totalXP || 0,
+        streak: onboarding.streak || 0,
+        badges: onboarding.badges || [],
+        group_id: onboarding.groupCode || 'TEST',
+        onboarding
+      };
+    }
 
     setUser(userData);
     setWorkouts([]);
-    setLeaderboard([userData]); // Just show yourself for now
+    setLeaderboard([userData]);
     setLoading(false);
   }
 
@@ -164,7 +191,7 @@ export default function Dashboard() {
     setShowQuickLog(false);
   };
 
-  const completeWorkout = () => {
+  const completeWorkout = async () => {
     if (!currentExercise || sets.filter(s => s.done).length === 0) return;
 
     const score = calculateScore();
@@ -200,6 +227,26 @@ export default function Dashboard() {
     const newWorkouts = [workout, ...workouts].slice(0, 50);
     setWorkouts(newWorkouts);
     localStorage.setItem('ilift_workouts', JSON.stringify(newWorkouts));
+    
+    // Save to Supabase
+    try {
+      await supabase.from('workouts').insert({
+        user_id: user.id,
+        user_name: user.name,
+        exercise: currentExercise,
+        score: score,
+        date: new Date().toISOString()
+      });
+      
+      // Update user XP in Supabase
+      await supabase.from('users').update({
+        total_xp: newXP,
+        streak: newStreak,
+        badges: newBadges
+      }).eq('id', user.id);
+    } catch (err) {
+      console.error('Error saving to Supabase:', err);
+    }
 
     // Check for PR
     const prs = JSON.parse(localStorage.getItem('ilift_prs') || '{}');
