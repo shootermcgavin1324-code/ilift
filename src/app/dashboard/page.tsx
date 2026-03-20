@@ -175,11 +175,15 @@ export default function Dashboard() {
     // Add XP to the updated user
     updatedUser.total_xp = newXP;
     
-    // Check badges
+    // Check badges based on TOTAL XP
+    const totalXP = newXP; // This is now the total after adding
     const newBadges = [...(updatedUser.badges || [])];
     if (newBadges.length === 0) newBadges.push('first_workout');
-    if (newXP >= 1000 && !newBadges.includes('xp_1000')) newBadges.push('xp_1000');
+    if (totalXP >= 1000 && !newBadges.includes('xp_1000')) newBadges.push('xp_1000');
+    if (totalXP >= 5000 && !newBadges.includes('xp_5000')) newBadges.push('xp_5000');
+    if (totalXP >= 10000 && !newBadges.includes('xp_10000')) newBadges.push('xp_10000');
     if (updatedUser.streak >= 7 && !newBadges.includes('streak_7')) newBadges.push('streak_7');
+    if (updatedUser.streak >= 30 && !newBadges.includes('streak_30')) newBadges.push('streak_30');
     updatedUser.badges = newBadges;
 
     // Update local state
