@@ -14,4 +14,8 @@ echo "✓ Cleared session locks"
 rm -rf .next 2>/dev/null
 echo "✓ Cleared Next.js cache"
 
+# Remove dev lock file (prevents "Unable to acquire lock" error)
+rm -f .next/dev/lock 2>/dev/null
+echo "✓ Cleared dev lock file"
+
 echo "✅ Environment clean. Run 'npm run dev' to start."

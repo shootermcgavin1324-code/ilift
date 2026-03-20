@@ -114,6 +114,30 @@ npm run dev
 
 ---
 
+## 🛡️ Safe Development Rules
+
+### Before Major Edits:
+```bash
+git add . && git commit -m "checkpoint"
+```
+
+### After Major Changes:
+```bash
+npm run build
+```
+
+### If System Behaves Unexpectedly:
+1. Stop immediately
+2. Run: `npm run dev:clean`
+3. Restart dev server
+
+### Prevent Code Corruption:
+- **NEVER** use sed, head, tail to edit source files
+- Use structured file editing instead
+- Keep component-based architecture
+
+---
+
 ## 🔴 Emergency Recovery
 
 If everything freezes:
@@ -125,6 +149,9 @@ pkill -9 npm
 
 # Clear all locks
 rm -f ~/.openclaw/agents/main/sessions/*.lock
+
+# Clear Next.js lock
+rm -f .next/dev/lock
 
 # Restart OpenClaw
 openclaw gateway restart
