@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, Search, Camera, Video, Zap, Crown, Star, Activity, X, Target as TargetIcon, Calendar, Clock } from 'lucide-react';
 
+// Tab Components
+import { SquadTab, ChallengesTab, HistoryTab } from '@/components';
+
 // Components available for integration:
 // import { RankCard, Leaderboard, RestTimer, PostWorkoutModal } from '@/components';
 
@@ -415,191 +418,13 @@ export default function Dashboard() {
       )}
 
       {/* Squad Tab */}
-      {activeTab === 'squad' && (
-        <div className="p-4 space-y-4">
-          <h2 className="text-xl font-bold">Your Squad</h2>
-          <p className="text-gray-400 text-sm">People in your group ({user.group_id})</p>
-
-          {leaderboard.length === 0 ? (
-            <div className="text-center py-8 bg-gray-950/50 rounded-xl">
-              <Users size={40} className="mx-auto text-gray-700 mb-3" />
-              <p className="text-gray-400">No one else in your squad yet!</p>
-              <p className="text-gray-600 text-sm mt-1">Share the squad code: <span className="text-yellow-500 font-bold">{user.group_id}</span></p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {leaderboard.map((member, i) => (
-                <div key={member.id} className={`bg-gray-950 rounded-xl p-4 flex items-center gap-4 ${member.id === user.id ? 'border border-yellow-400/30' : ''}`}>
-                  <span className="text-2xl font-black text-gray-600 w-8">#{i + 1}</span>
-                  <div className="w-12 h-12 rounded-full bg-gray-900 flex items-center justify-center">
-                    <Target size={24} className="text-gray-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-bold">{member.name}</p>
-                    <p className="text-gray-400 text-sm">Level {Math.floor((member.total_xp || 0) / 500) + 1}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-yellow-500 font-black text-xl">{(member.total_xp || 0).toLocaleString()}</p>
-                    <p className="text-gray-400 text-xs">XP</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      {activeTab === 'squad' && <SquadTab user={user} leaderboard={leaderboard} />}
 
       {/* Challenges Tab */}
-      {activeTab === 'challenges' && (
-        <div className="p-4 space-y-6">
-          <h2 className="text-xl font-bold">Challenges</h2>
-
-          {/* Daily */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Clock size={18} className="text-yellow-500" />
-              <h3 className="text-lg font-bold">Daily</h3>
-            </div>
-            <div className="space-y-2">
-              {CHALLENGES.daily.map((ch, idx) => {
-                // Calculate progress (for demo, random progress)
-                const progress = Math.min(100, Math.floor(Math.random() * 100));
-                return (
-                  <div key={ch.id} className="bg-gray-950 rounded-xl p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-bold">{ch.name}</p>
-                        <p className="text-gray-400 text-sm">{ch.desc}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-yellow-500 font-black">+{ch.xp} XP</p>
-                      </div>
-                    </div>
-                    <div className="bg-gray-900 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-yellow-400 to-orange-400 h-2 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
-                    </div>
-                    <p className="text-gray-600 text-xs mt-1">{progress}% complete</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Weekly */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Calendar size={18} className="text-orange-400" />
-              <h3 className="text-lg font-bold">Weekly</h3>
-            </div>
-            <div className="space-y-2">
-              {CHALLENGES.weekly.map(ch => {
-                const progress = Math.min(100, Math.floor(Math.random() * 80));
-                return (
-                  <div key={ch.id} className="bg-gray-950 rounded-xl p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-bold">{ch.name}</p>
-                        <p className="text-gray-400 text-sm">{ch.desc}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-yellow-500 font-black">+{ch.xp} XP</p>
-                      </div>
-                    </div>
-                    <div className="bg-gray-900 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-orange-400 to-red-400 h-2 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
-                    </div>
-                    <p className="text-gray-600 text-xs mt-1">{progress}% complete</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Monthly */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Calendar size={18} className="text-purple-400" />
-              <h3 className="text-lg font-bold">Monthly</h3>
-            </div>
-            <div className="space-y-2">
-              {CHALLENGES.monthly.map(ch => {
-                const progress = Math.min(100, Math.floor(Math.random() * 60));
-                return (
-                  <div key={ch.id} className="bg-gray-950 rounded-xl p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-bold">{ch.name}</p>
-                        <p className="text-gray-400 text-sm">{ch.desc}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-yellow-500 font-black">+{ch.xp} XP</p>
-                      </div>
-                    </div>
-                    <div className="bg-gray-900 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-purple-400 to-pink-400 h-2 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
-                    </div>
-                    <p className="text-gray-600 text-xs mt-1">{progress}% complete</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Lifetime */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Trophy size={18} className="text-yellow-500" />
-              <h3 className="text-lg font-bold">All-Time</h3>
-            </div>
-            <div className="space-y-2">
-              {CHALLENGES.lifetime.map(ch => {
-                const progress = Math.min(100, Math.floor(Math.random() * 40));
-                return (
-                  <div key={ch.id} className="bg-gray-950 rounded-xl p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-bold">{ch.name}</p>
-                        <p className="text-gray-400 text-sm">{ch.desc}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-yellow-500 font-black">+{ch.xp} XP</p>
-                      </div>
-                    </div>
-                    <div className="bg-gray-900 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-yellow-400 to-amber-500 h-2 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
-                    </div>
-                    <p className="text-gray-600 text-xs mt-1">{progress}% complete</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
+      {activeTab === 'challenges' && <ChallengesTab />}
 
       {/* History Tab */}
-      {activeTab === 'history' && (
-        <div className="p-4 space-y-3">
-          <h2 className="text-xl font-bold">Workout History</h2>
-          {workouts.length === 0 ? (
-            <div className="text-center py-12 bg-gray-950/50 rounded-xl">
-              <Dumbbell size={40} className="mx-auto text-gray-700 mb-3" />
-              <p className="text-gray-400 font-medium">No workouts yet</p>
-              <p className="text-gray-600 text-sm mt-1">Log your first workout to see it here!</p>
-            </div>
-          ) : (
-            workouts.map(w => (
-              <div key={w.id} className="bg-gray-950 rounded-xl p-4">
-                <div className="flex justify-between">
-                  <span className="font-bold">{w.exercise}</span>
-                  <span className="text-yellow-500 font-black">+{w.score} XP</span>
-                </div>
-                <p className="text-gray-400 text-sm">{new Date(w.date).toLocaleDateString()}</p>
-              </div>
-            ))
-          )}
-        </div>
-      )}
+      {activeTab === 'history' && <HistoryTab workouts={workouts} />}
 
       {/* Awards Tab */}
       {activeTab === 'awards' && (
