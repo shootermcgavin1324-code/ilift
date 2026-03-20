@@ -138,9 +138,18 @@ export default function Dashboard() {
   const calculateScore = () => {
     const doneSets = sets.filter(s => s.done);
     if (doneSets.length === 0) return 0;
+    
+    // XP = base + (RPE * multiplier) per set
+    // Base: 10 XP per workout
+    // RPE multiplier: RPE * 2
     const avgRpe = doneSets.reduce((sum, s) => sum + s.rpe, 0) / doneSets.length;
-    const streak = user?.streak || 0;
-    return Math.round(50 * (avgRpe / 5) * (1 + streak * 0.05) * doneSets.length);
+    const baseXP = 10;
+    const rpeMultiplier = 2;
+    
+    // XP = 10 + (avgRPE * 2) * sets
+    const xpEarned = baseXP + Math.round(avgRpe * rpeMultiplier * doneSets.length);
+    
+    return xpEarned;
   };
 
   const quickLog = (exerciseName: string) => {
