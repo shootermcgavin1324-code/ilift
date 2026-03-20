@@ -13,6 +13,11 @@ killall -term "next" 2>/dev/null
 sleep 1
 echo "✓ Sent terminate signal"
 
+# Force kill anything on port 3000
+fuser -k 3000/tcp 2>/dev/null
+sleep 1
+echo "✓ Killed port 3000"
+
 # Remove OpenClaw session locks
 rm -rf ~/.openclaw/agents/main/sessions/*.lock 2>/dev/null
 echo "✓ Cleared session locks"
