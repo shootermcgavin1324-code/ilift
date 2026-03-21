@@ -83,22 +83,15 @@ export default function Landing() {
         <div className="max-w-sm mx-auto">
           
           {/* Hero Section - with background image */}
-          <div className="relative h-56 mb-6 rounded-xl overflow-hidden">
-            {/* Image */}
-            <div className="absolute inset-0">
-              <img 
-                src="/images/hero.jpg" 
-                alt="Intense workout"
-                className="w-full h-full object-cover"
-                style={{ 
-                  transform: `scale(1.05) translateY(${scrollY * 0.1}px)`,
-                  transition: 'transform 0.1s ease-out'
-                }}
-              />
-            </div>
-            {/* Dark overlay */}
-            <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(5,5,5,0.75) 0%, rgba(5,5,5,0.88) 100%)' }} />
-          </div>
+          <div 
+            className="relative h-56 mb-6 rounded-xl overflow-hidden w-full"
+            style={{ 
+              backgroundImage: 'url(/images/hero.jpg)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              boxShadow: '0 0 0 1px #1a1a1a'
+            }}
+          />
 
           <div className="text-center mb-4">
             <h2 className="text-5xl font-black leading-none mb-3 tracking-tight">
@@ -142,42 +135,38 @@ export default function Landing() {
                 className="p-4 rounded-xl transition-all duration-200 hover:-translate-y-1"
                 style={{ 
                   background: stat.highlight 
-                    ? 'linear-gradient(135deg, rgba(250, 204, 21, 0.12) 0%, #1a1a1a 100%)'
-                    : 'linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%)',
-                  border: stat.highlight ? '1px solid rgba(250, 204, 21, 0.4)' : '1px solid #262626',
+                    ? 'linear-gradient(135deg, rgba(250, 204, 21, 0.15) 0%, rgba(30, 30, 30, 1) 100%)'
+                    : 'linear-gradient(135deg, rgba(20, 20, 20, 1) 0%, rgba(30, 30, 30, 1) 100%)',
+                  border: stat.highlight ? '1px solid rgba(250, 204, 21, 0.5)' : '1px solid #333333',
                   boxShadow: stat.highlight 
-                    ? '0 8px 30px rgba(250, 204, 21, 0.2)'
-                    : '0 4px 15px rgba(0, 0, 0, 0.3)',
+                    ? '0 8px 30px rgba(250, 204, 21, 0.25)'
+                    : '0 4px 15px rgba(0, 0, 0, 0.4)',
                   transform: hovering === `stat-${i}` ? 'translateY(-4px)' : 'translateY(0)'
                 }}
                 onMouseEnter={() => setHovering(`stat-${i}`)}
                 onMouseLeave={() => setHovering(null)}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-gray-500 font-bold">{stat.label}</span>
-                  <span dangerouslySetInnerHTML={{ __html: stat.icon }} />
+                  <span className="text-xs text-gray-400 font-bold">{stat.label}</span>
+                  <span className="flex items-center justify-center" dangerouslySetInnerHTML={{ __html: stat.icon }} />
                 </div>
                 <div className="text-xl font-black text-yellow-400">{stat.value}</div>
                 {stat.highlight && (
-                  <div className="text-xs text-yellow-400/60 mt-1">Top 5% this week</div>
+                  <div className="text-xs text-yellow-400/70 mt-1">Top 5% this week</div>
                 )}
               </div>
             ))}
           </div>
 
           {/* Section break - after stats */}
-          <div className="relative h-32 mb-6 rounded-xl overflow-hidden">
-            <img 
-              src="/images/stats-bg.jpg" 
-              alt=""
-              className="w-full h-full object-cover"
-              style={{ 
-                transform: `scale(1.1) translateY(${(scrollY - 200) * 0.05}px)`,
-                transition: 'transform 0.1s ease-out'
-              }}
-            />
-            <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(5,5,5,0.9) 0%, rgba(5,5,5,0.7) 50%, rgba(5,5,5,0.9) 100%)' }} />
-          </div>
+          <div 
+            className="relative h-32 mb-6 rounded-xl overflow-hidden"
+            style={{ 
+              backgroundImage: 'url(/images/stats-bg.jpg)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }}
+          />
 
           {/* Feature Highlights - storytelling */}
           <div className="space-y-3 mb-6">
@@ -189,17 +178,17 @@ export default function Landing() {
             ].map((f, i) => (
               <div 
                 key={i} 
-                className="p-4 rounded-xl flex items-center justify-between transition-all duration-200 hover:bg-neutral-900/50"
+                className="p-4 rounded-xl flex items-center justify-between transition-all duration-200"
                 style={{ 
-                  background: 'rgba(15, 15, 15, 0.8)',
-                  border: '1px solid #262626',
+                  background: 'rgba(30, 30, 30, 1)',
+                  border: '1px solid #333333',
                   transform: hovering === `feature-${i}` ? 'translateX(4px)' : 'translateX(0)'
                 }}
                 onMouseEnter={() => setHovering(`feature-${i}`)}
                 onMouseLeave={() => setHovering(null)}
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-8 flex items-center justify-center" dangerouslySetInnerHTML={{ __html: f.icon }} />
+                  <div className="w-8 flex items-center justify-center bg-transparent" dangerouslySetInnerHTML={{ __html: f.icon }} />
                   <div>
                     <div className="text-white font-bold text-sm tracking-wide">{f.title}</div>
                     <div className="text-gray-500 text-xs mt-0.5">{f.desc}</div>
@@ -216,30 +205,26 @@ export default function Landing() {
           </div>
 
           {/* Section break - after features */}
-          <div className="relative h-32 mb-6 rounded-xl overflow-hidden">
-            <img 
-              src="/images/features-bg.jpg" 
-              alt=""
-              className="w-full h-full object-cover"
-              style={{ 
-                transform: `scale(1.1) translateY(${(scrollY - 400) * 0.05}px)`,
-                transition: 'transform 0.1s ease-out'
-              }}
-            />
-            <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(5,5,5,0.9) 0%, rgba(5,5,5,0.7) 50%, rgba(5,5,5,0.9) 100%)' }} />
-          </div>
+          <div 
+            className="relative h-32 mb-6 rounded-xl overflow-hidden"
+            style={{ 
+              backgroundImage: 'url(/images/features-bg.jpg)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }}
+          />
 
           {/* Sign Up Form */}
           <div 
             className="rounded-xl p-5 mb-4 transition-all duration-300"
             style={{ 
-              background: 'linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%)',
-              border: '1px solid #262626'
+              background: 'linear-gradient(135deg, rgba(25, 25, 25, 1) 0%, rgba(35, 35, 35, 1) 100%)',
+              border: '1px solid #333333'
             }}
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-white tracking-wide">NEW PLAYER?</h3>
-              <div className="text-xs text-gray-500 font-mono">v2.0</div>
+              <div className="text-xs text-gray-400 font-mono">v2.0</div>
             </div>
             
             <div className="space-y-3">
@@ -248,16 +233,14 @@ export default function Landing() {
                 placeholder="Squad code (optional)"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                className="w-full p-3.5 rounded-lg bg-black border border-neutral-800 text-white text-sm placeholder-gray-600 transition-all duration-200 focus:border-yellow-400/50 focus:shadow-[0_0_10px_rgba(250,204,21,0.1)]"
-                style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)' }}
+                className="w-full p-3.5 rounded-lg bg-neutral-900 border border-neutral-700 text-white text-sm placeholder-gray-500 transition-all duration-200 focus:border-yellow-400/50 focus:shadow-[0_0_10px_rgba(250,204,21,0.1)]"
               />
               <input
                 type="email"
                 placeholder="Your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-3.5 rounded-lg bg-black border border-neutral-800 text-white text-sm placeholder-gray-600 transition-all duration-200 focus:border-yellow-400/50 focus:shadow-[0_0_10px_rgba(250,204,21,0.1)]"
-                style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)' }}
+                className="w-full p-3.5 rounded-lg bg-neutral-900 border border-neutral-700 text-white text-sm placeholder-gray-500 transition-all duration-200 focus:border-yellow-400/50 focus:shadow-[0_0_10px_rgba(250,204,21,0.1)]"
               />
               <button 
                 onClick={handleNewUser}
