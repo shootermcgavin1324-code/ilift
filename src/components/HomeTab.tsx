@@ -47,7 +47,7 @@ export default function HomeTab({ user, leaderboard, currentLevel, onLogWorkout 
         </div>
         <div className="h-3 bg-gray-900 rounded-full overflow-hidden">
           <div 
-            className="h-full rounded-full transition-all duration-500"
+            className="h-full rounded-full transition-all duration-700 ease-out"
             style={{ 
               width: `${progressPercent}%`,
               background: 'linear-gradient(90deg, #facc15, #eab308)',
@@ -62,9 +62,9 @@ export default function HomeTab({ user, leaderboard, currentLevel, onLogWorkout 
 
       {/* User Rank - Prominent */}
       {leaderboard.length > 0 && (
-        <div className="bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-xl p-4 border border-yellow-400/30">
+        <div className="bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-xl p-4 border border-yellow-400/30 animate-in fade-in zoom-in-95 duration-300">
           <p className="text-gray-400 text-sm">Your Rank</p>
-          <p className="text-5xl font-black text-yellow-500">#{userRank}</p>
+          <p className="text-5xl font-black text-yellow-500 drop-shadow-lg">#{userRank}</p>
           {rankAhead && (
             <p className="text-gray-400 text-sm mt-2">
               <span className="text-white font-bold">{rankAhead.name}</span> is {rankAhead.total_xp - (user.total_xp || 0)} XP ahead
@@ -115,8 +115,7 @@ export default function HomeTab({ user, leaderboard, currentLevel, onLogWorkout 
       {/* Primary CTA - Log Workout */}
       <button 
         onClick={onLogWorkout}
-        className="w-full py-5 bg-yellow-400 rounded-xl font-black text-black text-xl"
-        style={{ boxShadow: '0 4px 20px rgba(250, 204, 21, 0.4)' }}
+        className="w-full py-5 bg-yellow-400 rounded-xl font-black text-black text-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg hover:shadow-yellow-500/30"
       >
         LOG WORKOUT →
       </button>
