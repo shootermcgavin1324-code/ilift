@@ -207,7 +207,10 @@ export default function LogTab({
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => {
-              ['Bench Press', 'Squat', 'Pull Up'].forEach(ex => quickLog(ex));
+              const exercises = ['Bench Press', 'Squat', 'Pull Up'];
+              exercises.forEach((ex, i) => {
+                setTimeout(() => quickLog(ex), i * 100);
+              });
             }}
             className="px-3 py-2 bg-blue-500/10 border border-blue-500/30 rounded-lg text-sm font-bold text-blue-300 hover:bg-blue-500/20"
           >
@@ -215,7 +218,10 @@ export default function LogTab({
           </button>
           <button
             onClick={() => {
-              ['Deadlift', 'Barbell Row', 'Pull Up'].forEach(ex => quickLog(ex));
+              const exercises = ['Deadlift', 'Barbell Row', 'Pull Up'];
+              exercises.forEach((ex, i) => {
+                setTimeout(() => quickLog(ex), i * 100);
+              });
             }}
             className="px-3 py-2 bg-green-500/10 border border-green-500/30 rounded-lg text-sm font-bold text-green-300 hover:bg-green-500/20"
           >
@@ -223,7 +229,10 @@ export default function LogTab({
           </button>
           <button
             onClick={() => {
-              ['Squat', 'Leg Press', 'Calf Raise'].forEach(ex => quickLog(ex));
+              const exercises = ['Squat', 'Leg Press', 'Calf Raise'];
+              exercises.forEach((ex, i) => {
+                setTimeout(() => quickLog(ex), i * 100);
+              });
             }}
             className="px-3 py-2 bg-orange-500/10 border border-orange-500/30 rounded-lg text-sm font-bold text-orange-300 hover:bg-orange-500/20"
           >
@@ -301,8 +310,8 @@ export default function LogTab({
           </div>
 
           {sets.map((set, i) => (
-            <div key={i} className={`p-3 rounded-xl flex items-center gap-3 ${set.done ? 'bg-green-900/30 border border-green-500/30' : 'bg-gray-900'}`}>
-              <span className="text-gray-400 font-bold w-8">Set {i + 1}</span>
+            <div key={i} className={`p-3 rounded-xl flex items-center gap-3 transition-all duration-200 ${set.done ? 'bg-green-900/20 border border-green-500/20 opacity-50 scale-[0.98]' : (sets.findIndex(s => !s.done) === i ? 'bg-yellow-500/20 border-2 border-yellow-500/50 shadow-lg shadow-yellow-500/20 scale-[1.02]' : 'bg-gray-900')}`}>
+              <span className="text-gray-400 font-bold w-8">{i + 1}</span>
               <input type="number" value={set.weight} onChange={(e) => {
                 const newSets = [...sets];
                 newSets[i].weight = parseInt(e.target.value) || 0;
@@ -329,6 +338,7 @@ export default function LogTab({
               }} className={`ml-auto px-3 py-1 rounded-lg font-bold ${set.done ? 'bg-green-500 text-black' : 'bg-gray-800'}`}>
                 {set.done ? '✓' : 'Done'}
               </button>
+              {set.done && <span className="text-xs text-yellow-400 animate-pulse">+{Math.round(set.rpe * set.reps * 0.5)}</span>}
             </div>
           ))}
 

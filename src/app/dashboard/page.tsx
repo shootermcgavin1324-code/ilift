@@ -71,25 +71,38 @@ export default function Dashboard() {
   
   // Favorites - stored per user in localStorage
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [userEmail, setUserEmail] = useState<string>('');
 
-  // Load favorites when user is loaded
+  // Load user email from localStorage on mount
   useEffect(() => {
-    if (user?.email) {
-      const favKey = `ilift_favorites_${user.email}`;
+    const email = localStorage.getItem('ilift_email');
+    if (email) {
+      setUserEmail(email);
+    }
+  }, []);
+
+  // Load favorites when user email is available
+  useEffect(() => {
+    if (userEmail) {
+      const favKey = `ilift_favorites_${userEmail}`;
       const saved = localStorage.getItem(favKey);
       if (saved) {
-        setFavorites(JSON.parse(saved));
+        try {
+          setFavorites(JSON.parse(saved));
+        } catch (e) {
+          console.error('Failed to parse favorites:', e);
+        }
       }
     }
-  }, [user]);
+  }, [userEmail]);
 
   const toggleFavorite = (exerciseName: string) => {
-    if (!user?.email) return;
+    if (!userEmail) return;
     const newFavs = favorites.includes(exerciseName)
       ? favorites.filter(f => f !== exerciseName)
       : [...favorites, exerciseName];
     setFavorites(newFavs);
-    const favKey = `ilift_favorites_${user.email}`;
+    const favKey = `ilift_favorites_${userEmail}`;
     localStorage.setItem(favKey, JSON.stringify(newFavs));
   };
   const [restTimer, setRestTimer] = useState<number | null>(null);
@@ -299,6 +312,7 @@ export default function Dashboard() {
       setSets([{ weight: 135, reps: 10, rpe: 7, done: false }]);
       setCurrentExercise('');
     }, 2500);
+    setTimeout(() => setToast(null), 3000);
   };
 
   const currentLevel = Math.floor((user?.total_xp || 0) / 500) + 1;
