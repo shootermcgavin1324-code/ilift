@@ -22,6 +22,10 @@ echo "✓ Killed port 3000"
 rm -rf ~/.openclaw/agents/main/sessions/*.lock 2>/dev/null
 echo "✓ Cleared session locks"
 
+# Clean old deleted session files (prevents bloat)
+rm -f ~/.openclaw/agents/main/sessions/*.deleted.* 2>/dev/null
+echo "✓ Cleared deleted session files"
+
 # Clear .next cache completely
 rm -rf .next 2>/dev/null
 echo "✓ Cleared Next.js cache"
