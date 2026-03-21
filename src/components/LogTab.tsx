@@ -47,6 +47,11 @@ interface Set {
   done: boolean;
 }
 
+interface WorkoutExercise {
+  name: string;
+  sets: Set[];
+}
+
 interface LogTabProps {
   currentExercise: string;
   setCurrentExercise: (e: string) => void;
@@ -58,6 +63,10 @@ interface LogTabProps {
   setRestTimeLeft: (n: number) => void;
   calculateScore: () => number;
   completeWorkout: () => void;
+  workoutSession: WorkoutExercise[];
+  setWorkoutSession: (s: WorkoutExercise[]) => void;
+  favorites: string[];
+  toggleFavorite: (name: string) => void;
 }
 
 export default function LogTab({
@@ -71,17 +80,45 @@ export default function LogTab({
   setRestTimeLeft,
   calculateScore,
   completeWorkout,
+  workoutSession,
+  setWorkoutSession,
+  favorites,
+  toggleFavorite,
 }: LogTabProps) {
   const [exerciseSearch, setExerciseSearch] = useState('');
   const [category, setCategory] = useState('All');
 
-  const quickLog = (exerciseName: string) => {
+  // Add exercise to current workout session
+  const addToWorkout = (exerciseName: string) => {
+    const newExercise = {
+      name: exerciseName,
+      sets: [
+        { weight: 135, reps: 10, rpe: 7, done: false },
+        { weight: 135, reps: 10, rpe: 7, done: false },
+        { weight: 135, reps: 10, rpe: 7, done: false },
+      ]
+    };
+    setWorkoutSession([...workoutSession, newExercise]);
     setCurrentExercise(exerciseName);
-    setSets([
-      { weight: 135, reps: 10, rpe: 7, done: false },
-      { weight: 135, reps: 10, rpe: 7, done: false },
-      { weight: 135, reps: 10, rpe: 7, done: false },
-    ]);
+    setSets(newExercise.sets);
+  };
+
+  // Remove exercise from workout session
+  const removeFromWorkout = (index: number) => {
+    const updated = workoutSession.filter((_, i) => i !== index);
+    setWorkoutSession(updated);
+    if (index === workoutSession.length - 1 && updated.length > 0) {
+      const last = updated[updated.length - 1];
+      setCurrentExercise(last.name);
+      setSets(last.sets);
+    } else if (updated.length === 0) {
+      setCurrentExercise('');
+      setSets([{ weight: 135, reps: 10, rpe: 7, done: false }]);
+    }
+  };
+
+  const quickLog = (exerciseName: string) => {
+    addToWorkout(exerciseName);
   };
 
   const startRestTimer = (seconds: number) => {
@@ -102,6 +139,95 @@ export default function LogTab({
 
   return (
     <div className="p-4 space-y-4">
+      {/* Current Workout Section */}
+      {workoutSession.length > 0 && (
+        <div className="bg-gray-950 rounded-xl p-4 border border-yellow-500/20">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-sm font-bold text-yellow-400">CURRENT WORKOUT</h3>
+            <span className="text-xs text-gray-500">{workoutSession.length} exercise{workoutSession.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {workoutSession.map((ex, i) => (
+              <div 
+                key={i}
+                className={`flex-shrink-0 px-3 py-2 rounded-lg flex items-center gap-2 cursor-pointer ${
+                  currentExercise === ex.name 
+                    ? 'bg-yellow-500/20 border border-yellow-500/50' 
+                    : 'bg-gray-900 border border-gray-800'
+                }`}
+                onClick={() => {
+                  setCurrentExercise(ex.name);
+                  setSets(ex.sets);
+                }}
+              >
+                <span className="text-sm font-bold text-white">{ex.name}</span>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); removeFromWorkout(i); }}
+                  className="text-gray-500 hover:text-red-400"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Favorites Section */}
+      {favorites.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-bold text-purple-400">FAVORITES</h3>
+            <div className="flex-1 h-px bg-gray-800"></div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {favorites.map(fav => (
+              <button
+                key={fav}
+                onClick={() => quickLog(fav)}
+                className="px-3 py-2 bg-purple-500/10 border border-purple-500/30 rounded-lg text-sm font-bold text-purple-300 hover:bg-purple-500/20"
+              >
+                {fav} +
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Preset Workouts Section */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-bold text-blue-400">PRESET WORKOUTS</h3>
+          <div className="flex-1 h-px bg-gray-800"></div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => {
+              ['Bench Press', 'Squat', 'Pull Up'].forEach(ex => quickLog(ex));
+            }}
+            className="px-3 py-2 bg-blue-500/10 border border-blue-500/30 rounded-lg text-sm font-bold text-blue-300 hover:bg-blue-500/20"
+          >
+            Push Day +
+          </button>
+          <button
+            onClick={() => {
+              ['Deadlift', 'Barbell Row', 'Pull Up'].forEach(ex => quickLog(ex));
+            }}
+            className="px-3 py-2 bg-green-500/10 border border-green-500/30 rounded-lg text-sm font-bold text-green-300 hover:bg-green-500/20"
+          >
+            Pull Day +
+          </button>
+          <button
+            onClick={() => {
+              ['Squat', 'Leg Press', 'Calf Raise'].forEach(ex => quickLog(ex));
+            }}
+            className="px-3 py-2 bg-orange-500/10 border border-orange-500/30 rounded-lg text-sm font-bold text-orange-300 hover:bg-orange-500/20"
+          >
+            Leg Day +
+          </button>
+        </div>
+      </div>
+
       <input
         type="text"
         placeholder="Search exercises..."
@@ -109,6 +235,12 @@ export default function LogTab({
         onChange={(e) => setExerciseSearch(e.target.value.toLowerCase())}
         className="w-full p-3 bg-gray-950 rounded-xl border border-gray-700"
       />
+
+      {/* Section Header: All Exercises */}
+      <div className="flex items-center gap-2">
+        <h3 className="text-sm font-bold text-gray-400">ALL EXERCISES</h3>
+        <div className="flex-1 h-px bg-gray-800"></div>
+      </div>
 
       {/* Category Tabs */}
       <div className="flex gap-2 overflow-x-auto pb-2">
@@ -133,9 +265,28 @@ export default function LogTab({
             (category === 'All' || e.category === category) &&
             (!exerciseSearch || e.name.toLowerCase().includes(exerciseSearch))
           ).map(ex => (
-            <button key={ex.name} onClick={() => quickLog(ex.name)} className="py-4 bg-gray-900 rounded-xl font-bold text-sm hover:bg-gray-800">
+            <div 
+              key={ex.name} 
+              onClick={() => quickLog(ex.name)} 
+              className={`py-3 rounded-xl font-bold text-sm relative transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
+                workoutSession.some(w => w.name === ex.name)
+                  ? 'bg-yellow-500/20 border-2 border-yellow-500 text-yellow-400' 
+                  : 'bg-gray-900 border border-gray-800 hover:border-yellow-500/50'
+              }`}
+            >
               {ex.name}
-            </button>
+              {workoutSession.some(w => w.name === ex.name) && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
+                  <span className="text-black text-xs">✓</span>
+                </span>
+              )}
+              <button
+                onClick={(e) => { e.stopPropagation(); toggleFavorite(ex.name); }}
+                className={`absolute top-1 right-1 text-xs ${favorites.includes(ex.name) ? 'text-yellow-400' : 'text-gray-600 opacity-0 hover:opacity-100'}`}
+              >
+                {favorites.includes(ex.name) ? '★' : '☆'}
+              </button>
+            </div>
           ))}
         </div>
       ) : (

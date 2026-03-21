@@ -65,6 +65,33 @@ export default function Dashboard() {
   const [currentExercise, setCurrentExercise] = useState('');
   const [exerciseSearch, setExerciseSearch] = useState('');
   const [sets, setSets] = useState([{ weight: 135, reps: 10, rpe: 7, done: false }]);
+  
+  // Workout session - array of exercises with their sets
+  const [workoutSession, setWorkoutSession] = useState<any[]>([]);
+  
+  // Favorites - stored per user in localStorage
+  const [favorites, setFavorites] = useState<string[]>([]);
+
+  // Load favorites when user is loaded
+  useEffect(() => {
+    if (user?.email) {
+      const favKey = `ilift_favorites_${user.email}`;
+      const saved = localStorage.getItem(favKey);
+      if (saved) {
+        setFavorites(JSON.parse(saved));
+      }
+    }
+  }, [user]);
+
+  const toggleFavorite = (exerciseName: string) => {
+    if (!user?.email) return;
+    const newFavs = favorites.includes(exerciseName)
+      ? favorites.filter(f => f !== exerciseName)
+      : [...favorites, exerciseName];
+    setFavorites(newFavs);
+    const favKey = `ilift_favorites_${user.email}`;
+    localStorage.setItem(favKey, JSON.stringify(newFavs));
+  };
   const [restTimer, setRestTimer] = useState<number | null>(null);
   const [restTimeLeft, setRestTimeLeft] = useState(0);
   const [submitted, setSubmitted] = useState(false);
@@ -354,6 +381,10 @@ export default function Dashboard() {
           setRestTimeLeft={setRestTimeLeft}
           calculateScore={calculateScore}
           completeWorkout={completeWorkout}
+          workoutSession={workoutSession}
+          setWorkoutSession={setWorkoutSession}
+          favorites={favorites}
+          toggleFavorite={toggleFavorite}
         />
       )}
 
