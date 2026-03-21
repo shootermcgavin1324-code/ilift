@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, Search, Camera, Video, Zap, Crown, Star, Activity, X, Target as TargetIcon, Calendar, Clock } from 'lucide-react';
 
 // Tab Components
-import { HomeTab, SquadTab, ChallengesTab, HistoryTab } from '@/components';
+import { HomeTab, SquadTab, ChallengesTab, HistoryTab, LogTab } from '@/components';
 import { getUser, updateUser, saveWorkout, processWorkout } from '@/lib/data';
 
 // Components available for integration:
@@ -332,87 +332,18 @@ export default function Dashboard() {
 
       {/* Log Tab */}
       {activeTab === 'log' && (
-        <div className="p-4 space-y-4">
-          <input
-            type="text"
-            placeholder="Search exercises..."
-            value={exerciseSearch}
-            onChange={(e) => setExerciseSearch(e.target.value.toLowerCase())}
-            className="w-full p-3 bg-gray-950 rounded-xl border border-gray-700"
-          />
-
-          {!currentExercise ? (
-            <div className="grid grid-cols-3 gap-2">
-              {QUICK_EXERCISES.filter(e => !exerciseSearch || e.name.toLowerCase().includes(exerciseSearch)).map(ex => (
-                <button key={ex.name} onClick={() => quickLog(ex.name)} className="py-4 bg-gray-900 rounded-xl font-bold text-sm hover:bg-gray-800">
-                  {ex.name}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold">{currentExercise}</h3>
-                <button onClick={() => setCurrentExercise('')} className="text-gray-400">✕</button>
-              </div>
-
-              {sets.map((set, i) => (
-                <div key={i} className={`p-3 rounded-xl flex items-center gap-3 ${set.done ? 'bg-green-900/30 border border-green-500/30' : 'bg-gray-900'}`}>
-                  <span className="text-gray-400 font-bold w-8">Set {i + 1}</span>
-                  <input type="number" value={set.weight} onChange={(e) => {
-                    const newSets = [...sets];
-                    newSets[i].weight = parseInt(e.target.value) || 0;
-                    setSets(newSets);
-                  }} className="w-20 p-2 bg-gray-950 rounded-lg text-center" placeholder="lbs" />
-                  <span className="text-gray-400">×</span>
-                  <input type="number" value={set.reps} onChange={(e) => {
-                    const newSets = [...sets];
-                    newSets[i].reps = parseInt(e.target.value) || 0;
-                    setSets(newSets);
-                  }} className="w-16 p-2 bg-gray-950 rounded-lg text-center" placeholder="Reps" />
-                  <span className="text-gray-400">@</span>
-                  <select value={set.rpe} onChange={(e) => {
-                    const newSets = [...sets];
-                    newSets[i].rpe = parseInt(e.target.value);
-                    setSets(newSets);
-                  }} className="bg-gray-950 p-2 rounded-lg">
-                    {[5,6,7,8,9,10].map(r => <option key={r} value={r}>RPE {r}</option>)}
-                  </select>
-                  <button onClick={() => {
-                    const newSets = [...sets];
-                    newSets[i].done = !newSets[i].done;
-                    setSets(newSets);
-                  }} className={`ml-auto px-3 py-1 rounded-lg font-bold ${set.done ? 'bg-green-500 text-black' : 'bg-gray-800'}`}>
-                    {set.done ? '✓' : 'Done'}
-                  </button>
-                </div>
-              ))}
-
-              <button onClick={() => setSets([...sets, { weight: 135, reps: 10, rpe: 7, done: false }])} className="w-full py-2 bg-gray-900 rounded-xl text-gray-400">+ Add Set</button>
-
-              {/* Rest Timer */}
-              {restTimer ? (
-                <div className="bg-gray-900 rounded-xl p-4 text-center">
-                  <p className="text-gray-400 text-sm mb-2">Rest Timer</p>
-                  <p className="text-5xl font-black text-yellow-500">{restTimeLeft}s</p>
-                  <button onClick={() => { setRestTimer(null); setRestTimeLeft(0); }} className="mt-2 text-gray-400 text-sm">Cancel</button>
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  {[60, 90, 120, 180].map(sec => (
-                    <button key={sec} onClick={() => startRestTimer(sec)} className="flex-1 py-2 bg-gray-900 rounded-xl text-gray-400 text-sm font-bold hover:bg-gray-800">
-                      {sec}s
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              <button onClick={completeWorkout} className="w-full py-4 bg-yellow-400 rounded-xl font-black text-black text-lg">
-                Complete Workout (+{calculateScore()} XP)
-              </button>
-            </div>
-          )}
-        </div>
+        <LogTab
+          currentExercise={currentExercise}
+          setCurrentExercise={setCurrentExercise}
+          sets={sets}
+          setSets={setSets}
+          restTimer={restTimer}
+          restTimeLeft={restTimeLeft}
+          setRestTimer={setRestTimer}
+          setRestTimeLeft={setRestTimeLeft}
+          calculateScore={calculateScore}
+          completeWorkout={completeWorkout}
+        />
       )}
 
       {/* Squad Tab */}
