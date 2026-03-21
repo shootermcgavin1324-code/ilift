@@ -91,7 +91,6 @@ export default function Landing() {
                 alt="Intense workout"
                 className="w-full h-full object-cover"
                 style={{ 
-                  filter: 'grayscale(100%) contrast(1.1)', 
                   transform: `scale(1.05) translateY(${scrollY * 0.1}px)`,
                   transition: 'transform 0.1s ease-out'
                 }}
@@ -173,7 +172,6 @@ export default function Landing() {
               alt=""
               className="w-full h-full object-cover"
               style={{ 
-                filter: 'grayscale(100%) contrast(1.1)', 
                 transform: `scale(1.1) translateY(${(scrollY - 200) * 0.05}px)`,
                 transition: 'transform 0.1s ease-out'
               }}
@@ -224,7 +222,6 @@ export default function Landing() {
               alt=""
               className="w-full h-full object-cover"
               style={{ 
-                filter: 'grayscale(100%) contrast(1.1)', 
                 transform: `scale(1.1) translateY(${(scrollY - 400) * 0.05}px)`,
                 transition: 'transform 0.1s ease-out'
               }}
