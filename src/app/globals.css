@@ -18,9 +18,10 @@
   --color-gray-950: #09090b;
 }
 
-/* Force dark background on all pages */
-body, main, div {
+/* Force dark background on body only */
+body {
   background-color: #000000 !important;
+  min-height: 100vh;
 }
 
 /* Base styles */

@@ -18,22 +18,16 @@ export default function RankCard({ user, leaderboard }: RankCardProps) {
   
   return (
     <div 
-      className="rounded-xl p-4 transition-all duration-300"
-      style={{ 
-        background: isLosing 
-          ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, #1a1a1a 100%)'
-          : 'linear-gradient(135deg, rgba(250, 204, 21, 0.1) 0%, #1a1a1a 100%)',
-        border: isLosing ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(250, 204, 21, 0.3)',
-        boxShadow: isLosing ? '0 0 30px rgba(239, 68, 68, 0.15)' : '0 0 30px rgba(250, 204, 21, 0.15)'
-      }}
+      className={`rounded-xl p-4 transition-all duration-300 ${
+        isLosing 
+          ? 'bg-red-950/30 border border-red-500/30 shadow-[0_0_25px_rgba(239,68,68,0.2)]'
+          : 'bg-yellow-950/30 border border-yellow-500/30 shadow-[0_0_25px_rgba(250,204,21,0.2)]'
+      }`}
     >
       <div className="flex justify-between items-start mb-2">
         <div>
           <p className="text-gray-500 text-xs font-bold tracking-wider">YOUR RANK</p>
-          <p className="text-5xl font-black" style={{ 
-            color: isLosing ? '#ef4444' : '#facc15',
-            textShadow: isLosing ? '0 0 30px rgba(239, 68, 68, 0.5)' : '0 0 30px rgba(250, 204, 21, 0.5)'
-          }}>
+          <p className={`text-5xl font-black ${isLosing ? 'text-red-500' : 'text-yellow-400'}`}>
             {userRank === 1 ? "#1 — LEADING" : `#${userRank}`}
           </p>
         </div>

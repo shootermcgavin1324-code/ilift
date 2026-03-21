@@ -11,7 +11,6 @@ export default function Landing() {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [hovering, setHovering] = useState<string | null>(null);
-  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
     const hasOnboarding = localStorage.getItem('ilift_onboarding');
@@ -19,11 +18,6 @@ export default function Landing() {
     if (hasOnboarding && email) {
       router.push('/dashboard');
     }
-    
-    // Parallax effect
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
   }, [router]);
 
   const handleNewUser = () => {
@@ -51,24 +45,17 @@ export default function Landing() {
       }} />
       
       {/* Corner accents */}
-      <div className="absolute top-0 left-0 w-24 h-24 pointer-events-none" style={{
-        background: 'linear-gradient(135deg, rgba(250, 204, 21, 0.06) 0%, transparent 70%)'
-      }} />
-      <div className="absolute bottom-0 right-0 w-24 h-24 pointer-events-none" style={{
-        background: 'linear-gradient(315deg, rgba(250, 204, 21, 0.04) 0%, transparent 70%)'
-      }} />
+      <div className="absolute top-0 left-0 w-24 h-24 pointer-events-none bg-gradient-to-br from-yellow-500/10 to-transparent" />
+      <div className="absolute bottom-0 right-0 w-24 h-24 pointer-events-none bg-gradient-to-tl from-yellow-500/5 to-transparent" />
 
       {/* Header */}
       <header className="p-6 pt-8 flex justify-between items-center relative z-10">
         <div className="flex items-center gap-3">
           <div className="text-3xl font-black tracking-tighter">
-            <span className="text-yellow-400" style={{ textShadow: '0 0 20px rgba(250, 204, 21, 0.6)' }}>i</span>
+            <span className="text-yellow-400 drop-shadow-lg">i</span>
             <span className="text-white">LIFT</span>
           </div>
-          <div className="px-2 py-1 rounded text-xs font-bold" style={{ 
-            background: 'linear-gradient(135deg, #1a1a1a, #0f0f0f)',
-            border: '1px solid #333'
-          }}>
+          <div className="px-2 py-1 rounded text-xs font-bold bg-gray-900 border border-gray-700">
             <span className="text-yellow-400">BETA</span>
           </div>
         </div>
@@ -82,21 +69,16 @@ export default function Landing() {
       <main className="flex-1 px-6 pb-24 relative z-10">
         <div className="max-w-sm mx-auto">
           
-          {/* Hero Section - with background image */}
+          {/* Hero Section */}
           <div 
-            className="relative h-56 mb-6 rounded-xl overflow-hidden w-full"
-            style={{ 
-              backgroundImage: 'url(/images/hero.jpg)',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              boxShadow: '0 0 0 1px #1a1a1a'
-            }}
+            className="relative h-56 mb-6 rounded-xl overflow-hidden w-full bg-cover bg-center"
+            style={{ backgroundImage: 'url(/images/hero.jpg)' }}
           />
 
           <div className="text-center mb-4">
             <h2 className="text-5xl font-black leading-none mb-3 tracking-tight">
               OUTWORK<br/>
-              <span className="text-yellow-400" style={{ textShadow: '0 0 40px rgba(250, 204, 21, 0.6)' }}>YOUR FRIENDS</span>
+              <span className="text-yellow-400 drop-shadow-xl">YOUR FRIENDS</span>
             </h2>
             
             <p className="text-gray-500 text-sm mb-6">Turn every workout into competition. Log effort. Earn XP. Climb the leaderboard.</p>
@@ -104,12 +86,7 @@ export default function Landing() {
             {/* Primary CTA */}
             <button 
               onClick={handleNewUser}
-              className="inline-block px-10 py-4 rounded-lg font-bold text-base transition-all duration-200 hover:scale-105 active:scale-97"
-              style={{ 
-                background: 'linear-gradient(135deg, #facc15 0%, #eab308 100%)',
-                boxShadow: '0 4px 30px rgba(250, 204, 21, 0.5)',
-                color: '#000'
-              }}
+              className="inline-block px-10 py-4 rounded-lg font-bold text-base bg-yellow-400 text-black hover:bg-yellow-300 transition-all duration-200 hover:scale-105 active:scale-97 shadow-lg shadow-yellow-500/30"
             >
               START COMPETING
             </button>
@@ -132,17 +109,11 @@ export default function Landing() {
             ].map((stat, i) => (
               <div 
                 key={i}
-                className="p-4 rounded-xl transition-all duration-200 hover:-translate-y-1"
-                style={{ 
-                  background: stat.highlight 
-                    ? 'linear-gradient(135deg, rgba(250, 204, 21, 0.15) 0%, rgba(30, 30, 30, 1) 100%)'
-                    : 'linear-gradient(135deg, rgba(20, 20, 20, 1) 0%, rgba(30, 30, 30, 1) 100%)',
-                  border: stat.highlight ? '1px solid rgba(250, 204, 21, 0.5)' : '1px solid #333333',
-                  boxShadow: stat.highlight 
-                    ? '0 8px 30px rgba(250, 204, 21, 0.25)'
-                    : '0 4px 15px rgba(0, 0, 0, 0.4)',
-                  transform: hovering === `stat-${i}` ? 'translateY(-4px)' : 'translateY(0)'
-                }}
+                className={`p-4 rounded-xl border transition-all duration-200 hover:-translate-y-1 ${
+                  stat.highlight 
+                    ? 'bg-yellow-950/30 border-yellow-500/50 shadow-lg shadow-yellow-500/20' 
+                    : 'bg-gray-900 border-gray-800'
+                }`}
                 onMouseEnter={() => setHovering(`stat-${i}`)}
                 onMouseLeave={() => setHovering(null)}
               >
@@ -159,14 +130,7 @@ export default function Landing() {
           </div>
 
           {/* Section break - after stats */}
-          <div 
-            className="relative h-32 mb-6 rounded-xl overflow-hidden"
-            style={{ 
-              backgroundImage: 'url(/images/stats-bg.jpg)',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-          />
+          <div className="relative h-32 mb-6 rounded-xl overflow-hidden bg-cover bg-center" style={{ backgroundImage: 'url(/images/stats-bg.jpg)' }} />
 
           {/* Feature Highlights - storytelling */}
           <div className="space-y-3 mb-6">
@@ -178,12 +142,7 @@ export default function Landing() {
             ].map((f, i) => (
               <div 
                 key={i} 
-                className="p-4 rounded-xl flex items-center justify-between transition-all duration-200"
-                style={{ 
-                  background: 'rgba(30, 30, 30, 1)',
-                  border: '1px solid #333333',
-                  transform: hovering === `feature-${i}` ? 'translateX(4px)' : 'translateX(0)'
-                }}
+                className="p-4 rounded-xl flex items-center justify-between bg-gray-900 border border-gray-800 transition-all duration-200"
                 onMouseEnter={() => setHovering(`feature-${i}`)}
                 onMouseLeave={() => setHovering(null)}
               >
@@ -194,10 +153,7 @@ export default function Landing() {
                     <div className="text-gray-500 text-xs mt-0.5">{f.desc}</div>
                   </div>
                 </div>
-                <div 
-                  className="text-gray-600 transition-all duration-200"
-                  style={{ transform: hovering === `feature-${i}` ? 'translateX(6px)' : 'translateX(0)' }}
-                >
+                <div className="text-gray-600">
                   →
                 </div>
               </div>
@@ -205,23 +161,10 @@ export default function Landing() {
           </div>
 
           {/* Section break - after features */}
-          <div 
-            className="relative h-32 mb-6 rounded-xl overflow-hidden"
-            style={{ 
-              backgroundImage: 'url(/images/features-bg.jpg)',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-          />
+          <div className="relative h-32 mb-6 rounded-xl overflow-hidden bg-cover bg-center" style={{ backgroundImage: 'url(/images/features-bg.jpg)' }} />
 
           {/* Sign Up Form */}
-          <div 
-            className="rounded-xl p-5 mb-4 transition-all duration-300"
-            style={{ 
-              background: 'linear-gradient(135deg, rgba(25, 25, 25, 1) 0%, rgba(35, 35, 35, 1) 100%)',
-              border: '1px solid #333333'
-            }}
-          >
+          <div className="rounded-xl p-5 mb-4 bg-gray-900 border border-gray-800">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-white tracking-wide">NEW PLAYER?</h3>
               <div className="text-xs text-gray-400 font-mono">v2.0</div>
@@ -244,12 +187,7 @@ export default function Landing() {
               />
               <button 
                 onClick={handleNewUser}
-                className="w-full py-3.5 rounded-lg font-bold text-sm uppercase tracking-wider transition-all duration-200 hover:scale-[1.02] active:scale-[0.97]"
-                style={{ 
-                  background: 'linear-gradient(135deg, #facc15 0%, #eab308 100%)',
-                  boxShadow: '0 4px 20px rgba(250, 204, 21, 0.4)',
-                  color: '#000'
-                }}
+                className="w-full py-3.5 rounded-lg font-bold text-sm uppercase tracking-wider bg-yellow-400 text-black hover:bg-yellow-300 transition-all duration-200 hover:scale-[1.02] active:scale-[0.97] shadow-lg shadow-yellow-500/30"
               >
                 Start Competing
               </button>
