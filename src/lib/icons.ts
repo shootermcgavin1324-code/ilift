@@ -9,7 +9,7 @@ export const icons = {
   
   streak: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
  <path d="M12 3C9 7 7 9 7 13C7 17 9.5 20 12 20C14.5 20 17 17 17 13C17 9 15 7 12 3Z" fill="#facc15"/>
- <path d="M12 9C11 11 10.5 12 10.5 14C10.5 15.5 11.2 17 12 17C12.8 17 13.5 15.5 13.5 14C13.5 12 13 11 12 9Z" fill="#050505"/>
+ <path d="M12 9C11 11 10.5 12 10.5 14C10.5 15.5 11.2 17 12 17C12.8 17 13.5 15.5 13.5 14C13.5 12 13 11 12 9Z" fill="transparent"/>
  <path d="M6 20H18" stroke="#facc15" stroke-width="1.5"/>
 </svg>`,
   
@@ -26,6 +26,6 @@ export const icons = {
  <circle cx="16" cy="9" r="2.5" fill="#facc15"/>
  <path d="M5 20C5 17 7 15 8 15C9 15 11 17 11 20H5Z" fill="#facc15"/>
  <path d="M13 20C13 17 15 15 16 15C17 15 19 17 19 20H13Z" fill="#facc15"/>
- <path d="M8 9H16" stroke="#050505" stroke-width="1.5"/>
+ <path d="M8 9H16" stroke="transparent" stroke-width="1.5"/>
 </svg>`
 };
