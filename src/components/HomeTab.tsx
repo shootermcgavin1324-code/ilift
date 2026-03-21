@@ -126,9 +126,9 @@ export default function HomeTab({ user, leaderboard, currentLevel, onLogWorkout 
         <div className="flex justify-between items-center mb-3">
           <p className="text-gray-400 text-sm">SQUAD LEADERBOARD</p>
           {leaderboard.length > 0 && (
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-              <span className="text-xs text-green-500">LIVE</span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-xs text-green-500 font-medium uppercase tracking-wider">Live</span>
             </span>
           )}
         </div>
