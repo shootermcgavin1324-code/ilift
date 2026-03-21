@@ -1,28 +1,20 @@
 #!/bin/bash
 
-echo "🧹 Cleaning development environment..."
+echo "🧹 Deep cleaning dev environment..."
 
-# Kill ALL node processes (most aggressive)
+# Kill ALL node processes (force)
 pkill -9 node 2>/dev/null
-sleep 2
-echo "✓ Killed all node processes"
 
-# Clear common ports
-for port in 3000 3001 3002 3003 3004 3005; do
-  fuser -k $port/tcp 2>/dev/null
-done
-sleep 1
-echo "✓ Cleared ports 3000-3005"
+# Kill anything on common dev ports
+lsof -ti:3000 | xargs kill -9 2>/dev/null
+lsof -ti:3001 | xargs kill -9 2>/dev/null
+lsof -ti:3333 | xargs kill -9 2>/dev/null
+lsof -ti:4000 | xargs kill -9 2>/dev/null
 
-# Remove OpenClaw session locks
-rm -rf ~/.openclaw/agents/main/sessions/*.lock 2>/dev/null
-rm -f ~/.openclaw/agents/main/sessions/*.deleted.* 2>/dev/null
-echo "✓ Cleared session files"
+# Clear OpenClaw locks
+rm -rf ~/.openclaw/agents/main/sessions/*
 
-# Clear .next cache
-rm -rf .next 2>/dev/null
-echo "✓ Cleared Next.js cache"
+# Clear Next.js cache (IMPORTANT)
+rm -rf .next
 
-sleep 1
-
-echo "✅ Environment clean. Run 'npm run dev' to start."
+echo "✅ Clean complete"
