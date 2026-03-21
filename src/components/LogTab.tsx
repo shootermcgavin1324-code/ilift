@@ -177,7 +177,9 @@ export default function LogTab({
       {favorites.length > 0 && (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-bold text-purple-400">FAVORITES</h3>
+            <h3 className={`text-sm font-bold transition-all duration-200 ${favorites.length > 0 ? 'text-purple-400 drop-shadow-md' : 'text-gray-500'}`}>
+              ★ FAVORITES
+            </h3>
             <div className="flex-1 h-px bg-gray-800"></div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -197,7 +199,9 @@ export default function LogTab({
       {/* Preset Workouts Section */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-bold text-blue-400">PRESET WORKOUTS</h3>
+          <h3 className="text-sm font-bold text-blue-400 drop-shadow-md">
+            ⚡ PRESET WORKOUTS
+          </h3>
           <div className="flex-1 h-px bg-gray-800"></div>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -238,7 +242,7 @@ export default function LogTab({
 
       {/* Section Header: All Exercises */}
       <div className="flex items-center gap-2">
-        <h3 className="text-sm font-bold text-gray-400">ALL EXERCISES</h3>
+        <h3 className="text-sm font-bold text-gray-300 drop-shadow-md">ALL EXERCISES</h3>
         <div className="flex-1 h-px bg-gray-800"></div>
       </div>
 
@@ -248,10 +252,10 @@ export default function LogTab({
           <button
             key={cat}
             onClick={() => setCategory(cat)}
-            className={`px-4 py-2 rounded-xl font-bold text-sm whitespace-nowrap ${
+            className={`px-4 py-2 rounded-xl font-bold text-sm whitespace-nowrap transition-all duration-200 ${
               category === cat 
-                ? 'bg-yellow-500 text-black' 
-                : 'bg-gray-900 text-gray-400'
+                ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/40 scale-105' 
+                : 'bg-gray-900 text-gray-400 hover:bg-gray-800 hover:text-gray-300'
             }`}
           >
             {cat}
@@ -268,7 +272,7 @@ export default function LogTab({
             <div 
               key={ex.name} 
               onClick={() => quickLog(ex.name)} 
-              className={`py-3 rounded-xl font-bold text-sm relative transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
+              className={`py-3 rounded-xl font-bold text-sm text-center relative transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
                 workoutSession.some(w => w.name === ex.name)
                   ? 'bg-yellow-500/20 border-2 border-yellow-500 text-yellow-400' 
                   : 'bg-gray-900 border border-gray-800 hover:border-yellow-500/50'
