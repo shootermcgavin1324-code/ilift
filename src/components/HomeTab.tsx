@@ -73,6 +73,17 @@ export default function HomeTab({ user, leaderboard, currentLevel, onLogWorkout 
         </div>
       )}
 
+      {/* Almost There - Close to next rank */}
+      {leaderboard.length > 1 && rankAhead && (rankAhead.total_xp - (user.total_xp || 0)) < 50 && (
+        <div className="bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-xl p-4 border border-orange-500/30">
+          <p className="text-orange-400 text-sm font-bold">⚠️ ALMOST THERE</p>
+          <p className="text-white mt-1">
+            Just <span className="text-orange-400 font-black">{rankAhead.total_xp - (user.total_xp || 0)} XP</span> away from #{userRank - 1}!
+          </p>
+          <p className="text-gray-400 text-xs mt-1">Log one more workout to pass them!</p>
+        </div>
+      )}
+
       {/* Streak & Today's Activity */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-gray-950 rounded-xl p-4 border border-orange-500/20">
