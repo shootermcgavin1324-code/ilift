@@ -121,7 +121,18 @@ export default function Dashboard() {
 
     setUser(userData);
     setWorkouts([]);
-    setLeaderboard([userData]);
+    
+    // Placeholder leaderboard for demo - replace with real Supabase data later
+    const placeholders = [
+      { id: 'p1', name: 'GymRat_Mike', total_xp: 2450, streak: 12 },
+      { id: 'p2', name: 'LifterLisa', total_xp: 2100, streak: 8 },
+      { id: 'p3', name: 'SwoleSam', total_xp: 1850, streak: 5 },
+      { id: 'p4', name: 'FitQueen', total_xp: 1600, streak: 3 },
+    ];
+    
+    // Combine user with placeholders, sorted by XP
+    const fullLeaderboard = [userData, ...placeholders].sort((a, b) => (b.total_xp || 0) - (a.total_xp || 0));
+    setLeaderboard(fullLeaderboard);
     setLoading(false);
   }
 
