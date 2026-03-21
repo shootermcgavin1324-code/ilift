@@ -71,6 +71,7 @@ export default function Dashboard() {
   const [rpe, setRpe] = useState(7);
   const [toast, setToast] = useState<any>(null);
   const [showPR, setShowPR] = useState<any>(null);
+  const [newBadges, setNewBadges] = useState<string[]>([]);
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [videoUploading, setVideoUploading] = useState(false);
@@ -177,14 +178,23 @@ export default function Dashboard() {
     
     // Check badges based on TOTAL XP
     const totalXP = newXP; // This is now the total after adding
-    const newBadges = [...(updatedUser.badges || [])];
-    if (newBadges.length === 0) newBadges.push('first_workout');
-    if (totalXP >= 1000 && !newBadges.includes('xp_1000')) newBadges.push('xp_1000');
-    if (totalXP >= 5000 && !newBadges.includes('xp_5000')) newBadges.push('xp_5000');
-    if (totalXP >= 10000 && !newBadges.includes('xp_10000')) newBadges.push('xp_10000');
-    if (updatedUser.streak >= 7 && !newBadges.includes('streak_7')) newBadges.push('streak_7');
-    if (updatedUser.streak >= 30 && !newBadges.includes('streak_30')) newBadges.push('streak_30');
-    updatedUser.badges = newBadges;
+    const oldBadges = user.badges || [];
+    const earnedBadges: string[] = [];
+    
+    if (oldBadges.length === 0) earnedBadges.push('first_workout');
+    if (totalXP >= 1000 && !oldBadges.includes('xp_1000')) earnedBadges.push('xp_1000');
+    if (totalXP >= 5000 && !oldBadges.includes('xp_5000')) earnedBadges.push('xp_5000');
+    if (totalXP >= 10000 && !oldBadges.includes('xp_10000')) earnedBadges.push('xp_10000');
+    if (updatedUser.streak >= 7 && !oldBadges.includes('streak_7')) earnedBadges.push('streak_7');
+    if (updatedUser.streak >= 30 && !oldBadges.includes('streak_30')) earnedBadges.push('streak_30');
+    
+    // Update badges
+    updatedUser.badges = [...new Set([...oldBadges, ...earnedBadges])];
+    
+    // Show badge notifications
+    if (earnedBadges.length > 0) {
+      setNewBadges(earnedBadges);
+    }
 
     // Update local state
     setUser(updatedUser);
@@ -270,6 +280,27 @@ export default function Dashboard() {
         <h1 className="text-2xl font-black"><span className="text-yellow-500">i</span>LIFT</h1>
         <button onClick={logout}><X size={24} className="text-gray-400" /></button>
       </header>
+
+      {/* Achievement Unlocked Notifications */}
+      {newBadges.length > 0 && (
+        <div className="px-4 py-2">
+          {newBadges.map(badgeId => (
+            <div 
+              key={badgeId}
+              className="mb-2 p-3 rounded-xl bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 animate-pulse"
+            >
+              <p className="text-yellow-400 font-bold text-sm">🏆 Achievement Unlocked!</p>
+              <p className="text-white font-bold">{badgeId.replace('_', ' ').toUpperCase()}</p>
+            </div>
+          ))}
+          <button 
+            onClick={() => setNewBadges([])} 
+            className="text-gray-500 text-xs"
+          >
+            Tap to dismiss
+          </button>
+        </div>
+      )}
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-gray-950 border-t border-gray-700 px-2 py-2 pb-6 z-50">
@@ -387,8 +418,6 @@ export default function Dashboard() {
       {/* Squad Tab */}
       {activeTab === 'squad' && <SquadTab user={user} leaderboard={leaderboard} />}
       
-      {activeTab === 'challenges' && <ChallengesTab />}
-
       {/* Challenges Tab */}
       {activeTab === 'challenges' && <ChallengesTab />}
 
