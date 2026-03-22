@@ -1,11 +1,17 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense, lazy } from 'react';
 import { useRouter } from 'next/navigation';
 import { Home, Dumbbell, Users, Trophy, Target, X, Star, Video, Zap, Flame } from 'lucide-react';
 
-// Tab Components
-import { HomeTab, SquadTab, ChallengesTab, HistoryTab, LogTab } from '@/components';
+// Core components - loaded immediately
+import { HomeTab } from '@/components';
+
+// Lazy load heavy tab components for code splitting
+const SquadTab = lazy(() => import('@/components/SquadTab'));
+const ChallengesTab = lazy(() => import('@/components/ChallengesTab'));
+const HistoryTab = lazy(() => import('@/components/HistoryTab'));
+const LogTab = lazy(() => import('@/components/LogTab'));
 
 // Stores
 import { useUserStore, useWorkoutStore, useUIStore } from '@/lib/store';
@@ -16,6 +22,15 @@ import { checkBadges } from '@/lib/badges';
 import { getPlayerTitle } from '@/lib/player';
 import { ACHIEVEMENTS } from '@/lib/achievements';
 import { getPRs, savePR, getBestStreak, setBestStreak, getHighestRank, setHighestRank, uploadVideo } from '@/lib/storage';
+
+// Loading fallback for lazy components
+function TabLoader() {
+  return (
+    <div className="flex items-center justify-center py-12">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const router = useRouter();
@@ -271,29 +286,43 @@ export default function Dashboard() {
       )}
 
       {activeTab === 'log' && (
-        <LogTab
-          currentExercise={currentExercise}
-          setCurrentExercise={setCurrentExercise}
-          sets={sets}
-          setSets={setSets}
-          restTimer={restTimer}
-          restTimeLeft={restTimeLeft}
-          setRestTimer={stopRestTimer}
-          setRestTimeLeft={() => stopRestTimer()}
-          calculateScore={getScore}
-          completeWorkout={completeWorkout}
-          workoutSession={workoutSession}
-          setWorkoutSession={() => {}}
-          favorites={favorites}
-          toggleFavorite={toggleFavorite}
-        />
+        <Suspense fallback={<TabLoader />}>
+          <LogTab
+            currentExercise={currentExercise}
+            setCurrentExercise={setCurrentExercise}
+            sets={sets}
+            setSets={setSets}
+            restTimer={restTimer}
+            restTimeLeft={restTimeLeft}
+            setRestTimer={stopRestTimer}
+            setRestTimeLeft={() => stopRestTimer()}
+            calculateScore={getScore}
+            completeWorkout={completeWorkout}
+            workoutSession={workoutSession}
+            setWorkoutSession={() => {}}
+            favorites={favorites}
+            toggleFavorite={toggleFavorite}
+          />
+        </Suspense>
       )}
 
-      {activeTab === 'squad' && <SquadTab user={user} leaderboard={leaderboard} />}
+      {activeTab === 'squad' && (
+        <Suspense fallback={<TabLoader />}>
+          <SquadTab user={user} leaderboard={leaderboard} />
+        </Suspense>
+      )}
       
-      {activeTab === 'challenges' && <ChallengesTab user={user} workouts={workouts} />}
+      {activeTab === 'challenges' && (
+        <Suspense fallback={<TabLoader />}>
+          <ChallengesTab user={user} workouts={workouts} />
+        </Suspense>
+      )}
 
-      {activeTab === 'history' && <HistoryTab workouts={workouts} />}
+      {activeTab === 'history' && (
+        <Suspense fallback={<TabLoader />}>
+          <HistoryTab workouts={workouts} />
+        </Suspense>
+      )}
 
       {activeTab === 'awards' && (
         <div className="p-4 space-y-3">

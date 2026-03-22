@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 
 export const metadata: Metadata = {
   title: "iLift - Train Together. Compete Forever.",
@@ -27,6 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="text-white antialiased" style={{ backgroundColor: '#000000' }}>
+        <ServiceWorkerRegistration />
         {children}
       </body>
     </html>
