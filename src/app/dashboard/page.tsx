@@ -72,6 +72,10 @@ export default function Dashboard() {
   // Favorites - stored per user in localStorage
   const [favorites, setFavorites] = useState<string[]>([]);
   const [userEmail, setUserEmail] = useState<string>('');
+  
+  // Game stats
+  const [bestStreak, setBestStreak] = useState(0);
+  const [highestRank, setHighestRank] = useState(0);
 
   // Load user email from localStorage on mount
   useEffect(() => {
@@ -162,6 +166,12 @@ export default function Dashboard() {
     setUser(userData);
     setWorkouts([]);
     
+    // Load best streak and highest rank from localStorage
+    const storedBestStreak = parseInt(localStorage.getItem('ilift_best_streak') || '0');
+    const storedHighestRank = parseInt(localStorage.getItem('ilift_highest_rank') || '0');
+    setBestStreak(storedBestStreak);
+    setHighestRank(storedHighestRank);
+    
     // Placeholder leaderboard for demo - replace with real Supabase data later
     const placeholders = [
       { id: 'p1', name: 'GymRat_Mike', total_xp: 2450, streak: 12 },
@@ -250,6 +260,18 @@ export default function Dashboard() {
     // Update local state
     setUser(updatedUser);
 
+    // Update best streak if exceeded
+    if (updatedUser.streak > bestStreak) {
+      setBestStreak(updatedUser.streak);
+      localStorage.setItem('ilift_best_streak', updatedUser.streak.toString());
+    }
+    
+    // Update highest rank if exceeded
+    if (currentLevel > highestRank) {
+      setHighestRank(currentLevel);
+      localStorage.setItem('ilift_highest_rank', currentLevel.toString());
+    }
+
     // Save to localStorage
     localStorage.setItem('ilift_user', JSON.stringify(updatedUser));
     localStorage.setItem('ilift_onboarding_data', JSON.stringify(updatedUser));
@@ -316,8 +338,34 @@ export default function Dashboard() {
   };
 
   const currentLevel = Math.floor((user?.total_xp || 0) / 500) + 1;
-  const xpProgress = ((user?.total_xp || 0) % 500) / 5;
-  const xpToNextLevel = 500 - ((user?.total_xp || 0) % 500);
+  const xpInCurrentLevel = (user?.total_xp || 0) % 500;
+  const xpToNextLevel = 500 - xpInCurrentLevel;
+  const xpProgressPercent = (xpInCurrentLevel / 500) * 100;
+  
+  // Prestige: every 10,000 XP = 1 prestige
+  const prestige = Math.floor((user?.total_xp || 0) / 10000);
+  
+  // Player title based on stats - use state for client-side only
+  const [playerTitle, setPlayerTitle] = useState('ROOKIE');
+  
+  useEffect(() => {
+    const getPlayerTitle = () => {
+      const xp = user?.total_xp || 0;
+      const streak = user?.streak || 0;
+      const badges = user?.badges?.length || 0;
+      const workouts = JSON.parse(localStorage.getItem('ilift_workouts') || '[]').length;
+      
+      if (xp >= 50000) return 'LEGEND';
+      if (streak >= 30) return 'UNSTOPPABLE';
+      if (badges >= 10) return 'COLLECTOR';
+      if (workouts >= 50) return 'GRINDER';
+      if (xp >= 10000) return 'XP MASTER';
+      if (streak >= 7) return 'ON FIRE';
+      if (workouts >= 10) return 'ACTIVE';
+      return 'ROOKIE';
+    };
+    setPlayerTitle(getPlayerTitle());
+  }, [user]);
 
   if (loading) {
     return <div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">Loading...</div>;
@@ -406,7 +454,7 @@ export default function Dashboard() {
       {activeTab === 'squad' && <SquadTab user={user} leaderboard={leaderboard} />}
       
       {/* Challenges Tab */}
-      {activeTab === 'challenges' && <ChallengesTab />}
+      {activeTab === 'challenges' && <ChallengesTab user={user} workouts={workouts} />}
 
       {/* History Tab */}
       {activeTab === 'history' && <HistoryTab workouts={workouts} />}
@@ -506,53 +554,113 @@ export default function Dashboard() {
       {/* Profile Tab */}
       {activeTab === 'profile' && (
         <div className="p-4 space-y-4">
-          <div className="bg-gray-950 rounded-xl p-6 text-center">
-            <div className="w-20 h-20 rounded-full bg-gray-900 flex items-center justify-center mx-auto mb-3">
-              <Target size={40} className="text-gray-600" />
+          {/* Main Profile Card - High contrast */}
+          <div className="bg-gradient-to-b from-gray-900 to-gray-950 rounded-2xl p-6 text-center border border-gray-800">
+            {/* Player Header */}
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <span className="bg-yellow-500/20 text-yellow-400 text-xs font-bold px-3 py-1 rounded-full border border-yellow-500/30">
+                {playerTitle}
+              </span>
             </div>
-            <h2 className="text-2xl font-black">{user.name}</h2>
-            <p className="text-gray-400">{user.email}</p>
-            {user.onboarding?.fitnessGoal && (
-              <p className="mt-2 inline-block bg-purple-500/20 text-purple-400 px-3 py-1 rounded-full text-sm font-bold">
-                Goal: {user.onboarding.fitnessGoal}
+            
+            {/* Avatar with glow */}
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-yellow-500/30 to-orange-500/30 flex items-center justify-center mx-auto mb-4 border-2 border-yellow-500/30">
+              <Target size={48} className="text-yellow-400" />
+            </div>
+            <h2 className="text-3xl font-black text-white">{user.name}</h2>
+            <p className="text-gray-400 text-sm mt-1">Squad {user.group_id || 'NONE'}</p>
+            
+            {/* XP Progress Bar - Prominent */}
+            <div className="mt-6 bg-gray-900/50 rounded-xl p-4 border border-gray-800">
+              <div className="flex justify-between items-end mb-2">
+                <span className="text-lg font-bold text-yellow-400">LEVEL {currentLevel}</span>
+                <span className="text-gray-400 text-xs">{xpToNextLevel} XP to next</span>
+              </div>
+              
+              {/* Progress Bar */}
+              <div className="relative h-5 bg-gray-800 rounded-full overflow-hidden">
+                <div 
+                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-yellow-500 via-yellow-400 to-orange-500 rounded-full transition-all"
+                  style={{ width: `${xpProgressPercent}%` }}
+                />
+                {/* Progress glow */}
+                <div 
+                  className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white/30 to-transparent"
+                  style={{ left: `${xpProgressPercent}%`, marginLeft: '-32px' }}
+                />
+              </div>
+              
+              <p className="text-2xl font-black text-white mt-3">
+                {xpInCurrentLevel.toLocaleString()} <span className="text-gray-500 text-lg">/ 500 XP</span>
               </p>
-            )}
-            <div className="mt-4 bg-gray-900 rounded-lg p-3">
-              <p className="text-gray-400 text-sm">Level {currentLevel}</p>
-              <p className="text-3xl font-black text-yellow-500">{(user.total_xp || 0).toLocaleString()} XP</p>
             </div>
           </div>
 
+          {/* Game-Style Stats - Cleaner with borders */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-gray-950 rounded-xl p-4 text-center">
-              <Flame size={28} className="mx-auto text-orange-400 mb-2" />
-              <p className="text-2xl font-black">{user.streak || 0}</p>
-              <p className="text-gray-400 text-sm">Day Streak</p>
+            <div className="bg-gray-900 rounded-xl p-4 text-center border border-gray-800">
+              <Zap size={24} className="mx-auto text-yellow-400 mb-2" />
+              <p className="text-2xl font-black text-white">{(user.total_xp || 0).toLocaleString()}</p>
+              <p className="text-gray-500 text-xs uppercase tracking-wider">Total XP</p>
             </div>
-            <div className="bg-gray-950 rounded-xl p-4 text-center">
-              <Award size={28} className="mx-auto text-purple-400 mb-2" />
-              <p className="text-2xl font-black">{user.badges?.length || 0}</p>
-              <p className="text-gray-400 text-sm">Badges</p>
+            <div className="bg-gray-900 rounded-xl p-4 text-center border border-gray-800">
+              <Dumbbell size={24} className="mx-auto text-blue-400 mb-2" />
+              <p className="text-2xl font-black text-white">{workouts.length}</p>
+              <p className="text-gray-500 text-xs uppercase tracking-wider">Workouts</p>
+            </div>
+            <div className="bg-gray-900 rounded-xl p-4 text-center border border-gray-800">
+              <Flame size={24} className="mx-auto text-orange-400 mb-2" />
+              <p className="text-2xl font-black text-white">{bestStreak || user.streak || 0}</p>
+              <p className="text-gray-500 text-xs uppercase tracking-wider">Best Streak</p>
+            </div>
+            <div className="bg-gray-900 rounded-xl p-4 text-center border border-gray-800">
+              <Trophy size={24} className="mx-auto text-yellow-400 mb-2" />
+              <p className="text-2xl font-black text-white">{highestRank || currentLevel}</p>
+              <p className="text-gray-500 text-xs uppercase tracking-wider">Highest Rank</p>
             </div>
           </div>
+          
+          {/* Achievements Preview */}
+          {user.badges && user.badges.length > 0 && (
+            <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
+              <div className="flex justify-between items-center mb-3">
+                <p className="text-white text-sm font-bold uppercase tracking-wider">Achievements</p>
+                <button 
+                  onClick={() => setActiveTab('awards')}
+                  className="text-yellow-400 text-xs font-bold hover:underline"
+                >
+                  View All →
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {user.badges.slice(0, 4).map((badgeId: string) => {
+                  const ach = ACHIEVEMENTS.find(a => a.id === badgeId);
+                  if (!ach) return null;
+                  return (
+                    <span 
+                      key={badgeId}
+                      className="bg-yellow-500/20 text-yellow-400 text-xs font-bold px-2 py-1 rounded-full"
+                    >
+                      {ach.name}
+                    </span>
+                  );
+                })}
+                {user.badges.length > 4 && (
+                  <span className="bg-gray-800 text-gray-400 text-xs font-bold px-2 py-1 rounded-full">
+                    +{user.badges.length - 4} more
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
 
-          {/* Onboarding Stats */}
-          {user.onboarding && (
-            <div className="bg-gray-950 rounded-xl p-4">
-              <p className="text-gray-400 text-sm mb-3">My Stats</p>
-              <div className="grid grid-cols-2 gap-2">
-                {user.onboarding.weight && (
-                  <div className="bg-gray-900 rounded-lg p-3">
-                    <p className="text-gray-400 text-xs">Weight</p>
-                    <p className="text-white font-bold">{user.onboarding.weight} lbs</p>
-                  </div>
-                )}
-                {user.onboarding.height && (
-                  <div className="bg-gray-900 rounded-lg p-3">
-                    <p className="text-gray-400 text-xs">Height</p>
-                    <p className="text-white font-bold">{Math.floor(user.onboarding.height / 12)}'{user.onboarding.height % 12}"</p>
-                  </div>
-                )}
+          {/* Onboarding Stats - Collapsible */}
+          {user.onboarding && (user.onboarding.experience || user.onboarding.bodyFat || user.onboarding.age) && (
+            <details className="bg-gray-950 rounded-xl p-4">
+              <summary className="text-gray-400 text-sm cursor-pointer hover:text-white">
+                More Stats (click to expand)
+              </summary>
+              <div className="grid grid-cols-3 gap-2 mt-3">
                 {user.onboarding.experience && (
                   <div className="bg-gray-900 rounded-lg p-3">
                     <p className="text-gray-400 text-xs">Experience</p>
@@ -572,20 +680,20 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
-            </div>
+            </details>
           )}
 
-          {/* PRs Section */}
+          {/* PRs Section - Only shows if you have records */}
           {(() => {
             const prs = JSON.parse(localStorage.getItem('ilift_prs') || '{}');
             const prList = Object.entries(prs).filter(([_, v]: any) => v.maxWeight);
             if (prList.length === 0) return null;
             return (
-              <div className="bg-gray-950 rounded-xl p-4">
-                <p className="text-gray-400 text-sm mb-3">Personal Records 🏆</p>
+              <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
+                <p className="text-white text-sm font-bold uppercase tracking-wider mb-3">Personal Records 🏆</p>
                 <div className="space-y-2">
                   {prList.slice(0, 5).map(([exercise, data]: any) => (
-                    <div key={exercise} className="flex justify-between items-center bg-gray-900 rounded-lg p-3">
+                    <div key={exercise} className="flex justify-between items-center bg-gray-950 rounded-lg p-3 border border-gray-800">
                       <span className="text-white font-bold capitalize">{exercise}</span>
                       <span className="text-yellow-400 font-black">{data.maxWeight} lbs</span>
                     </div>
@@ -595,29 +703,24 @@ export default function Dashboard() {
             );
           })()}
 
-          <div className="bg-gray-950 rounded-xl p-4">
-            <p className="text-gray-400 text-sm mb-2">Squad Code</p>
-            <p className="text-4xl font-black text-yellow-500">{user.group_id || 'TEST'}</p>
+          {/* Share & Logout */}
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                const text = `I'm level ${currentLevel} on iLift with ${user.total_xp || 0} XP! 💪🔥`;
+                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+              }}
+              className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold"
+            >
+              Share
+            </button>
+            <button
+              onClick={logout}
+              className="flex-1 py-3 bg-gray-800 text-gray-400 rounded-xl font-bold"
+            >
+              Log Out
+            </button>
           </div>
-
-          {/* Share Button */}
-          <button
-            onClick={() => {
-              const text = `I'm level ${currentLevel} on iLift with ${user.total_xp || 0} XP! 💪🔥`;
-              window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
-            }}
-            className="w-full py-3 bg-blue-500/20 text-blue-400 rounded-xl font-bold border border-blue-500/30"
-          >
-            Share Progress
-          </button>
-
-          {/* Logout Button */}
-          <button
-            onClick={logout}
-            className="w-full py-3 bg-red-500/20 text-red-400 rounded-xl font-bold border border-red-500/30"
-          >
-            Log Out
-          </button>
         </div>
       )}
 
