@@ -1,6 +1,7 @@
 // HomeTab Component
 // Main dashboard view with rank, streak, level, and leaderboard preview
 
+import { useState, memo } from 'react';
 import { Flame, Target, Trophy, Zap } from 'lucide-react';
 import type { User as UserType } from '@/lib/types';
 
@@ -19,7 +20,7 @@ interface HomeTabProps {
   onLogWorkout: () => void;
 }
 
-export default function HomeTab({ user, leaderboard, currentLevel, onLogWorkout }: HomeTabProps) {
+function HomeTab({ user, leaderboard, currentLevel, onLogWorkout }: HomeTabProps) {
   const userRank = leaderboard.findIndex((u: any) => u.id === user.id) + 1;
   const rankAhead = leaderboard[userRank - 2];
   
@@ -150,3 +151,5 @@ export default function HomeTab({ user, leaderboard, currentLevel, onLogWorkout 
     </div>
   );
 }
+
+export default memo(HomeTab);

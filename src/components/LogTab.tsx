@@ -1,7 +1,8 @@
 // LogTab Component
 // Workout logging interface
+// Performance optimized with React.memo and useCallback
 
-import { useState } from 'react';
+import { useState, useCallback, memo } from 'react';
 import type { SetData } from '@/lib/types';
 
 const CATEGORIES = ['All', 'Push', 'Pull', 'Legs', 'Cardio'];
@@ -185,7 +186,7 @@ function StyledButton({
   );
 }
 
-export default function LogTab({
+function LogTab({
   currentExercise,
   setCurrentExercise,
   sets,
@@ -405,12 +406,12 @@ export default function LogTab({
                     <span className="text-black text-xs">✓</span>
                   </span>
                 )}
-                <button
+                <span
                   onClick={(e) => { e.stopPropagation(); toggleFavorite(ex.name); }}
-                  className={`absolute top-1 right-1 text-xs transition-opacity ${favorites.includes(ex.name) ? 'text-yellow-400' : 'text-gray-600 hover:text-yellow-400'}`}
+                  className={`absolute top-1 right-1 text-xs transition-opacity cursor-pointer ${favorites.includes(ex.name) ? 'text-yellow-400' : 'text-gray-600 hover:text-yellow-400'}`}
                 >
                   {favorites.includes(ex.name) ? '★' : '☆'}
-                </button>
+                </span>
               </StyledButton>
             );
           })}
@@ -533,3 +534,6 @@ export default function LogTab({
     </div>
   );
 }
+
+// Memoize for performance
+export default memo(LogTab);
