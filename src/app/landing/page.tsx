@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
 import { icons } from '@/lib/icons';
 import { useRouter } from 'next/navigation';
+import { hasCompletedOnboarding, getPendingEmail, setPendingEmail, getPendingCode, setPendingCode } from '@/lib/storage';
 
 export default function Landing() {
   const router = useRouter();
@@ -13,16 +14,14 @@ export default function Landing() {
   const [hovering, setHovering] = useState<string | null>(null);
 
   useEffect(() => {
-    const hasOnboarding = localStorage.getItem('ilift_onboarding');
-    const email = localStorage.getItem('ilift_email');
-    if (hasOnboarding && email) {
+    if (hasCompletedOnboarding()) {
       router.push('/dashboard');
     }
   }, [router]);
 
   const handleNewUser = () => {
-    if (email) localStorage.setItem('ilift_pending_email', email);
-    if (code) localStorage.setItem('ilift_pending_code', code.toUpperCase());
+    if (email) setPendingEmail(email);
+    if (code) setPendingCode(code);
     router.push('/onboarding');
   };
 

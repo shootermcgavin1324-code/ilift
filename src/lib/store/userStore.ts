@@ -4,7 +4,7 @@
 
 import { create } from 'zustand';
 import type { User, Workout } from '../types';
-import { getUser, updateUser, saveWorkout, getWorkouts, getBestStreak, setBestStreak, getHighestRank, setHighestRank } from '../storage';
+import { getUser, updateUser, saveWorkout, getWorkouts, getBestStreak, setBestStreak, getHighestRank, setHighestRank, clearLocalData } from '../storage';
 
 interface UserState {
   // User data
@@ -108,13 +108,7 @@ export const useUserStore = create<UserState>((set, get) => ({
   },
   
   logout: () => {
-    localStorage.removeItem('ilift_email');
-    localStorage.removeItem('ilift_password');
-    localStorage.removeItem('ilift_onboarding');
-    localStorage.removeItem('ilift_onboarding_data');
-    localStorage.removeItem('ilift_user');
-    localStorage.removeItem('ilift_user_id');
-    localStorage.removeItem('ilift_workouts');
+    clearLocalData();
     set({ user: null, workouts: [] });
   }
 }));

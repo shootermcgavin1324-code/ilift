@@ -119,12 +119,26 @@ export function setBestStreak(streak: number): void {
   local.setLocalBestStreak(streak);
 }
 
+export async function syncBestStreak(streak: number, email: string): Promise<void> {
+  // Save locally first
+  local.setLocalBestStreak(streak);
+  // Then sync to Supabase
+  await supabase.updateSupabaseUserStats({ best_streak: streak });
+}
+
 export function getHighestRank(): number {
   return local.getLocalHighestRank();
 }
 
 export function setHighestRank(rank: number): void {
   local.setLocalHighestRank(rank);
+}
+
+export async function syncHighestRank(rank: number): Promise<void> {
+  // Save locally first
+  local.setLocalHighestRank(rank);
+  // Then sync to Supabase
+  await supabase.updateSupabaseUserStats({ highest_rank: rank });
 }
 
 // Favorites functions
@@ -145,3 +159,31 @@ export async function uploadVideo(userId: string, file: File): Promise<string | 
 export async function uploadAvatar(userId: string, file: File): Promise<string | null> {
   return await supabase.uploadAvatarToSupabase(userId, file);
 }
+
+// Re-export local functions for easy access
+export {
+  getLocalUser,
+  saveLocalUser,
+  getLocalWorkouts,
+  saveLocalWorkout,
+  getLocalUserId,
+  setLocalUserId,
+  getLocalPRs,
+  saveLocalPR,
+  getLocalBestStreak,
+  setLocalBestStreak,
+  getLocalHighestRank,
+  setLocalHighestRank,
+  getLocalFavorites,
+  setLocalFavorites,
+  getPendingEmail,
+  setPendingEmail,
+  clearPendingEmail,
+  getPendingCode,
+  setPendingCode,
+  clearPendingCode,
+  hasCompletedOnboarding,
+  setOnboardingComplete,
+  clearOnboarding,
+  clearLocalData,
+} from './local';

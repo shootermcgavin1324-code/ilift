@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createUser } from '@/lib/data';
 import { icons } from '@/lib/icons';
+import { hasCompletedOnboarding, getPendingEmail, getPendingCode, clearPendingEmail, clearPendingCode, setOnboardingComplete, getLocalUser } from '@/lib/storage';
 
 export default function Onboarding() {
   const router = useRouter();
@@ -24,15 +25,18 @@ export default function Onboarding() {
   const [experience, setExperience] = useState('');
 
   useEffect(() => {
-    const existingEmail = localStorage.getItem('ilift_email');
-    const hasOnboarding = localStorage.getItem('ilift_onboarding');
-    if (existingEmail && hasOnboarding) {
-      router.push('/dashboard');
-      return;
+    // Check if already onboarded
+    if (hasCompletedOnboarding()) {
+      const user = getLocalUser();
+      if (user?.email) {
+        router.push('/dashboard');
+        return;
+      }
     }
     
-    const pendingEmail = localStorage.getItem('ilift_pending_email');
-    const pendingCode = localStorage.getItem('ilift_pending_code');
+    // Get pending values from landing page
+    const pendingEmail = getPendingEmail();
+    const pendingCode = getPendingCode();
     if (pendingEmail) setEmail(pendingEmail);
     if (pendingCode) setGroupCode(pendingCode);
   }, [router]);
@@ -98,7 +102,9 @@ export default function Onboarding() {
     
     // Save using hybrid data layer (localStorage + Supabase)
     await createUser(userData);
-    localStorage.setItem('ilift_onboarding', 'true');
+    setOnboardingComplete();
+    clearPendingEmail();
+    clearPendingCode();
     
     // Go to welcome screen instead of directly to dashboard
     setTimeout(() => {

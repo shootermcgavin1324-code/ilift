@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getUser } from '@/lib/data';
+import { hasCompletedOnboarding, saveLocalUser } from '@/lib/storage';
 
 export default function SignIn() {
   const router = useRouter();
@@ -12,9 +13,7 @@ export default function SignIn() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const hasOnboarding = localStorage.getItem('ilift_onboarding');
-    const savedEmail = localStorage.getItem('ilift_email');
-    if (hasOnboarding && savedEmail) {
+    if (hasCompletedOnboarding()) {
       router.push('/dashboard');
     }
   }, [router]);
@@ -37,8 +36,7 @@ export default function SignIn() {
         return;
       }
       
-      localStorage.setItem('ilift_email', email.trim());
-      localStorage.setItem('ilift_onboarding', 'true');
+      saveLocalUser(user);
       router.push('/dashboard');
       
     } catch (err) {

@@ -5,6 +5,7 @@
 import { create } from 'zustand';
 import type { SetData } from '../types';
 import { calculateScore } from '../xp';
+import { getLocalFavorites, setLocalFavorites } from '../storage';
 
 interface WorkoutState {
   // Active workout session
@@ -68,7 +69,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
   restTimeLeft: 0,
   showQuickLog: false,
   submitted: false,
-  favorites: [],
+  favorites: typeof window !== 'undefined' ? getLocalFavorites() : [],
   
   setCurrentExercise: (exercise) => set({ currentExercise: exercise }),
   setExerciseSearch: (search) => set({ exerciseSearch: search }),
@@ -129,15 +130,13 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
   
   toggleFavorite: (exerciseName) => {
     const { favorites } = get();
-    const email = localStorage.getItem('ilift_email');
-    if (!email) return;
     
     const newFavs = favorites.includes(exerciseName)
       ? favorites.filter(f => f !== exerciseName)
       : [...favorites, exerciseName];
     
-    const favKey = `ilift_favorites_${email}`;
-    localStorage.setItem(favKey, JSON.stringify(newFavs));
+    // Save to localStorage via storage layer
+    setLocalFavorites(newFavs);
     set({ favorites: newFavs });
   },
   

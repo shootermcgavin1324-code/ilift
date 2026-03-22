@@ -4,6 +4,9 @@
 
 import type { User, Workout } from '../types';
 
+// Check if we're in browser
+const isBrowser = typeof window !== 'undefined';
+
 // Keys
 const KEYS = {
   EMAIL: 'ilift_email',
@@ -14,6 +17,9 @@ const KEYS = {
   BEST_STREAK: 'ilift_best_streak',
   HIGHEST_RANK: 'ilift_highest_rank',
   FAVORITES: 'ilift_favorites',
+  PENDING_EMAIL: 'ilift_pending_email',
+  PENDING_CODE: 'ilift_pending_code',
+  ONBOARDING: 'ilift_onboarding',
 };
 
 // Get user from localStorage
@@ -80,6 +86,12 @@ export function clearLocalData(): void {
   localStorage.removeItem(KEYS.WORKOUTS);
   localStorage.removeItem(KEYS.USER_ID);
   localStorage.removeItem(KEYS.PRS);
+  localStorage.removeItem(KEYS.BEST_STREAK);
+  localStorage.removeItem(KEYS.HIGHEST_RANK);
+  localStorage.removeItem(KEYS.FAVORITES);
+  localStorage.removeItem(KEYS.PENDING_EMAIL);
+  localStorage.removeItem(KEYS.PENDING_CODE);
+  localStorage.removeItem(KEYS.ONBOARDING);
 }
 
 // PR type
@@ -136,4 +148,43 @@ export function getLocalFavorites(): string[] {
 // Save favorites
 export function setLocalFavorites(favorites: string[]): void {
   localStorage.setItem(KEYS.FAVORITES, JSON.stringify(favorites));
+}
+
+// Pending email (from landing before onboarding)
+export function getPendingEmail(): string | null {
+  return localStorage.getItem(KEYS.PENDING_EMAIL);
+}
+
+export function setPendingEmail(email: string): void {
+  localStorage.setItem(KEYS.PENDING_EMAIL, email);
+}
+
+export function clearPendingEmail(): void {
+  localStorage.removeItem(KEYS.PENDING_EMAIL);
+}
+
+// Pending code (from landing before onboarding)
+export function getPendingCode(): string | null {
+  return localStorage.getItem(KEYS.PENDING_CODE);
+}
+
+export function setPendingCode(code: string): void {
+  localStorage.setItem(KEYS.PENDING_CODE, code.toUpperCase());
+}
+
+export function clearPendingCode(): void {
+  localStorage.removeItem(KEYS.PENDING_CODE);
+}
+
+// Onboarding status
+export function hasCompletedOnboarding(): boolean {
+  return localStorage.getItem(KEYS.ONBOARDING) === 'true';
+}
+
+export function setOnboardingComplete(): void {
+  localStorage.setItem(KEYS.ONBOARDING, 'true');
+}
+
+export function clearOnboarding(): void {
+  localStorage.removeItem(KEYS.ONBOARDING);
 }

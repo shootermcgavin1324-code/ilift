@@ -115,6 +115,25 @@ export async function getSupabaseLeaderboard(groupCode: string): Promise<User[]>
   }
 }
 
+// Update user stats in Supabase (best streak, highest rank)
+export async function updateSupabaseUserStats(updates: {
+  best_streak?: number;
+  highest_rank?: number;
+}): Promise<void> {
+  try {
+    const email = localStorage.getItem('ilift_email');
+    if (!email) return;
+    
+    const { error } = await supabase.from('users').update(updates).eq('email', email);
+    
+    if (error) {
+      console.log('Supabase updateStats error:', error.message);
+    }
+  } catch (err) {
+    console.log('Supabase updateStats failed:', err);
+  }
+}
+
 // Get PRs from Supabase
 export async function getSupabasePRs(userId: string): Promise<Record<string, number>> {
   try {
