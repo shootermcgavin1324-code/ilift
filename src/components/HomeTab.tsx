@@ -2,13 +2,9 @@
 // Main dashboard view with rank, streak, level, and leaderboard preview
 
 import { Flame, Target, Trophy, Zap } from 'lucide-react';
+import type { User as UserType } from '@/lib/types';
 
-interface User {
-  id: string;
-  name: string;
-  streak: number;
-  total_xp: number;
-}
+interface User extends UserType {}
 
 interface LeaderboardEntry {
   id: string;

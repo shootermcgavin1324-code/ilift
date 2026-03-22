@@ -1,26 +1,20 @@
-// Badge checking logic - extracted for reusability
+// ============================================
+// BADGE CHECKING - Pure logic
+// ============================================
 
+import type { User, BadgeCheckResult } from './types';
 import { ACHIEVEMENTS } from './achievements';
-
-export interface User {
-  total_xp: number;
-  streak: number;
-  badges: string[];
-}
-
-export interface BadgeCheckResult {
-  earned: string[];
-  newlyEarned: string[];
-}
 
 // Check which badges a user has earned based on their stats
 export function checkBadges(
-  user: User,
+  user: Partial<User>,
   totalWorkouts: number,
   hasVideoProof: boolean = false
 ): BadgeCheckResult {
   const earned: string[] = [];
-  const { total_xp, streak, badges } = user;
+  const total_xp = user.total_xp ?? 0;
+  const streak = user.streak ?? 0;
+  const badges = user.badges ?? [];
   
   // First workout
   if (totalWorkouts >= 1) {

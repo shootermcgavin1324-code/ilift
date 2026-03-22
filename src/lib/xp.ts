@@ -1,20 +1,8 @@
-// XP calculation logic - extracted for reusability
+// ============================================
+// XP CALCULATION - Pure logic, no storage
+// ============================================
 
-export interface SetData {
-  weight: number;
-  reps: number;
-  rpe: number;
-  done: boolean;
-}
-
-export interface ScoreResult {
-  xpEarned: number;
-  breakdown: {
-    baseXP: number;
-    rpeBonus: number;
-    volumeBonus: number;
-  };
-}
+import type { SetData, ScoreResult } from './types';
 
 // Calculate XP earned from a workout
 export function calculateScore(sets: SetData[]): ScoreResult {
@@ -24,18 +12,16 @@ export function calculateScore(sets: SetData[]): ScoreResult {
     return { xpEarned: 0, breakdown: { baseXP: 0, rpeBonus: 0, volumeBonus: 0 } };
   }
   
-  const baseXP = 10; // Base XP per workout
+  const baseXP = 10;
   const avgRpe = doneSets.reduce((sum, s) => sum + s.rpe, 0) / doneSets.length;
   const totalSets = doneSets.length;
   
   // RPE multiplier: higher effort = more XP
-  // RPE 10 = 2x, RPE 5 = 1x
   const rpeMultiplier = avgRpe / 5;
   
   // Volume bonus: more sets = more XP
   const volumeBonus = totalSets * 2;
   
-  // Calculate total
   const rpeBonus = Math.round(baseXP * rpeMultiplier * totalSets);
   const xpEarned = baseXP + rpeBonus + volumeBonus;
   
@@ -49,7 +35,7 @@ export function calculateScore(sets: SetData[]): ScoreResult {
   };
 }
 
-// Calculate level from XP
+// Calculate level from XP (every 500 XP = 1 level)
 export function calculateLevel(totalXP: number): number {
   return Math.floor(totalXP / 500) + 1;
 }
@@ -65,4 +51,9 @@ export function calculateXPProgress(totalXP: number): {
   const progressPercent = (xpInCurrentLevel / 500) * 100;
   
   return { xpInCurrentLevel, xpToNextLevel, progressPercent };
+}
+
+// Calculate prestige level (every 10,000 XP)
+export function calculatePrestige(totalXP: number): number {
+  return Math.floor(totalXP / 10000);
 }

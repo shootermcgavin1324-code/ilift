@@ -2,6 +2,7 @@
 // Workout logging interface
 
 import { useState } from 'react';
+import type { SetData } from '@/lib/types';
 
 const CATEGORIES = ['All', 'Push', 'Pull', 'Legs', 'Cardio'];
 
@@ -40,12 +41,7 @@ const QUICK_EXERCISES = [
   { name: 'Other', category: 'Push' },
 ];
 
-interface Set {
-  weight: number;
-  reps: number;
-  rpe: number;
-  done: boolean;
-}
+interface Set extends SetData {}
 
 interface WorkoutExercise {
   name: string;

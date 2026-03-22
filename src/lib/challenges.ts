@@ -1,15 +1,10 @@
-// Challenges data - extracted for reusability
+// ============================================
+// CHALLENGES DATA
+// ============================================
 
-export interface Challenge {
-  id: string;
-  name: string;
-  desc: string;
-  target: number;
-  unit: string;
-  xp: number;
-}
+import type { Challenge } from './types';
 
-export const CHALLENGES = {
+export const CHALLENGES: Record<string, Challenge[]> = {
   daily: [
     { id: 'daily_50pushups', name: '50 Push-ups', desc: 'Complete 50 push-ups today', target: 50, unit: 'pushups', xp: 100 },
     { id: 'daily_logworkout', name: 'Daily Workout', desc: 'Log at least one workout today', target: 1, unit: 'workout', xp: 50 },

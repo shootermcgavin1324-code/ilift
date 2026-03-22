@@ -1,21 +1,8 @@
-// Player title logic - extracted for reusability
+// ============================================
+// PLAYER TITLES & PRESTIGE - Pure logic
+// ============================================
 
-export type PlayerTitle = 
-  | 'ROOKIE'
-  | 'ACTIVE'
-  | 'ON FIRE'
-  | 'GRINDER'
-  | 'COLLECTOR'
-  | 'XP MASTER'
-  | 'UNSTOPPABLE'
-  | 'LEGEND';
-
-export interface PlayerStats {
-  totalXP: number;
-  streak: number;
-  badges: string[];
-  workouts: number;
-}
+import type { PlayerTitle, PlayerStats } from './types';
 
 // Determine player title based on stats
 export function getPlayerTitle(stats: PlayerStats): PlayerTitle {

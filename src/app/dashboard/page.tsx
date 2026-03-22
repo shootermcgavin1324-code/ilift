@@ -1,160 +1,116 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, Search, Camera, Video, Zap, Crown, Star, Activity, X, Target as TargetIcon, Calendar, Clock } from 'lucide-react';
+import { Home, Dumbbell, Users, Trophy, Target, X, Star, Video, Zap, Flame } from 'lucide-react';
 
 // Tab Components
 import { HomeTab, SquadTab, ChallengesTab, HistoryTab, LogTab } from '@/components';
-import { getUser, updateUser, saveWorkout, processWorkout } from '@/lib/data';
 
-// Business logic - extracted to lib/
-import { ACHIEVEMENTS } from '@/lib/achievements';
-import { CHALLENGES } from '@/lib/challenges';
-import { QUICK_EXERCISES } from '@/lib/exercises';
-import { calculateScore } from '@/lib/xp';
+// Stores
+import { useUserStore, useWorkoutStore, useUIStore } from '@/lib/store';
+
+// Lib functions
+import { calculateScore, processWorkout } from '@/lib/data';
 import { checkBadges } from '@/lib/badges';
 import { getPlayerTitle } from '@/lib/player';
+import { ACHIEVEMENTS } from '@/lib/achievements';
 
 export default function Dashboard() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const [group, setGroup] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('home');
-  const [showQuickLog, setShowQuickLog] = useState(false);
-  const [currentExercise, setCurrentExercise] = useState('');
-  const [exerciseSearch, setExerciseSearch] = useState('');
-  const [sets, setSets] = useState([{ weight: 135, reps: 10, rpe: 7, done: false }]);
   
-  // Workout session - array of exercises with their sets
-  const [workoutSession, setWorkoutSession] = useState<any[]>([]);
+  // === USER STORE ===
+  const { 
+    user, 
+    loading, 
+    workouts, 
+    bestStreak, 
+    highestRank, 
+    playerTitle,
+    loadUser, 
+    logout: storeLogout 
+  } = useUserStore();
   
-  // Favorites - stored per user in localStorage
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [userEmail, setUserEmail] = useState<string>('');
+  // === WORKOUT STORE ===
+  const {
+    currentExercise,
+    exerciseSearch,
+    sets,
+    workoutSession,
+    rpe,
+    restTimer,
+    restTimeLeft,
+    favorites,
+    showQuickLog,
+    setCurrentExercise,
+    setExerciseSearch,
+    setSets,
+    startRestTimer,
+    stopRestTimer,
+    setShowQuickLog,
+    toggleFavorite,
+    clearSession
+  } = useWorkoutStore();
   
-  // Game stats
-  const [bestStreak, setBestStreak] = useState(0);
-  const [highestRank, setHighestRank] = useState(0);
+  // === UI STORE ===
+  const {
+    activeTab,
+    toast,
+    showPR,
+    newBadges,
+    leaderboard,
+    videoUploading,
+    setActiveTab,
+    showToast,
+    setShowPR,
+    setNewBadges,
+    clearNewBadges,
+    setLeaderboard,
+    setVideoUploading
+  } = useUIStore();
 
-  // Load user email from localStorage on mount
+  // Derived values
+  const currentLevel = Math.floor((user?.total_xp || 0) / 500) + 1;
+  const xpInCurrentLevel = (user?.total_xp || 0) % 500;
+  const xpToNextLevel = 500 - xpInCurrentLevel;
+  const xpProgressPercent = (xpInCurrentLevel / 500) * 100;
+  const prestige = Math.floor((user?.total_xp || 0) / 10000);
+
+  // Load user on mount
   useEffect(() => {
-    const email = localStorage.getItem('ilift_email');
-    if (email) {
-      setUserEmail(email);
-    }
+    loadUser();
   }, []);
 
-  // Load favorites when user email is available
+  // Set up leaderboard after user loads
   useEffect(() => {
-    if (userEmail) {
-      const favKey = `ilift_favorites_${userEmail}`;
-      const saved = localStorage.getItem(favKey);
-      if (saved) {
-        try {
-          setFavorites(JSON.parse(saved));
-        } catch (e) {
-          console.error('Failed to parse favorites:', e);
-        }
-      }
+    if (user && !leaderboard.length) {
+      const placeholders = [
+        { id: 'p1', name: 'GymRat_Mike', total_xp: 2450, streak: 12 },
+        { id: 'p2', name: 'LifterLisa', total_xp: 2100, streak: 8 },
+        { id: 'p3', name: 'SwoleSam', total_xp: 1850, streak: 5 },
+        { id: 'p4', name: 'FitQueen', total_xp: 1600, streak: 3 },
+      ];
+      const fullLeaderboard = [user, ...placeholders].sort((a, b) => (b.total_xp || 0) - (a.total_xp || 0));
+      setLeaderboard(fullLeaderboard);
     }
-  }, [userEmail]);
-
-  const toggleFavorite = (exerciseName: string) => {
-    if (!userEmail) return;
-    const newFavs = favorites.includes(exerciseName)
-      ? favorites.filter(f => f !== exerciseName)
-      : [...favorites, exerciseName];
-    setFavorites(newFavs);
-    const favKey = `ilift_favorites_${userEmail}`;
-    localStorage.setItem(favKey, JSON.stringify(newFavs));
-  };
-  const [restTimer, setRestTimer] = useState<number | null>(null);
-  const [restTimeLeft, setRestTimeLeft] = useState(0);
-  const [submitted, setSubmitted] = useState(false);
-  const [rpe, setRpe] = useState(7);
-  const [toast, setToast] = useState<any>(null);
-  const [showPR, setShowPR] = useState<any>(null);
-  const [newBadges, setNewBadges] = useState<string[]>([]);
-  const [workouts, setWorkouts] = useState<any[]>([]);
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
-  const [videoUploading, setVideoUploading] = useState(false);
-
-  useEffect(() => {
-    loadUserData();
-
-    // Fallback: always set loading to false after 3 seconds
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, []);
+  }, [user]);
 
   // Rest timer countdown
   useEffect(() => {
     if (restTimer && restTimeLeft > 0) {
       const interval = setInterval(() => {
-        setRestTimeLeft(prev => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            setRestTimer(null);
-            return 0;
-          }
-          return prev - 1;
-        });
+        const newTime = restTimeLeft - 1;
+        if (newTime <= 1) {
+          clearInterval(interval);
+          stopRestTimer();
+        }
       }, 1000);
       return () => clearInterval(interval);
     }
   }, [restTimer, restTimeLeft]);
 
-  function startRestTimer(seconds: number) {
-    setRestTimer(seconds);
-    setRestTimeLeft(seconds);
-  }
-
-  async function loadUserData() {
-    const email = localStorage.getItem('ilift_email');
-    if (!email) {
-      router.push('/');
-      return;
-    }
-
-    // Use hybrid data layer - tries Supabase first, falls back to localStorage
-    const userData = await getUser(email);
-
-    setUser(userData);
-    setWorkouts([]);
-    
-    // Load best streak and highest rank from localStorage
-    const storedBestStreak = parseInt(localStorage.getItem('ilift_best_streak') || '0');
-    const storedHighestRank = parseInt(localStorage.getItem('ilift_highest_rank') || '0');
-    setBestStreak(storedBestStreak);
-    setHighestRank(storedHighestRank);
-    
-    // Placeholder leaderboard for demo - replace with real Supabase data later
-    const placeholders = [
-      { id: 'p1', name: 'GymRat_Mike', total_xp: 2450, streak: 12 },
-      { id: 'p2', name: 'LifterLisa', total_xp: 2100, streak: 8 },
-      { id: 'p3', name: 'SwoleSam', total_xp: 1850, streak: 5 },
-      { id: 'p4', name: 'FitQueen', total_xp: 1600, streak: 3 },
-    ];
-    
-    // Combine user with placeholders, sorted by XP
-    const fullLeaderboard = [userData, ...placeholders].sort((a, b) => (b.total_xp || 0) - (a.total_xp || 0));
-    setLeaderboard(fullLeaderboard);
-    setLoading(false);
-  }
-
-  const logout = () => { 
-    localStorage.removeItem('ilift_email');
-    localStorage.removeItem('ilift_password');
-    localStorage.removeItem('ilift_onboarding');
-    localStorage.removeItem('ilift_onboarding_data');
-    localStorage.removeItem('ilift_user');
-    localStorage.removeItem('ilift_user_id');
-    localStorage.removeItem('ilift_workouts');
+  const logout = () => {
+    storeLogout();
     router.push('/');
   };
 
@@ -178,55 +134,31 @@ export default function Dashboard() {
     if (!currentExercise || sets.filter(s => s.done).length === 0) return;
 
     const score = getScore();
-    const newXP = (user.total_xp || 0) + score;
+    const newXP = (user?.total_xp || 0) + score;
 
     // Process workout with proper streak logic
-    const { updatedUser, streakChanged, message } = processWorkout(user);
+    const { updatedUser, streakChanged, message } = processWorkout(user!);
     
     // Add XP to the updated user
     updatedUser.total_xp = newXP;
     
-    // Check badges using lib function
+    // Check badges
     const totalWorkouts = workouts.length + 1;
     const { newlyEarned } = checkBadges(
-      { total_xp: newXP, streak: updatedUser.streak, badges: user.badges || [] },
+      { total_xp: newXP, streak: updatedUser.streak, badges: user?.badges || [] },
       totalWorkouts
     );
     
     // Update badges
-    updatedUser.badges = [...new Set([...(user.badges || []), ...newlyEarned])];
+    updatedUser.badges = [...new Set([...(user?.badges || []), ...newlyEarned])];
     
     // Show badge notifications
     if (newlyEarned.length > 0) {
       setNewBadges(newlyEarned);
     }
 
-    // Update local state
-    setUser(updatedUser);
-
-    // Update best streak if exceeded
-    if (updatedUser.streak > bestStreak) {
-      setBestStreak(updatedUser.streak);
-      localStorage.setItem('ilift_best_streak', updatedUser.streak.toString());
-    }
-    
-    // Update highest rank if exceeded
-    if (currentLevel > highestRank) {
-      setHighestRank(currentLevel);
-      localStorage.setItem('ilift_highest_rank', currentLevel.toString());
-    }
-
-    // Save to localStorage
-    localStorage.setItem('ilift_user', JSON.stringify(updatedUser));
-    localStorage.setItem('ilift_onboarding_data', JSON.stringify(updatedUser));
-    
-    // Show streak message
-    if (message) {
-      console.log(message);
-    }
-    
-    // Save to Supabase (hybrid - won't break if fails)
-    await updateUser(updatedUser);
+    // Update user via store
+    await useUserStore.getState().updateUserData(updatedUser);
 
     // Add workout to history
     const doneSets = sets.filter(s => s.done);
@@ -240,12 +172,6 @@ export default function Dashboard() {
       score,
       date: new Date().toISOString()
     };
-    const newWorkouts = [workout, ...workouts].slice(0, 50);
-    setWorkouts(newWorkouts);
-    localStorage.setItem('ilift_workouts', JSON.stringify(newWorkouts));
-    
-    // Save to Supabase (hybrid)
-    await saveWorkout({ ...workout, user_name: user.name });
 
     // Check for PR
     const prs = JSON.parse(localStorage.getItem('ilift_prs') || '{}');
@@ -253,7 +179,6 @@ export default function Dashboard() {
     let isPR = false;
     let oldPR = 0;
     
-    // Check weight PR for each set
     doneSets.forEach(set => {
       if (set.weight > (prs[exerciseKey]?.maxWeight || 0)) {
         isPR = true;
@@ -271,45 +196,16 @@ export default function Dashboard() {
       setShowPR({ exercise: currentExercise, weight: doneSets[0].weight, oldPR });
     }
 
-    setSubmitted(true);
-    setToast({ message: `Workout saved! +${score} XP`, type: 'success' });
-    setTimeout(() => setSubmitted(false), 2500);
-    setTimeout(() => {
-      setSets([{ weight: 135, reps: 10, rpe: 7, done: false }]);
-      setCurrentExercise('');
-    }, 2500);
-    setTimeout(() => setToast(null), 3000);
+    clearSession();
+    showToast(`Workout saved! +${score} XP`, 'success');
+    
+    // Clear new badges after 3 seconds
+    setTimeout(() => clearNewBadges(), 3000);
   };
 
-  const currentLevel = Math.floor((user?.total_xp || 0) / 500) + 1;
-  const xpInCurrentLevel = (user?.total_xp || 0) % 500;
-  const xpToNextLevel = 500 - xpInCurrentLevel;
-  const xpProgressPercent = (xpInCurrentLevel / 500) * 100;
-  
-  // Prestige: every 10,000 XP = 1 prestige
-  const prestige = Math.floor((user?.total_xp || 0) / 10000);
-  
-  // Player title based on stats - use state for client-side only
-  const [playerTitle, setPlayerTitle] = useState('ROOKIE');
-  
-  // Update player title when user changes (needs client-side workout count)
-  useEffect(() => {
-    if (!user) return;
-    const workouts = JSON.parse(localStorage.getItem('ilift_workouts') || '[]').length;
-    const title = getPlayerTitle({
-      totalXP: user.total_xp || 0,
-      streak: user.streak || 0,
-      badges: user.badges || [],
-      workouts
-    });
-    setPlayerTitle(title);
-  }, [user]);
-
-  if (loading) {
+  if (loading || !user) {
     return <div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">Loading...</div>;
   }
-
-  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-gray-950 text-white pb-20">
@@ -332,7 +228,7 @@ export default function Dashboard() {
             </div>
           ))}
           <button 
-            onClick={() => setNewBadges([])} 
+            onClick={() => clearNewBadges()} 
             className="text-gray-500 text-xs"
           >
             Tap to dismiss
@@ -350,7 +246,11 @@ export default function Dashboard() {
             { id: 'challenges', icon: Trophy, label: 'Goals' },
             { id: 'profile', icon: Target, label: 'Profile' },
           ].map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex flex-col items-center py-2 px-3 ${activeTab === tab.id ? 'text-yellow-500' : 'text-gray-400'}`}>
+            <button 
+              key={tab.id} 
+              onClick={() => setActiveTab(tab.id)} 
+              className={`flex flex-col items-center py-2 px-3 ${activeTab === tab.id ? 'text-yellow-500' : 'text-gray-400'}`}
+            >
               <tab.icon size={22} />
               <span className="text-xs mt-1">{tab.label}</span>
             </button>
@@ -358,7 +258,7 @@ export default function Dashboard() {
         </div>
       </nav>
 
-      {/* Home Tab - Leaderboard First */}
+      {/* Tab Content */}
       {activeTab === 'home' && (
         <HomeTab 
           user={user} 
@@ -368,7 +268,6 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Log Tab */}
       {activeTab === 'log' && (
         <LogTab
           currentExercise={currentExercise}
@@ -377,27 +276,23 @@ export default function Dashboard() {
           setSets={setSets}
           restTimer={restTimer}
           restTimeLeft={restTimeLeft}
-          setRestTimer={setRestTimer}
-          setRestTimeLeft={setRestTimeLeft}
+          setRestTimer={stopRestTimer}
+          setRestTimeLeft={() => stopRestTimer()}
           calculateScore={getScore}
           completeWorkout={completeWorkout}
           workoutSession={workoutSession}
-          setWorkoutSession={setWorkoutSession}
+          setWorkoutSession={() => {}}
           favorites={favorites}
           toggleFavorite={toggleFavorite}
         />
       )}
 
-      {/* Squad Tab */}
       {activeTab === 'squad' && <SquadTab user={user} leaderboard={leaderboard} />}
       
-      {/* Challenges Tab */}
       {activeTab === 'challenges' && <ChallengesTab user={user} workouts={workouts} />}
 
-      {/* History Tab */}
       {activeTab === 'history' && <HistoryTab workouts={workouts} />}
 
-      {/* Awards Tab */}
       {activeTab === 'awards' && (
         <div className="p-4 space-y-3">
           <div className="bg-gray-950 rounded-xl p-4 flex justify-between items-center">
@@ -440,12 +335,11 @@ export default function Dashboard() {
                     const file = e.target.files?.[0];
                     if (!file) return;
                     if (file.size > 50 * 1024 * 1024) {
-                      setToast({ message: 'Video must be under 50MB', type: 'error' });
+                      showToast('Video must be under 50MB', 'error');
                       return;
                     }
                     setVideoUploading(true);
 
-                    // Save video as base64 for demo
                     const reader = new FileReader();
                     reader.onloadend = () => {
                       const videoData = reader.result as string;
@@ -453,15 +347,13 @@ export default function Dashboard() {
                         localStorage.setItem('ilift_video', videoData);
                       }
 
-                      // Add verified badge
                       const newBadges = [...(user.badges || [])];
                       if (!newBadges.includes('verified')) {
                         newBadges.push('verified');
                       }
-                      setUser({ ...user, badges: newBadges });
-                      localStorage.setItem('ilift_user', JSON.stringify({ ...user, badges: newBadges }));
+                      useUserStore.getState().updateUserData({ ...user, badges: newBadges });
 
-                      setToast({ message: 'Video saved! Badge earned!', type: 'success' });
+                      showToast('Video saved! Badge earned!', 'success');
                       setVideoUploading(false);
                     };
                     reader.readAsDataURL(file);
@@ -489,42 +381,33 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Profile Tab */}
       {activeTab === 'profile' && (
         <div className="p-4 space-y-4">
-          {/* Main Profile Card - High contrast */}
+          {/* Main Profile Card */}
           <div className="bg-gradient-to-b from-gray-900 to-gray-950 rounded-2xl p-6 text-center border border-gray-800">
-            {/* Player Header */}
             <div className="flex items-center justify-center gap-2 mb-3">
               <span className="bg-yellow-500/20 text-yellow-400 text-xs font-bold px-3 py-1 rounded-full border border-yellow-500/30">
                 {playerTitle}
               </span>
             </div>
             
-            {/* Avatar with glow */}
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-yellow-500/30 to-orange-500/30 flex items-center justify-center mx-auto mb-4 border-2 border-yellow-500/30">
               <Target size={48} className="text-yellow-400" />
             </div>
             <h2 className="text-3xl font-black text-white">{user.name}</h2>
             <p className="text-gray-400 text-sm mt-1">Squad {user.group_id || 'NONE'}</p>
             
-            {/* XP Progress Bar - Prominent */}
+            {/* XP Progress */}
             <div className="mt-6 bg-gray-900/50 rounded-xl p-4 border border-gray-800">
               <div className="flex justify-between items-end mb-2">
                 <span className="text-lg font-bold text-yellow-400">LEVEL {currentLevel}</span>
                 <span className="text-gray-400 text-xs">{xpToNextLevel} XP to next</span>
               </div>
               
-              {/* Progress Bar */}
               <div className="relative h-5 bg-gray-800 rounded-full overflow-hidden">
                 <div 
                   className="absolute inset-y-0 left-0 bg-gradient-to-r from-yellow-500 via-yellow-400 to-orange-500 rounded-full transition-all"
                   style={{ width: `${xpProgressPercent}%` }}
-                />
-                {/* Progress glow */}
-                <div 
-                  className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white/30 to-transparent"
-                  style={{ left: `${xpProgressPercent}%`, marginLeft: '-32px' }}
                 />
               </div>
               
@@ -534,7 +417,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Game-Style Stats - Cleaner with borders */}
+          {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-gray-900 rounded-xl p-4 text-center border border-gray-800">
               <Zap size={24} className="mx-auto text-yellow-400 mb-2" />
@@ -558,7 +441,7 @@ export default function Dashboard() {
             </div>
           </div>
           
-          {/* Achievements Preview */}
+          {/* Achievements */}
           {user.badges && user.badges.length > 0 && (
             <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
               <div className="flex justify-between items-center mb-3">
@@ -592,7 +475,7 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Onboarding Stats - Collapsible */}
+          {/* Onboarding Stats */}
           {user.onboarding && (user.onboarding.experience || user.onboarding.bodyFat || user.onboarding.age) && (
             <details className="bg-gray-950 rounded-xl p-4">
               <summary className="text-gray-400 text-sm cursor-pointer hover:text-white">
@@ -621,7 +504,7 @@ export default function Dashboard() {
             </details>
           )}
 
-          {/* PRs Section - Only shows if you have records */}
+          {/* PRs */}
           {(() => {
             const prs = JSON.parse(localStorage.getItem('ilift_prs') || '{}');
             const prList = Object.entries(prs).filter(([_, v]: any) => v.maxWeight);
@@ -648,53 +531,28 @@ export default function Dashboard() {
                 const text = `I'm level ${currentLevel} on iLift with ${user.total_xp || 0} XP! 💪🔥`;
                 window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
               }}
-              className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold"
+              className="flex-1 bg-blue-500/20 text-blue-400 font-bold py-3 rounded-xl border border-blue-500/30"
             >
-              Share
+              Share Progress
             </button>
             <button
               onClick={logout}
-              className="flex-1 py-3 bg-gray-800 text-gray-400 rounded-xl font-bold"
+              className="px-6 py-3 rounded-xl font-bold text-gray-400 border border-gray-700 hover:border-gray-500"
             >
-              Log Out
+              Logout
             </button>
           </div>
         </div>
       )}
 
-      {/* Success Overlay */}
-      {submitted && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-40">
-          <div className="text-center animate-bounce">
-            <div className="text-8xl mb-4">🎉</div>
-            <h2 className="text-5xl font-black">LOGGED!</h2>
-          </div>
-        </div>
-      )}
-
-      {/* Toast */}
+      {/* Toast Notification */}
       {toast && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 bg-green-500 rounded-xl font-bold">
+        <div className={`fixed top-20 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl font-bold text-sm z-50 ${
+          toast.type === 'success' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+          toast.type === 'error' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+          'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+        }`}>
           {toast.message}
-        </div>
-      )}
-
-      {/* PR Celebration */}
-      {showPR && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="text-center animate-bounce">
-            <Trophy size={80} className="text-yellow-400 mx-auto mb-4" />
-            <h2 className="text-4xl font-black text-yellow-400 mb-2">NEW PR!</h2>
-            <p className="text-xl text-white mb-2">{showPR.exercise}</p>
-            <p className="text-3xl font-bold text-white">{showPR.weight} lbs</p>
-            <p className="text-gray-400 text-sm mt-2">Previous: {showPR.oldPR} lbs</p>
-            <button 
-              onClick={() => setShowPR(null)}
-              className="mt-6 px-8 py-3 bg-yellow-400 text-black font-bold rounded-xl"
-            >
-              AWESOME!
-            </button>
-          </div>
         </div>
       )}
     </div>
