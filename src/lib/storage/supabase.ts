@@ -114,3 +114,123 @@ export async function getSupabaseLeaderboard(groupCode: string): Promise<User[]>
     return [];
   }
 }
+
+// Get PRs from Supabase
+export async function getSupabasePRs(userId: string): Promise<Record<string, number>> {
+  try {
+    const { data } = await supabase
+      .from('personal_records')
+      .select('*')
+      .eq('user_id', userId);
+    
+    if (!data || data.length === 0) return {};
+    
+    const prs: Record<string, number> = {};
+    data.forEach(row => {
+      prs[row.exercise] = row.weight;
+    });
+    return prs;
+  } catch (err) {
+    console.log('Supabase getPRs failed:', err);
+    return {};
+  }
+}
+
+// Save PR to Supabase
+export async function saveSupabasePR(userId: string, exercise: string, weight: number): Promise<void> {
+  try {
+    // Check if PR exists
+    const { data: existing } = await supabase
+      .from('personal_records')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('exercise', exercise)
+      .single();
+    
+    if (existing) {
+      // Update if new weight is higher
+      if (weight > existing.weight) {
+        await supabase
+          .from('personal_records')
+          .update({ weight, date: new Date().toISOString() })
+          .eq('id', existing.id);
+      }
+    } else {
+      // Insert new PR
+      await supabase
+        .from('personal_records')
+        .insert({
+          user_id: userId,
+          exercise,
+          weight,
+          date: new Date().toISOString()
+        });
+    }
+  } catch (err) {
+    console.log('Supabase savePR failed:', err);
+  }
+}
+
+// Upload video to Supabase Storage
+export async function uploadVideoToSupabase(
+  userId: string, 
+  file: File
+): Promise<string | null> {
+  try {
+    const fileName = `${userId}/${Date.now()}_${file.name}`;
+    
+    const { data, error } = await supabase.storage
+      .from('videos')
+      .upload(fileName, file, {
+        contentType: file.type,
+        upsert: false
+      });
+    
+    if (error) {
+      console.log('Supabase video upload error:', error.message);
+      return null;
+    }
+    
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('videos')
+      .getPublicUrl(fileName);
+    
+    return urlData.publicUrl;
+  } catch (err) {
+    console.log('Supabase video upload failed:', err);
+    return null;
+  }
+}
+
+// Upload avatar to Supabase Storage
+export async function uploadAvatarToSupabase(
+  userId: string, 
+  file: File
+): Promise<string | null> {
+  try {
+    const fileName = `${userId}/avatar`;
+    
+    const { data, error } = await supabase.storage
+      .from('avatars')
+      .upload(fileName, file, {
+        contentType: file.type,
+        upsert: true
+      });
+    
+    if (error) {
+      console.log('Supabase avatar upload error:', error.message);
+      return null;
+    }
+    
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(fileName);
+    
+    return urlData.publicUrl;
+  } catch (err) {
+    console.log('Supabase avatar upload failed:', err);
+    return null;
+  }
+}

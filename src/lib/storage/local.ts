@@ -9,7 +9,11 @@ const KEYS = {
   EMAIL: 'ilift_email',
   USER_DATA: 'ilift_onboarding_data',
   WORKOUTS: 'ilift_workouts',
-  USER_ID: 'ilift_user_id'
+  USER_ID: 'ilift_user_id',
+  PRS: 'ilift_prs',
+  BEST_STREAK: 'ilift_best_streak',
+  HIGHEST_RANK: 'ilift_highest_rank',
+  FAVORITES: 'ilift_favorites',
 };
 
 // Get user from localStorage
@@ -75,4 +79,61 @@ export function clearLocalData(): void {
   localStorage.removeItem(KEYS.USER_DATA);
   localStorage.removeItem(KEYS.WORKOUTS);
   localStorage.removeItem(KEYS.USER_ID);
+  localStorage.removeItem(KEYS.PRS);
+}
+
+// PR type
+interface PR {
+  maxWeight: number;
+  date: string;
+}
+
+// Get PRs from localStorage
+export function getLocalPRs(): Record<string, PR> {
+  const data = localStorage.getItem(KEYS.PRS);
+  return data ? JSON.parse(data) : {};
+}
+
+// Save PR to localStorage
+export function saveLocalPR(exercise: string, weight: number): void {
+  const prs = getLocalPRs();
+  const key = exercise.toLowerCase();
+  if (!prs[key] || weight > prs[key].maxWeight) {
+    prs[key] = {
+      maxWeight: weight,
+      date: new Date().toISOString()
+    };
+    localStorage.setItem(KEYS.PRS, JSON.stringify(prs));
+  }
+}
+
+// Get best streak
+export function getLocalBestStreak(): number {
+  return parseInt(localStorage.getItem(KEYS.BEST_STREAK) || '0');
+}
+
+// Save best streak
+export function setLocalBestStreak(streak: number): void {
+  localStorage.setItem(KEYS.BEST_STREAK, streak.toString());
+}
+
+// Get highest rank
+export function getLocalHighestRank(): number {
+  return parseInt(localStorage.getItem(KEYS.HIGHEST_RANK) || '0');
+}
+
+// Save highest rank
+export function setLocalHighestRank(rank: number): void {
+  localStorage.setItem(KEYS.HIGHEST_RANK, rank.toString());
+}
+
+// Get favorites
+export function getLocalFavorites(): string[] {
+  const data = localStorage.getItem(KEYS.FAVORITES);
+  return data ? JSON.parse(data) : [];
+}
+
+// Save favorites
+export function setLocalFavorites(favorites: string[]): void {
+  localStorage.setItem(KEYS.FAVORITES, JSON.stringify(favorites));
 }

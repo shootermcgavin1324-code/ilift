@@ -15,6 +15,7 @@ import { calculateScore, processWorkout } from '@/lib/data';
 import { checkBadges } from '@/lib/badges';
 import { getPlayerTitle } from '@/lib/player';
 import { ACHIEVEMENTS } from '@/lib/achievements';
+import { getPRs, savePR, getBestStreak, setBestStreak, getHighestRank, setHighestRank, uploadVideo } from '@/lib/storage';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -174,17 +175,17 @@ export default function Dashboard() {
     };
 
     // Check for PR
-    const prs = JSON.parse(localStorage.getItem('ilift_prs') || '{}');
+    const prs = getPRs(user?.id || '');
+    const prsData = await prs; // Await the promise
     const exerciseKey = currentExercise.toLowerCase();
     let isPR = false;
     let oldPR = 0;
     
     doneSets.forEach(set => {
-      if (set.weight > (prs[exerciseKey]?.maxWeight || 0)) {
+      if (set.weight > (prsData[exerciseKey]?.maxWeight || 0)) {
         isPR = true;
-        oldPR = prs[exerciseKey]?.maxWeight || 0;
-        prs[exerciseKey] = {
-          ...prs[exerciseKey],
+        oldPR = prsData[exerciseKey]?.maxWeight || 0;
+        prsData[exerciseKey] = {
           maxWeight: set.weight,
           date: new Date().toISOString()
         };
@@ -192,7 +193,8 @@ export default function Dashboard() {
     });
     
     if (isPR) {
-      localStorage.setItem('ilift_prs', JSON.stringify(prs));
+      // Save to storage (both local and Supabase)
+      await savePR(user?.id || '', currentExercise, doneSets[0].weight);
       setShowPR({ exercise: currentExercise, weight: doneSets[0].weight, oldPR });
     }
 
@@ -340,23 +342,21 @@ export default function Dashboard() {
                     }
                     setVideoUploading(true);
 
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                      const videoData = reader.result as string;
-                      if (videoData) {
-                        localStorage.setItem('ilift_video', videoData);
-                      }
-
+                    // Upload to Supabase Storage
+                    const videoUrl = await uploadVideo(user?.id || 'anonymous', file);
+                    
+                    if (videoUrl) {
                       const newBadges = [...(user.badges || [])];
                       if (!newBadges.includes('verified')) {
                         newBadges.push('verified');
                       }
                       useUserStore.getState().updateUserData({ ...user, badges: newBadges });
 
-                      showToast('Video saved! Badge earned!', 'success');
-                      setVideoUploading(false);
-                    };
-                    reader.readAsDataURL(file);
+                      showToast('Video uploaded! Badge earned!', 'success');
+                    } else {
+                      showToast('Video upload failed', 'error');
+                    }
+                    setVideoUploading(false);
                   }}
                 />
               </label>
@@ -506,8 +506,9 @@ export default function Dashboard() {
 
           {/* PRs */}
           {(() => {
-            const prs = JSON.parse(localStorage.getItem('ilift_prs') || '{}');
-            const prList = Object.entries(prs).filter(([_, v]: any) => v.maxWeight);
+            const prsData = getPRs(user?.id || ''); // Sync call to localStorage
+            const prs = prsData instanceof Promise ? {} : prsData;
+            const prList = Object.entries(prs).filter(([_, v]: any) => v && v.maxWeight);
             if (prList.length === 0) return null;
             return (
               <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">

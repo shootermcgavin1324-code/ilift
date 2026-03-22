@@ -4,7 +4,7 @@
 
 import { create } from 'zustand';
 import type { User, Workout } from '../types';
-import { getUser, updateUser, saveWorkout, getWorkouts } from '../storage';
+import { getUser, updateUser, saveWorkout, getWorkouts, getBestStreak, setBestStreak, getHighestRank, setHighestRank } from '../storage';
 
 interface UserState {
   // User data
@@ -40,9 +40,9 @@ export const useUserStore = create<UserState>((set, get) => ({
       const user = await getUser();
       const workouts = getWorkouts();
       
-      // Load best streak from localStorage
-      const bestStreak = parseInt(localStorage.getItem('ilift_best_streak') || '0');
-      const highestRank = parseInt(localStorage.getItem('ilift_highest_rank') || '0');
+      // Load best streak from storage
+      const bestStreak = getBestStreak();
+      const highestRank = getHighestRank();
       
       // Calculate player title
       const title = getPlayerTitle({
@@ -85,12 +85,12 @@ export const useUserStore = create<UserState>((set, get) => ({
     // Update best streak if new streak is higher
     const newBestStreak = newStreak > bestStreak ? newStreak : bestStreak;
     if (newStreak > bestStreak) {
-      localStorage.setItem('ilift_best_streak', newStreak.toString());
+      setBestStreak(newStreak);
     }
     
     // Update highest rank if current level is higher
     if (currentLevel > highestRank) {
-      localStorage.setItem('ilift_highest_rank', currentLevel.toString());
+      setHighestRank(currentLevel);
     }
     
     const updatedUser = { 
