@@ -8,52 +8,13 @@ import { Home, Dumbbell, Users, History, Award, Flame, Trophy, Target, Search, C
 import { HomeTab, SquadTab, ChallengesTab, HistoryTab, LogTab } from '@/components';
 import { getUser, updateUser, saveWorkout, processWorkout } from '@/lib/data';
 
-// Components available for integration:
-// import { RankCard, Leaderboard, RestTimer, PostWorkoutModal } from '@/components';
-
-const ACHIEVEMENTS = [
-  { id: 'first_workout', name: 'First Steps', desc: 'Complete first workout', points: 50, icon: Star },
-  { id: 'verified', name: 'Verified', desc: 'Upload video proof', points: 150, icon: Video },
-  { id: 'streak_7', name: 'On Fire', desc: '7 day streak', points: 100, icon: Flame },
-  { id: 'streak_30', name: 'Unstoppable', desc: '30 day streak', points: 250, icon: Zap },
-  { id: 'streak_100', name: 'Legend', desc: '100 day streak', points: 500, icon: Crown },
-  { id: 'workout_100', name: 'Workout Club', desc: 'Complete 100 workouts', points: 300, icon: Dumbbell },
-  { id: 'xp_1000', name: 'Rising Star', desc: 'Earn 1000 XP', points: 200, icon: Star },
-  { id: 'xp_5000', name: 'XP Master', desc: 'Earn 5000 XP', points: 500, icon: Activity },
-  { id: 'xp_10000', name: 'XP Legend', desc: 'Earn 10000 XP', points: 1000, icon: Trophy },
-];
-
-// Challenge types
-const CHALLENGES = {
-  daily: [
-    { id: 'daily_50pushups', name: '50 Push-ups', desc: 'Complete 50 push-ups today', target: 50, unit: 'pushups', xp: 100 },
-    { id: 'daily_logworkout', name: 'Daily Workout', desc: 'Log at least one workout today', target: 1, unit: 'workout', xp: 50 },
-    { id: 'daily_3sets', name: 'Volume King', desc: 'Complete 3 sets today', target: 3, unit: 'sets', xp: 75 },
-  ],
-  weekly: [
-    { id: 'weekly_5workouts', name: '5x This Week', desc: 'Complete 5 workouts this week', target: 5, unit: 'workouts', xp: 300 },
-    { id: 'weekly_streak3', name: '3 Day Streak', desc: 'Maintain a 3-day streak', target: 3, unit: 'days', xp: 200 },
-  ],
-  monthly: [
-    { id: 'monthly_20workouts', name: '20 Club', desc: 'Complete 20 workouts this month', target: 20, unit: 'workouts', xp: 1000 },
-    { id: 'monthly_5000xp', name: '5K XP Month', desc: 'Earn 5000 XP this month', target: 5000, unit: 'XP', xp: 1500 },
-  ],
-  lifetime: [
-    { id: 'lifetime_100workouts', name: 'Century Club', desc: 'Complete 100 workouts', target: 100, unit: 'workouts', xp: 2500 },
-    { id: 'lifetime_10kxp', name: '10K Total', desc: 'Earn 10000 XP total', target: 10000, unit: 'XP', xp: 5000 },
-    { id: 'lifetime_30daystreak', name: 'Monthly Streak', desc: 'Achieve a 30-day streak', target: 30, unit: 'days', xp: 3000 },
-  ]
-};
-
-const QUICK_EXERCISES = [
-  { name: 'Bench Press' }, { name: 'Squat' }, { name: 'Deadlift' },
-  { name: 'Pull-ups' }, { name: 'Dips' }, { name: 'Overhead Press' },
-  { name: 'Barbell Row' }, { name: 'Leg Press' }, { name: 'Romanian Deadlift' },
-  { name: 'Lat Pulldown' }, { name: 'Cable Fly' }, { name: 'Leg Curl' },
-  { name: 'Calf Raise' }, { name: 'Face Pull' }, { name: 'Bicep Curl' },
-  { name: 'Tricep Pushdown' }, { name: 'Lateral Raise' }, { name: 'Cable Row' },
-  { name: 'Leg Extension' }, { name: 'Hip Thrust' },
-];
+// Business logic - extracted to lib/
+import { ACHIEVEMENTS } from '@/lib/achievements';
+import { CHALLENGES } from '@/lib/challenges';
+import { QUICK_EXERCISES } from '@/lib/exercises';
+import { calculateScore } from '@/lib/xp';
+import { checkBadges } from '@/lib/badges';
+import { getPlayerTitle } from '@/lib/player';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -197,21 +158,9 @@ export default function Dashboard() {
     router.push('/');
   };
 
-  const calculateScore = () => {
-    const doneSets = sets.filter(s => s.done);
-    if (doneSets.length === 0) return 0;
-    
-    // XP = base + (RPE * multiplier) per set
-    // Base: 10 XP per workout
-    // RPE multiplier: RPE * 2
-    const avgRpe = doneSets.reduce((sum, s) => sum + s.rpe, 0) / doneSets.length;
-    const baseXP = 10;
-    const rpeMultiplier = 2;
-    
-    // XP = 10 + (avgRPE * 2) * sets
-    const xpEarned = baseXP + Math.round(avgRpe * rpeMultiplier * doneSets.length);
-    
-    return xpEarned;
+  const getScore = () => {
+    const result = calculateScore(sets);
+    return result.xpEarned;
   };
 
   const quickLog = (exerciseName: string) => {
@@ -228,7 +177,7 @@ export default function Dashboard() {
   const completeWorkout = async () => {
     if (!currentExercise || sets.filter(s => s.done).length === 0) return;
 
-    const score = calculateScore();
+    const score = getScore();
     const newXP = (user.total_xp || 0) + score;
 
     // Process workout with proper streak logic
@@ -237,24 +186,19 @@ export default function Dashboard() {
     // Add XP to the updated user
     updatedUser.total_xp = newXP;
     
-    // Check badges based on TOTAL XP
-    const totalXP = newXP; // This is now the total after adding
-    const oldBadges = user.badges || [];
-    const earnedBadges: string[] = [];
-    
-    if (oldBadges.length === 0) earnedBadges.push('first_workout');
-    if (totalXP >= 1000 && !oldBadges.includes('xp_1000')) earnedBadges.push('xp_1000');
-    if (totalXP >= 5000 && !oldBadges.includes('xp_5000')) earnedBadges.push('xp_5000');
-    if (totalXP >= 10000 && !oldBadges.includes('xp_10000')) earnedBadges.push('xp_10000');
-    if (updatedUser.streak >= 7 && !oldBadges.includes('streak_7')) earnedBadges.push('streak_7');
-    if (updatedUser.streak >= 30 && !oldBadges.includes('streak_30')) earnedBadges.push('streak_30');
+    // Check badges using lib function
+    const totalWorkouts = workouts.length + 1;
+    const { newlyEarned } = checkBadges(
+      { total_xp: newXP, streak: updatedUser.streak, badges: user.badges || [] },
+      totalWorkouts
+    );
     
     // Update badges
-    updatedUser.badges = [...new Set([...oldBadges, ...earnedBadges])];
+    updatedUser.badges = [...new Set([...(user.badges || []), ...newlyEarned])];
     
     // Show badge notifications
-    if (earnedBadges.length > 0) {
-      setNewBadges(earnedBadges);
+    if (newlyEarned.length > 0) {
+      setNewBadges(newlyEarned);
     }
 
     // Update local state
@@ -348,23 +292,17 @@ export default function Dashboard() {
   // Player title based on stats - use state for client-side only
   const [playerTitle, setPlayerTitle] = useState('ROOKIE');
   
+  // Update player title when user changes (needs client-side workout count)
   useEffect(() => {
-    const getPlayerTitle = () => {
-      const xp = user?.total_xp || 0;
-      const streak = user?.streak || 0;
-      const badges = user?.badges?.length || 0;
-      const workouts = JSON.parse(localStorage.getItem('ilift_workouts') || '[]').length;
-      
-      if (xp >= 50000) return 'LEGEND';
-      if (streak >= 30) return 'UNSTOPPABLE';
-      if (badges >= 10) return 'COLLECTOR';
-      if (workouts >= 50) return 'GRINDER';
-      if (xp >= 10000) return 'XP MASTER';
-      if (streak >= 7) return 'ON FIRE';
-      if (workouts >= 10) return 'ACTIVE';
-      return 'ROOKIE';
-    };
-    setPlayerTitle(getPlayerTitle());
+    if (!user) return;
+    const workouts = JSON.parse(localStorage.getItem('ilift_workouts') || '[]').length;
+    const title = getPlayerTitle({
+      totalXP: user.total_xp || 0,
+      streak: user.streak || 0,
+      badges: user.badges || [],
+      workouts
+    });
+    setPlayerTitle(title);
   }, [user]);
 
   if (loading) {
@@ -441,7 +379,7 @@ export default function Dashboard() {
           restTimeLeft={restTimeLeft}
           setRestTimer={setRestTimer}
           setRestTimeLeft={setRestTimeLeft}
-          calculateScore={calculateScore}
+          calculateScore={getScore}
           completeWorkout={completeWorkout}
           workoutSession={workoutSession}
           setWorkoutSession={setWorkoutSession}
@@ -538,7 +476,7 @@ export default function Dashboard() {
             return (
               <div key={ach.id} className={`p-4 rounded-xl flex items-center gap-4 ${earned ? 'bg-gray-950 border-yellow-400/30' : 'bg-gray-950/50 opacity-50'}`}>
                 <div className={earned ? 'text-yellow-500' : 'text-gray-600'}>
-                  {ach.icon && <ach.icon size={28} />}
+                  <Star size={28} />
                 </div>
                 <div className="flex-1">
                   <p className="font-bold">{ach.name}</p>
