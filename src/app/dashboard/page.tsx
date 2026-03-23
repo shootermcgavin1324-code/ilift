@@ -3,6 +3,7 @@
 import { useEffect, Suspense, lazy } from 'react';
 import { useRouter } from 'next/navigation';
 import { Home, Dumbbell, Users, Trophy, Target, X, Star, Video, Zap, Flame } from 'lucide-react';
+import { useAuth } from '@clerk/nextjs';
 
 // Core components - loaded immediately
 import { HomeTab } from '@/components';
@@ -17,7 +18,7 @@ const LogTab = lazy(() => import('@/components/LogTab'));
 import { useUserStore, useWorkoutStore, useUIStore } from '@/lib/store';
 
 // Lib functions
-import { calculateScore, processWorkout } from '@/lib/data';
+import { calculateScore, getExerciseType, processWorkout } from '@/lib/data';
 import { checkBadges } from '@/lib/badges';
 import { getPlayerTitle } from '@/lib/player';
 import { ACHIEVEMENTS } from '@/lib/achievements';
@@ -95,6 +96,8 @@ export default function Dashboard() {
   // Load user on mount
   useEffect(() => {
     loadUser();
+    // Load favorites from localStorage
+    useWorkoutStore.getState().loadFavorites();
   }, []);
 
   // Set up leaderboard after user loads
@@ -131,7 +134,8 @@ export default function Dashboard() {
   };
 
   const getScore = () => {
-    const result = calculateScore(sets);
+    const exerciseType = getExerciseType(currentExercise || '');
+    const result = calculateScore(sets, exerciseType);
     return result.xpEarned;
   };
 
@@ -150,10 +154,14 @@ export default function Dashboard() {
     if (!currentExercise || sets.filter(s => s.done).length === 0) return;
 
     const score = getScore();
-    const newXP = (user?.total_xp || 0) + score;
+    const currentUser = useUserStore.getState().user;
+    
+    if (!currentUser) return;
+    
+    const newXP = (currentUser.total_xp || 0) + score;
 
     // Process workout with proper streak logic
-    const { updatedUser, streakChanged, message } = processWorkout(user!);
+    const { updatedUser, streakChanged, message } = processWorkout(currentUser);
     
     // Add XP to the updated user
     updatedUser.total_xp = newXP;
@@ -161,20 +169,28 @@ export default function Dashboard() {
     // Check badges
     const totalWorkouts = workouts.length + 1;
     const { newlyEarned } = checkBadges(
-      { total_xp: newXP, streak: updatedUser.streak, badges: user?.badges || [] },
+      { total_xp: newXP, streak: updatedUser.streak, badges: currentUser.badges || [] },
       totalWorkouts
     );
     
     // Update badges
-    updatedUser.badges = [...new Set([...(user?.badges || []), ...newlyEarned])];
+    updatedUser.badges = [...new Set([...(currentUser.badges || []), ...newlyEarned])];
     
     // Show badge notifications
     if (newlyEarned.length > 0) {
       setNewBadges(newlyEarned);
     }
 
-    // Update user via store
+    // Update user via store - pass the full updated user
     await useUserStore.getState().updateUserData(updatedUser);
+
+    // Update best streak if new streak is higher
+    const currentBest = getBestStreak();
+    if (updatedUser.streak > currentBest) {
+      setBestStreak(updatedUser.streak);
+      // Force re-render by accessing store
+      useUserStore.setState({ bestStreak: updatedUser.streak });
+    }
 
     // Add workout to history
     const doneSets = sets.filter(s => s.done);

@@ -12,9 +12,10 @@ export async function GET(request: Request) {
     
     const members = getGroupMembers(groupId);
     
+    type Member = { id: string; name: string; totalXP?: number; streak?: number; badges?: string[] };
     return NextResponse.json({ 
       success: true, 
-      members: members.map((m: any) => ({
+      members: members.map((m: Member) => ({
         id: m.id,
         name: m.name,
         totalXP: m.totalXP || 0,
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
         badges: m.badges || []
       }))
     });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
   }
 }

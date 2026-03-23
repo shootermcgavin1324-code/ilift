@@ -45,6 +45,9 @@ interface WorkoutState {
   startRestTimer: (seconds: number) => void;
   stopRestTimer: () => void;
   
+  // Load favorites on app start
+  loadFavorites: () => void;
+  
   // UI actions
   setShowQuickLog: (show: boolean) => void;
   setSubmitted: (submitted: boolean) => void;
@@ -69,7 +72,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
   restTimeLeft: 0,
   showQuickLog: false,
   submitted: false,
-  favorites: typeof window !== 'undefined' ? getLocalFavorites() : [],
+  favorites: [],
   
   setCurrentExercise: (exercise) => set({ currentExercise: exercise }),
   setExerciseSearch: (search) => set({ exerciseSearch: search }),
@@ -135,6 +138,8 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
       ? favorites.filter(f => f !== exerciseName)
       : [...favorites, exerciseName];
     
+    console.log('[FAVORITES] toggleFavorite:', exerciseName, 'newFavs:', newFavs);
+    
     // Save to localStorage via storage layer
     setLocalFavorites(newFavs);
     set({ favorites: newFavs });
@@ -149,5 +154,12 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
   },
   
   setShowQuickLog: (show) => set({ showQuickLog: show }),
-  setSubmitted: (submitted) => set({ submitted })
+  setSubmitted: (submitted) => set({ submitted }),
+  
+  loadFavorites: () => {
+    console.log('[STORE] loadFavorites called');
+    const favs = getLocalFavorites();
+    console.log('[STORE] loaded favorites:', favs);
+    set({ favorites: favs });
+  }
 }));

@@ -11,7 +11,7 @@ export * from './storage';
 export * from './streak';
 
 // Re-export XP logic (for convenience)
-export { calculateScore, calculateLevel, calculateXPProgress, calculatePrestige } from './xp';
+export { calculateScore, calculateLevel, calculateXPProgress, calculatePrestige, getExerciseType, type ExerciseType } from './xp';
 export type { SetData, ScoreResult } from './types';
 
 // Legacy re-exports for components that import from data.ts

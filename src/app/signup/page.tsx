@@ -2,14 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getUser } from '@/lib/data';
-import { hasCompletedOnboarding, saveLocalUser } from '@/lib/storage';
+import { hasCompletedOnboarding, setPendingEmail, setPendingCode } from '@/lib/storage';
 
-export default function SignIn() {
+export default function SignUp() {
   const router = useRouter();
   const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [code, setCode] = useState('');
 
   useEffect(() => {
     if (hasCompletedOnboarding()) {
@@ -17,32 +15,10 @@ export default function SignIn() {
     }
   }, [router]);
 
-  const handleSignIn = async () => {
-    if (!email.trim()) {
-      setError('Please enter your email');
-      return;
-    }
-    
-    setLoading(true);
-    setError('');
-    
-    try {
-      const user = await getUser(email.trim());
-      
-      if (!user.email) {
-        setError('No account found. Sign up first.');
-        setLoading(false);
-        return;
-      }
-      
-      saveLocalUser(user);
-      router.push('/dashboard');
-      
-    } catch {
-      setError('Something went wrong. Try again.');
-    }
-    
-    setLoading(false);
+  const handleSignUp = () => {
+    if (email) setPendingEmail(email);
+    if (code) setPendingCode(code);
+    router.push('/onboarding');
   };
 
   return (
@@ -71,10 +47,10 @@ export default function SignIn() {
         </div>
         
         <button 
-          onClick={() => router.push('/')} 
+          onClick={() => router.push('/signin')} 
           className="text-gray-500 hover:text-yellow-400 text-sm font-medium transition-all"
         >
-          Create Account
+          Sign In
         </button>
       </header>
 
@@ -85,10 +61,10 @@ export default function SignIn() {
           {/* Headline */}
           <div className="text-center mb-8">
             <h1 className="text-5xl font-black leading-none mb-4 tracking-tight">
-              WELCOME<br/>
-              <span className="text-yellow-400" style={{ textShadow: '0 0 40px rgba(250, 204, 21, 0.6)' }}>BACK</span>
+              JOIN THE<br/>
+              <span className="text-yellow-400" style={{ textShadow: '0 0 40px rgba(250, 204, 21, 0.6)' }}>ARENA</span>
             </h1>
-            <p className="text-gray-400 text-lg">Pick up where you left off. Let&apos;s see where you rank.</p>
+            <p className="text-gray-400 text-lg">Create your account and start competing.</p>
           </div>
 
           {/* Form */}
@@ -104,31 +80,36 @@ export default function SignIn() {
               />
             </div>
             
-            {error && (
-              <p className="text-gray-400 text-sm bg-neutral-900/50 p-3 rounded-lg border border-neutral-800">
-                {error}
-              </p>
-            )}
+            <div>
+              <input
+                type="text"
+                value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase())}
+                placeholder="Squad code (optional)"
+                maxLength={6}
+                className="w-full p-4 rounded-xl bg-neutral-900 border border-neutral-800 text-white placeholder-gray-600 transition-all duration-200 focus:border-yellow-400/50 focus:shadow-[0_0_15px_rgba(250,204,21,0.15)] uppercase"
+                style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)' }}
+              />
+            </div>
             
             <button 
-              onClick={handleSignIn}
-              disabled={loading}
-              className="w-full py-4 rounded-xl font-bold text-black text-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.97] disabled:opacity-50"
+              onClick={handleSignUp}
+              className="w-full py-4 rounded-xl font-bold text-black text-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.97]"
               style={{ 
                 background: 'linear-gradient(135deg, #facc15 0%, #eab308 100%)',
                 boxShadow: '0 4px 25px rgba(250, 204, 21, 0.5)'
               }}
             >
-              {loading ? 'Entering...' : 'Enter Arena'}
+              Create Account
             </button>
           </div>
 
           {/* Secondary Actions */}
           <div className="mt-6 text-center">
             <p className="text-gray-500 text-sm">
-              New here?{' '}
-              <button onClick={() => router.push('/')} className="text-yellow-400 hover:underline font-semibold">
-                Create account
+              Already have an account?{' '}
+              <button onClick={() => router.push('/signin')} className="text-yellow-400 hover:underline font-semibold">
+                Sign in
               </button>
             </p>
           </div>

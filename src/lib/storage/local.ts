@@ -142,12 +142,16 @@ export function setLocalHighestRank(rank: number): void {
 // Get favorites
 export function getLocalFavorites(): string[] {
   const data = localStorage.getItem(KEYS.FAVORITES);
-  return data ? JSON.parse(data) : [];
+  const result = data ? JSON.parse(data) : [];
+  console.log('[LOCAL] getLocalFavorites:', result);
+  return result;
 }
 
 // Save favorites
 export function setLocalFavorites(favorites: string[]): void {
+  console.log('[LOCAL] setLocalFavorites called with:', favorites);
   localStorage.setItem(KEYS.FAVORITES, JSON.stringify(favorites));
+  console.log('[LOCAL] localStorage now has:', localStorage.getItem(KEYS.FAVORITES));
 }
 
 // Pending email (from landing before onboarding)

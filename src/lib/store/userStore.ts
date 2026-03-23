@@ -66,12 +66,19 @@ export const useUserStore = create<UserState>((set, get) => ({
   },
   
   updateUserData: async (updates) => {
-    const { user } = get();
+    const { user, bestStreak } = get();
     if (!user) return;
     
     const updatedUser = { ...user, ...updates };
     await updateUser(updatedUser);
-    set({ user: updatedUser });
+    
+    // Update best streak if new streak is higher
+    const newBestStreak = Math.max(updatedUser.streak, bestStreak);
+    if (newBestStreak > bestStreak) {
+      setBestStreak(newBestStreak);
+    }
+    
+    set({ user: updatedUser, bestStreak: newBestStreak });
   },
   
   addXP: async (xp) => {

@@ -2,32 +2,19 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { icons } from '@/lib/icons';
 import { useRouter } from 'next/navigation';
-import { hasCompletedOnboarding, getPendingEmail, setPendingEmail, getPendingCode, setPendingCode } from '@/lib/storage';
+import { hasCompletedOnboarding } from '@/lib/storage';
 
 export default function Landing() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
-  const [hovering, setHovering] = useState<string | null>(null);
 
   useEffect(() => {
     if (hasCompletedOnboarding()) {
       router.push('/dashboard');
     }
   }, [router]);
-
-  const handleNewUser = () => {
-    if (email) setPendingEmail(email);
-    if (code) setPendingCode(code);
-    router.push('/onboarding');
-  };
-
-  const handleSignIn = () => {
-    router.push('/signin');
-  };
 
   return (
     <div className="min-h-screen text-white flex flex-col relative overflow-hidden" style={{ backgroundColor: '#050505' }}>
@@ -59,7 +46,7 @@ export default function Landing() {
           </div>
         </div>
         
-        <button onClick={handleSignIn} className="text-gray-400 hover:text-yellow-400 text-sm font-medium transition-all">
+        <button onClick={() => router.push('/signin')} className="text-gray-400 hover:text-yellow-400 text-sm font-medium transition-all">
           Sign In
         </button>
       </header>
@@ -84,7 +71,7 @@ export default function Landing() {
             
             {/* Primary CTA */}
             <button 
-              onClick={handleNewUser}
+              onClick={() => router.push('/signup')}
               className="inline-block px-10 py-4 rounded-lg font-bold text-base bg-yellow-400 text-black hover:bg-yellow-300 transition-all duration-200 hover:scale-105 active:scale-97 shadow-lg shadow-yellow-500/30"
             >
               START COMPETING
@@ -113,8 +100,6 @@ export default function Landing() {
                     ? 'bg-yellow-950/30 border-yellow-500/50 shadow-lg shadow-yellow-500/20' 
                     : 'bg-gray-900 border-gray-800'
                 }`}
-                onMouseEnter={() => setHovering(`stat-${i}`)}
-                onMouseLeave={() => setHovering(null)}
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs text-gray-400 font-bold">{stat.label}</span>
@@ -142,69 +127,18 @@ export default function Landing() {
               <div 
                 key={i} 
                 className="p-4 rounded-xl flex items-center justify-between bg-gray-900 border border-gray-800 transition-all duration-200"
-                onMouseEnter={() => setHovering(`feature-${i}`)}
-                onMouseLeave={() => setHovering(null)}
               >
                 <div className="flex items-center gap-4">
                   <div className="w-8 flex items-center justify-center bg-transparent" dangerouslySetInnerHTML={{ __html: f.icon }} />
                   <div>
-                    <div className="text-white font-bold text-sm tracking-wide">{f.title}</div>
-                    <div className="text-gray-500 text-xs mt-0.5">{f.desc}</div>
+                    <div className="font-bold text-sm">{f.title}</div>
+                    <div className="text-gray-500 text-xs">{f.desc}</div>
                   </div>
-                </div>
-                <div className="text-gray-600">
-                  →
                 </div>
               </div>
             ))}
           </div>
-
-          {/* Section break - after features */}
-          <div className="relative h-32 mb-6 rounded-xl overflow-hidden bg-cover bg-center" style={{ backgroundImage: 'url(/images/features-bg.jpg)' }} />
-
-          {/* Sign Up Form */}
-          <div className="rounded-xl p-5 mb-4 bg-gray-900 border border-gray-800">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-white tracking-wide">NEW PLAYER?</h3>
-              <div className="text-xs text-gray-400 font-mono">v2.0</div>
-            </div>
-            
-            <div className="space-y-3">
-              <input
-                type="text"
-                placeholder="Squad code (optional)"
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
-                className="w-full p-3.5 rounded-lg bg-neutral-900 border border-neutral-700 text-white text-sm placeholder-gray-500 transition-all duration-200 focus:border-yellow-400/50 focus:shadow-[0_0_10px_rgba(250,204,21,0.1)]"
-              />
-              <input
-                type="email"
-                placeholder="Your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-3.5 rounded-lg bg-neutral-900 border border-neutral-700 text-white text-sm placeholder-gray-500 transition-all duration-200 focus:border-yellow-400/50 focus:shadow-[0_0_10px_rgba(250,204,21,0.1)]"
-              />
-              <button 
-                onClick={handleNewUser}
-                className="w-full py-3.5 rounded-lg font-bold text-sm uppercase tracking-wider bg-yellow-400 text-black hover:bg-yellow-300 transition-all duration-200 hover:scale-[1.02] active:scale-[0.97] shadow-lg shadow-yellow-500/30"
-              >
-                Start Competing
-              </button>
-              
-              {/* Microcopy */}
-              <p className="text-center text-gray-600 text-xs mt-2">
-                Join your squad and start climbing today
-              </p>
-            </div>
-          </div>
-
-          {/* Bottom */}
-          <p className="text-center text-gray-600 text-sm">
-            Already competing?{' '}
-            <button onClick={handleSignIn} className="text-yellow-400 hover:underline font-semibold">
-              Sign In
-            </button>
-          </p>
+          
         </div>
       </main>
     </div>

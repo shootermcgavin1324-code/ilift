@@ -31,15 +31,6 @@ const QUICK_EXERCISES = [
   { name: 'Romanian Deadlift', category: 'Legs' },
   // Cardio
   { name: 'Running', category: 'Cardio' },
-  { name: 'Cycling', category: 'Cardio' },
-  { name: 'Rowing', category: 'Cardio' },
-  { name: 'Jump Rope', category: 'Cardio' },
-  // Other
-  { name: 'Plank', category: 'Legs' },
-  { name: 'Cable', category: 'Push' },
-  { name: 'Machine', category: 'Legs' },
-  { name: 'Dumbbell', category: 'Push' },
-  { name: 'Other', category: 'Push' },
 ];
 
 // Shared styles for consistency - extracted from Tailwind for maintainability
