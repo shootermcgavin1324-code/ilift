@@ -5,7 +5,8 @@
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { useAuth, useUser } from '@clerk/nextjs';
-import { useEffect, useState } from 'react';
+import { getPlayerTitle } from './player';
+import type { PlayerTitle } from './types';
 
 export function useConvexUser() {
   const { userId, isLoaded: authLoaded } = useAuth();
@@ -52,23 +53,13 @@ export function useConvexUser() {
   const xpProgressPercent = (xpInCurrentLevel / 500) * 100;
   const prestige = Math.floor((convexUser?.total_xp || 0) / 10000);
   
-  // Get player title
-  const getPlayerTitle = (xp: number, streak: number, badges: string[]) => {
-    if (prestige > 0) return 'LEGEND';
-    if (xp >= 50000) return 'UNSTOPPABLE';
-    if (xp >= 25000) return 'XP MASTER';
-    if (xp >= 10000) return 'COLLECTOR';
-    if (xp >= 5000) return 'GRINDER';
-    if (streak >= 30) return 'ON FIRE';
-    if (streak >= 7) return 'ACTIVE';
-    return 'ROOKIE';
-  };
-  
-  const playerTitle = getPlayerTitle(
-    convexUser?.total_xp || 0,
-    convexUser?.streak || 0,
-    convexUser?.badges || []
-  );
+  // Get player title (imported from player.ts)
+  const playerTitle = getPlayerTitle({
+    totalXP: convexUser?.total_xp || 0,
+    streak: convexUser?.streak || 0,
+    badges: convexUser?.badges || [],
+    workouts: workouts?.length || 0,
+  });
   
   return {
     // User data

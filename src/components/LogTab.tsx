@@ -4,34 +4,7 @@
 
 import { useState, useCallback, memo } from 'react';
 import type { SetData } from '@/lib/types';
-
-const CATEGORIES = ['All', 'Push', 'Pull', 'Legs', 'Cardio'];
-
-const QUICK_EXERCISES = [
-  // Push
-  { name: 'Bench Press', category: 'Push' },
-  { name: 'Overhead Press', category: 'Push' },
-  { name: 'Push Up', category: 'Push' },
-  { name: 'Incline Dumbbell', category: 'Push' },
-  { name: 'Tricep Extension', category: 'Push' },
-  { name: 'Dips', category: 'Push' },
-  // Pull
-  { name: 'Deadlift', category: 'Pull' },
-  { name: 'Barbell Row', category: 'Pull' },
-  { name: 'Pull Up', category: 'Pull' },
-  { name: 'Lat Pulldown', category: 'Pull' },
-  { name: 'Dumbbell Curl', category: 'Pull' },
-  { name: 'Face Pull', category: 'Pull' },
-  // Legs
-  { name: 'Squat', category: 'Legs' },
-  { name: 'Leg Press', category: 'Legs' },
-  { name: 'Lunges', category: 'Legs' },
-  { name: 'Leg Curl', category: 'Legs' },
-  { name: 'Calf Raise', category: 'Legs' },
-  { name: 'Romanian Deadlift', category: 'Legs' },
-  // Cardio
-  { name: 'Running', category: 'Cardio' },
-];
+import { CATEGORIES, QUICK_EXERCISES, getExercisesByCategory } from '@/lib/exercises';
 
 // Shared styles for consistency - extracted from Tailwind for maintainability
 const styles = {
