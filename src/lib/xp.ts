@@ -1,32 +1,56 @@
 // ============================================
-// XP CALCULATION - Unified scoring for all exercise types
+// XP CALCULATION - Call of Duty style leveling & prestige
 // ============================================
 
 import type { SetData, ScoreResult } from './types';
 
 export type ExerciseType = 'strength' | 'cardio' | 'calisthenics';
 
-// Base XP values per exercise type
+// ============================================
+// LEVEL SYSTEM CONFIG
+// ============================================
+
+export const MAX_LEVEL = 55;
+export const PRESTIGE_BONUS_MULTIPLIER = 1.10; // +10% XP boost after prestige
+
+// XP required for each level (1-55)
+// Simplified: 100 XP per level = 5,500 total to prestige (~4 months)
+export function getXPForLevel(level: number): number {
+  return 100;
+}
+
+// Calculate total XP needed to reach a specific level
+export function getTotalXPForLevel(targetLevel: number): number {
+  let total = 0;
+  for (let i = 1; i < targetLevel; i++) {
+    total += getXPForLevel(i);
+  }
+  return total;
+}
+
+// ============================================
+// EXERCISE TYPE XP CONFIG
+// ============================================
+
 const XP_CONFIG = {
   strength: {
-    base: 10,        // Base XP per workout
-    perSet: 2,       // Bonus XP per completed set
+    base: 10,
+    perSet: 2,
   },
   cardio: {
-    perMile: 10,     // 10 XP per mile
+    perMile: 10,
   },
   calisthenics: {
-    perRep: 1,       // 1 XP per rep
+    perRep: 1,
   },
 };
 
-// RPE bonus multiplier (effort-based)
-const RPE_MULTIPLIER = 0.2; // Each RPE point adds 20% bonus
+const RPE_MULTIPLIER = 0.2;
 
-/**
- * Calculate XP for strength exercises
- * Formula: baseXP + (sets × perSet) + (avgRPE × baseXP × RPE_MULTIPLIER)
- */
+// ============================================
+// XP CALCULATION FUNCTIONS
+// ============================================
+
 function calculateStrengthXP(sets: SetData[]): ScoreResult {
   const doneSets = sets.filter(s => s.done);
   if (doneSets.length === 0) {
@@ -51,17 +75,12 @@ function calculateStrengthXP(sets: SetData[]): ScoreResult {
   };
 }
 
-/**
- * Calculate XP for cardio exercises
- * Formula: miles × perMile + (avgRPE × miles × 0.1 bonus)
- */
 function calculateCardioXP(sets: SetData[]): ScoreResult {
   const doneSets = sets.filter(s => s.done);
   if (doneSets.length === 0) {
     return { xpEarned: 0, breakdown: { baseXP: 0, rpeBonus: 0, volumeBonus: 0 } };
   }
 
-  // For cardio, we track distance in "weight" field (as miles) and time in "reps" field
   const totalMiles = doneSets.reduce((sum, s) => sum + (s.weight || 0), 0);
   const avgRpe = doneSets.reduce((sum, s) => sum + s.rpe, 0) / doneSets.length;
   
@@ -79,17 +98,12 @@ function calculateCardioXP(sets: SetData[]): ScoreResult {
   };
 }
 
-/**
- * Calculate XP for calisthenics exercises
- * Formula: totalReps × perRep + (avgRPE × totalReps × 0.1 bonus)
- */
 function calculateCalisthenicsXP(sets: SetData[]): ScoreResult {
   const doneSets = sets.filter(s => s.done);
   if (doneSets.length === 0) {
     return { xpEarned: 0, breakdown: { baseXP: 0, rpeBonus: 0, volumeBonus: 0 } };
   }
 
-  // For calisthenics, we track reps in "reps" field
   const totalReps = doneSets.reduce((sum, s) => sum + (s.reps || 0), 0);
   const avgRpe = doneSets.reduce((sum, s) => sum + s.rpe, 0) / doneSets.length;
   
@@ -107,11 +121,6 @@ function calculateCalisthenicsXP(sets: SetData[]): ScoreResult {
   };
 }
 
-/**
- * Calculate XP based on exercise type
- * @param sets - Array of set data
- * @param exerciseType - Type of exercise (strength, cardio, calisthenics)
- */
 export function calculateScore(sets: SetData[], exerciseType: ExerciseType = 'strength'): ScoreResult {
   switch (exerciseType) {
     case 'cardio':
@@ -124,53 +133,171 @@ export function calculateScore(sets: SetData[], exerciseType: ExerciseType = 'st
   }
 }
 
-/**
- * Get exercise type from exercise name
- * This is a simple mapping - can be expanded
- */
 export function getExerciseType(exerciseName: string): ExerciseType {
   const name = exerciseName.toLowerCase();
   
-  // Cardio exercises
   const cardioExercises = ['run', 'running'];
   if (cardioExercises.some(e => name.includes(e))) {
     return 'cardio';
   }
   
-  // Calisthenics
   const calisthenicsExercises = ['push-up', 'pushup', 'pull-up', 'pullup', 'dip', 'dips', 'chin-up', 'chinup', 'sit-up', 'situp', 'crunch', 'crunches', 'burpee', 'burpees', 'muscle-up', 'plank'];
   if (calisthenicsExercises.some(e => name.includes(e))) {
     return 'calisthenics';
   }
   
-  // Default to strength
   return 'strength';
 }
 
-// Legacy export for backward compatibility (defaults to strength)
+// ============================================
+// LEVEL & PRESTIGE CALCULATIONS
+// ============================================
+
+export interface LevelResult {
+  level: number;
+  xpInCurrentLevel: number;
+  xpToNextLevel: number;
+  progressPercent: number;
+  canPrestige: boolean;
+}
+
+/**
+ * Calculate user's level from total XP (ignoring prestige)
+ * Level 1-55, resets after prestige
+ */
+export function calculateLevel(totalXP: number): number {
+  let remainingXP = totalXP;
+  let level = 1;
+  
+  while (level < MAX_LEVEL && remainingXP >= getXPForLevel(level)) {
+    remainingXP -= getXPForLevel(level);
+    level++;
+  }
+  
+  return level;
+}
+
+/**
+ * Calculate prestige count from total XP
+ * Each prestige = 55 levels worth of XP
+ */
+export function calculatePrestige(totalXP: number): number {
+  const xpForMaxLevel = getTotalXPForLevel(MAX_LEVEL + 1);
+  if (totalXP < xpForMaxLevel) return 0;
+  
+  return Math.floor((totalXP - xpForMaxLevel) / xpForMaxLevel) + 1;
+}
+
+/**
+ * Get XP within current level (for progress bar)
+ */
+export function getXPInCurrentLevel(totalXP: number, prestigeCount: number): number {
+  // Remove XP from previous prestiges
+  const xpForMaxLevel = getTotalXPForLevel(MAX_LEVEL + 1);
+  const prestigeXP = prestigeCount * xpForMaxLevel;
+  const xpInCurrentPrestige = totalXP - prestigeXP;
+  
+  let remainingXP = xpInCurrentPrestige;
+  let level = 1;
+  
+  while (level < MAX_LEVEL && remainingXP >= getXPForLevel(level)) {
+    remainingXP -= getXPForLevel(level);
+    level++;
+  }
+  
+  return remainingXP;
+}
+
+/**
+ * Calculate detailed level info
+ */
+export function calculateLevelInfo(totalXP: number): LevelResult {
+  const prestigeCount = calculatePrestige(totalXP);
+  const xpInCurrentPrestige = totalXP - (prestigeCount * getTotalXPForLevel(MAX_LEVEL + 1));
+  
+  let remainingXP = xpInCurrentPrestige;
+  let level = 1;
+  
+  while (level < MAX_LEVEL && remainingXP >= getXPForLevel(level)) {
+    remainingXP -= getXPForLevel(level);
+    level++;
+  }
+  
+  const xpToNextLevel = getXPForLevel(level);
+  const progressPercent = Math.min((remainingXP / xpToNextLevel) * 100, 100);
+  
+  return {
+    level,
+    xpInCurrentLevel: remainingXP,
+    xpToNextLevel,
+    progressPercent,
+    canPrestige: level >= MAX_LEVEL
+  };
+}
+
+/**
+ * Apply XP bonus for prestige
+ */
+export function applyPrestigeBonus(xp: number, prestigeCount: number): number {
+  if (prestigeCount > 0) {
+    return Math.round(xp * PRESTIGE_BONUS_MULTIPLIER);
+  }
+  return xp;
+}
+
+/**
+ * Handle prestige reset
+ * Returns new XP total after prestige
+ */
+export function performPrestige(currentTotalXP: number): number {
+  const currentPrestige = calculatePrestige(currentTotalXP);
+  const xpForMaxLevel = getTotalXPForLevel(MAX_LEVEL + 1);
+  
+  // New prestige level + reset XP to 0 within new prestige
+  return (currentPrestige + 1) * xpForMaxLevel;
+}
+
+/**
+ * Get display string for prestige (e.g., "⭐⭐")
+ */
+export function getPrestigeStars(prestigeCount: number): string {
+  if (prestigeCount === 0) return '';
+  return '⭐'.repeat(Math.min(prestigeCount, 10));
+}
+
+/**
+ * Format level display (e.g., "Prestige 2 — Level 12")
+ */
+export function formatLevelDisplay(level: number, prestigeCount: number): string {
+  const stars = getPrestigeStars(prestigeCount);
+  if (prestigeCount > 0) {
+    return `Prestige ${prestigeCount}${stars} — Level ${level}`;
+  }
+  return `Level ${level}`;
+}
+
+// Legacy exports for backward compatibility
 export function calculateLegacyScore(sets: SetData[]): ScoreResult {
   return calculateScore(sets, 'strength');
 }
 
-// Calculate level from XP (every 500 XP = 1 level)
-export function calculateLevel(totalXP: number): number {
-  return Math.floor(totalXP / 500) + 1;
-}
-
-// Calculate XP progress within current level
 export function calculateXPProgress(totalXP: number): {
   xpInCurrentLevel: number;
   xpToNextLevel: number;
   progressPercent: number;
 } {
-  const xpInCurrentLevel = totalXP % 500;
-  const xpToNextLevel = 500 - xpInCurrentLevel;
-  const progressPercent = (xpInCurrentLevel / 500) * 100;
-  
-  return { xpInCurrentLevel, xpToNextLevel, progressPercent };
+  const info = calculateLevelInfo(totalXP);
+  return {
+    xpInCurrentLevel: info.xpInCurrentLevel,
+    xpToNextLevel: info.xpToNextLevel,
+    progressPercent: info.progressPercent
+  };
 }
 
-// Calculate prestige level (every 10,000 XP)
-export function calculatePrestige(totalXP: number): number {
-  return Math.floor(totalXP / 10000);
+export function calculateLevelLegacy(totalXP: number): number {
+  return calculateLevel(totalXP);
+}
+
+export function calculatePrestigeLegacy(totalXP: number): number {
+  return calculatePrestige(totalXP);
 }

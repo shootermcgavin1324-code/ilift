@@ -127,7 +127,17 @@ export default function SquadTab({ user, leaderboard }: SquadTabProps) {
                       <span className="text-xs text-green-400">active</span>
                     )}
                   </div>
-                  <p className="text-gray-500 text-xs">Level {Math.floor((member.total_xp || 0) / 500) + 1}</p>
+                  {/* Show level with prestige */}
+                  {(() => {
+                    const memberLevel = Math.floor((member.total_xp || 0) / 55000);
+                    const level = Math.floor(((member.total_xp || 0) % 55000) / 500) + 1;
+                    const stars = memberLevel > 0 ? '⭐'.repeat(Math.min(memberLevel, 10)) : '';
+                    return (
+                      <p className="text-gray-500 text-xs">
+                        {memberLevel > 0 ? `Prestige ${memberLevel}${stars} ` : ''}Level {level}
+                      </p>
+                    );
+                  })()}
                 </div>
                 
                 <div className="text-right">

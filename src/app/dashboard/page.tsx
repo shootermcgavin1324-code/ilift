@@ -18,7 +18,7 @@ const LogTab = lazy(() => import('@/components/LogTab'));
 import { useUserStore, useWorkoutStore, useUIStore } from '@/lib/store';
 
 // Lib functions
-import { calculateScore, getExerciseType, processWorkout } from '@/lib/data';
+import { calculateScore, getExerciseType, calculateLevelInfo, performPrestige, getPrestigeStars, formatLevelDisplay, applyPrestigeBonus, processWorkout, getTotalXPForLevel, MAX_LEVEL } from '@/lib/data';
 import { checkBadges } from '@/lib/badges';
 import { getPlayerTitle } from '@/lib/player';
 import { ACHIEVEMENTS } from '@/lib/achievements';
@@ -86,12 +86,11 @@ export default function Dashboard() {
     setVideoUploading
   } = useUIStore();
 
-  // Derived values
-  const currentLevel = Math.floor((user?.total_xp || 0) / 500) + 1;
-  const xpInCurrentLevel = (user?.total_xp || 0) % 500;
-  const xpToNextLevel = 500 - xpInCurrentLevel;
-  const xpProgressPercent = (xpInCurrentLevel / 500) * 100;
-  const prestige = Math.floor((user?.total_xp || 0) / 10000);
+  // Derived values using new leveling system
+  const levelInfo = calculateLevelInfo(user?.total_xp || 0);
+  const xpForMaxLevel = getTotalXPForLevel(MAX_LEVEL + 1);
+  const prestigeCount = Math.floor((user?.total_xp || 0) / xpForMaxLevel);
+  const prestigeStars = getPrestigeStars(prestigeCount);
 
   // Load user on mount
   useEffect(() => {
@@ -158,7 +157,11 @@ export default function Dashboard() {
     
     if (!currentUser) return;
     
-    const newXP = (currentUser.total_xp || 0) + score;
+    // Apply prestige bonus if user has prestiged
+    const xpForMaxLevel = getTotalXPForLevel(MAX_LEVEL + 1);
+    const prestigeCount = Math.floor((currentUser.total_xp || 0) / xpForMaxLevel);
+    const bonusXP = applyPrestigeBonus(score, prestigeCount);
+    const newXP = (currentUser.total_xp || 0) + bonusXP;
 
     // Process workout with proper streak logic
     const { updatedUser, streakChanged, message } = processWorkout(currentUser);
@@ -230,10 +233,39 @@ export default function Dashboard() {
     }
 
     clearSession();
-    showToast(`Workout saved! +${score} XP`, 'success');
+    showToast(`Workout saved! +${bonusXP} XP${bonusXP > score ? ' (Prestige +10% bonus!)' : ''}`, 'success');
     
     // Clear new badges after 3 seconds
     setTimeout(() => clearNewBadges(), 3000);
+  };
+
+  // Handle prestige
+  const handlePrestige = async () => {
+    if (!levelInfo.canPrestige) return;
+    
+    const currentUser = useUserStore.getState().user;
+    if (!currentUser) return;
+    
+    const confirmPrestige = window.confirm(
+      '⚠️ PRESTIGE WARNING ⚠️\n\n' +
+      'This will reset your level to 1 and XP to 0.\n\n' +
+      'In return, you will gain:\n' +
+      '• +1 Prestige rank\n' +
+      '• +10% XP boost on all future workouts\n' +
+      '• Exclusive prestige badges\n\n' +
+      'Are you sure you want to prestige?'
+    );
+    
+    if (!confirmPrestige) return;
+    
+    // Calculate new XP after prestige
+    const newTotalXP = performPrestige(currentUser.total_xp || 0);
+    
+    // Update user with new XP
+    const updatedUser = { ...currentUser, total_xp: newTotalXP };
+    await useUserStore.getState().updateUserData(updatedUser);
+    
+    showToast('🎉 PRESTIGE COMPLETE! 🎉\nYou are now Level 1 with +10% XP bonus!', 'success');
   };
 
   if (loading || !user) {
@@ -296,7 +328,7 @@ export default function Dashboard() {
         <HomeTab 
           user={user} 
           leaderboard={leaderboard} 
-          currentLevel={currentLevel}
+          currentLevel={levelInfo.level}
           onLogWorkout={() => setActiveTab('log')}
         />
       )}
@@ -442,23 +474,38 @@ export default function Dashboard() {
             <h2 className="text-3xl font-black text-white">{user.name}</h2>
             <p className="text-gray-400 text-sm mt-1">Squad {user.group_id || 'NONE'}</p>
             
-            {/* XP Progress */}
+            {/* XP Progress - New Leveling System */}
             <div className="mt-6 bg-gray-900/50 rounded-xl p-4 border border-gray-800">
               <div className="flex justify-between items-end mb-2">
-                <span className="text-lg font-bold text-yellow-400">LEVEL {currentLevel}</span>
-                <span className="text-gray-400 text-xs">{xpToNextLevel} XP to next</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-lg font-bold text-yellow-400">LEVEL {levelInfo.level}</span>
+                  {prestigeCount > 0 && (
+                    <span className="text-purple-400 text-sm font-bold">Prestige {prestigeCount}{prestigeStars}</span>
+                  )}
+                </div>
+                <span className="text-gray-400 text-xs">{levelInfo.xpToNextLevel - levelInfo.xpInCurrentLevel} XP to next</span>
               </div>
               
               <div className="relative h-5 bg-gray-800 rounded-full overflow-hidden">
                 <div 
                   className="absolute inset-y-0 left-0 bg-gradient-to-r from-yellow-500 via-yellow-400 to-orange-500 rounded-full transition-all"
-                  style={{ width: `${xpProgressPercent}%` }}
+                  style={{ width: `${levelInfo.progressPercent}%` }}
                 />
               </div>
               
               <p className="text-2xl font-black text-white mt-3">
-                {xpInCurrentLevel.toLocaleString()} <span className="text-gray-500 text-lg">/ 500 XP</span>
+                {levelInfo.xpInCurrentLevel.toLocaleString()} <span className="text-gray-500 text-lg">/ {levelInfo.xpToNextLevel} XP</span>
               </p>
+              
+              {/* Prestige Button */}
+              {levelInfo.canPrestige && (
+                <button
+                  onClick={handlePrestige}
+                  className="mt-3 w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg transition-all animate-pulse text-sm"
+                >
+                  ⭐ PRESTIGE NOW ⭐
+                </button>
+              )}
             </div>
           </div>
 
@@ -481,7 +528,7 @@ export default function Dashboard() {
             </div>
             <div className="bg-gray-900 rounded-xl p-4 text-center border border-gray-800">
               <Trophy size={24} className="mx-auto text-yellow-400 mb-2" />
-              <p className="text-2xl font-black text-white">{highestRank || currentLevel}</p>
+              <p className="text-2xl font-black text-white">{highestRank || levelInfo.level}</p>
               <p className="text-gray-500 text-xs uppercase tracking-wider">Highest Rank</p>
             </div>
           </div>
@@ -574,7 +621,8 @@ export default function Dashboard() {
           <div className="flex gap-3">
             <button
               onClick={() => {
-                const text = `I'm level ${currentLevel} on iLift with ${user.total_xp || 0} XP! 💪🔥`;
+                const prestigeText = prestigeCount > 0 ? `Prestige ${prestigeCount}${prestigeStars} ` : '';
+                const text = `I'm ${prestigeText}Level ${levelInfo.level} on iLift with ${(user.total_xp || 0).toLocaleString()} XP! 💪🔥`;
                 window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
               }}
               className="flex-1 bg-blue-500/20 text-blue-400 font-bold py-3 rounded-xl border border-blue-500/30"
