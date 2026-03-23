@@ -4,6 +4,7 @@
 'use client';
 import { useState } from 'react';
 import { Send } from 'lucide-react';
+import ProfileModal from './ProfileModal';
 
 interface Message {
   id: string;
@@ -19,6 +20,8 @@ interface SquadTabProps {
 }
 
 export default function SquadTab({ user, leaderboard }: SquadTabProps) {
+  const [selectedProfile, setSelectedProfile] = useState<any>(null);
+  
   // Find user's rank
   const userRank = leaderboard.findIndex((m: any) => m.id === user.id) + 1;
   const nextPlayer = userRank > 0 && userRank < leaderboard.length ? leaderboard[userRank] : null;
@@ -98,7 +101,8 @@ export default function SquadTab({ user, leaderboard }: SquadTabProps) {
             return (
               <div 
                 key={member.id || member.email || i} 
-                className={`bg-gray-950 rounded-xl p-4 flex items-center gap-3 ${isCurrentUser ? 'border-2 border-yellow-400/50 shadow-[0_0_15px_rgba(234,179,8,0.2)]' : 'border border-transparent hover:border-gray-800'}`}
+                onClick={() => !isCurrentUser && setSelectedProfile(member)}
+                className={`bg-gray-950 rounded-xl p-4 flex items-center gap-3 cursor-pointer ${isCurrentUser ? 'border-2 border-yellow-400/50 shadow-[0_0_15px_rgba(234,179,8,0.2)]' : 'border border-transparent hover:border-gray-800 hover:bg-gray-900/50'}`}
               >
                 {i === 0 && <span className="text-2xl">🥇</span>}
                 {i === 1 && <span className="text-2xl">🥈</span>}
@@ -215,6 +219,14 @@ export default function SquadTab({ user, leaderboard }: SquadTabProps) {
       <button className="w-full bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-yellow-500/30 text-white py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
         <span className="text-lg">+</span> Invite Teammates
       </button>
+
+      {/* Profile Modal */}
+      {selectedProfile && (
+        <ProfileModal 
+          user={selectedProfile} 
+          onClose={() => setSelectedProfile(null)} 
+        />
+      )}
     </div>
   );
 }

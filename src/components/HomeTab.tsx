@@ -18,9 +18,10 @@ interface HomeTabProps {
   leaderboard: LeaderboardEntry[];
   currentLevel: number;
   onLogWorkout: () => void;
+  onViewProfile?: (user: any) => void;
 }
 
-function HomeTab({ user, leaderboard, currentLevel, onLogWorkout }: HomeTabProps) {
+function HomeTab({ user, leaderboard, currentLevel, onLogWorkout, onViewProfile }: HomeTabProps) {
   const userRank = leaderboard.findIndex((u: any) => u.id === user.id) + 1;
   const rankAhead = leaderboard[userRank - 2];
   
@@ -134,7 +135,8 @@ function HomeTab({ user, leaderboard, currentLevel, onLogWorkout }: HomeTabProps
           leaderboard.slice(0, 5).map((u: any, i: number) => (
             <div 
               key={u.id || u.email || i} 
-              className={`flex justify-between items-center py-2 px-2 rounded-lg ${u.id === user.id ? 'bg-yellow-400/10 border border-yellow-400/30' : ''}`}
+              onClick={() => u.id !== user.id && onViewProfile?.(u)}
+              className={`flex justify-between items-center py-2 px-2 rounded-lg cursor-pointer transition-colors ${u.id === user.id ? 'bg-yellow-400/10 border border-yellow-400/30' : 'hover:bg-gray-800'}`}
             >
               <div className="flex items-center gap-2">
                 {i === 0 && <span>🥇</span>}
@@ -143,7 +145,12 @@ function HomeTab({ user, leaderboard, currentLevel, onLogWorkout }: HomeTabProps
                 {i > 2 && <span className="text-gray-400 font-bold w-5">#{i + 1}</span>}
                 <span className={u.id === user.id ? 'text-yellow-500 font-bold' : 'text-gray-400'}>{u.name}</span>
               </div>
-              <span className="font-black text-gray-400">{u.total_xp || 0}</span>
+              <div className="flex items-center gap-2">
+                {u.id !== user.id && (
+                  <span className="text-xs text-gray-600">View</span>
+                )}
+                <span className="font-black text-gray-400">{u.total_xp || 0}</span>
+              </div>
             </div>
           ))
         )}

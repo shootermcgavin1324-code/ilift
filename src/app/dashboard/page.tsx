@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, Suspense, lazy } from 'react';
+import { useEffect, Suspense, lazy, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Home, Dumbbell, Users, Trophy, Target, X, Star, Video, Zap, Flame } from 'lucide-react';
+import { Home, Dumbbell, Users, Trophy, Target, X, Star, Video, Zap, Flame, Camera, Upload } from 'lucide-react';
 import { useAuth } from '@clerk/nextjs';
+import ProfileModal from '@/components/ProfileModal';
 
 // Core components - loaded immediately
 import { HomeTab } from '@/components';
@@ -91,6 +92,56 @@ export default function Dashboard() {
   const xpForMaxLevel = getTotalXPForLevel(MAX_LEVEL + 1);
   const prestigeCount = Math.floor((user?.total_xp || 0) / xpForMaxLevel);
   const prestigeStars = getPrestigeStars(prestigeCount);
+
+  // Profile photo state (stored in localStorage)
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load profile photo from localStorage
+  useEffect(() => {
+    if (user?.id) {
+      const saved = localStorage.getItem(`ilift_profile_photo_${user.id}`);
+      if (saved) setProfilePhoto(saved);
+    }
+  }, [user?.id]);
+
+  // Handle photo upload
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.id) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      showToast('Please select an image file', 'error');
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('Image must be under 2MB', 'error');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      localStorage.setItem(`ilift_profile_photo_${user.id}`, base64);
+      setProfilePhoto(base64);
+      showToast('Profile photo updated!', 'success');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Get initials for fallback avatar
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   // Load user on mount
   useEffect(() => {
@@ -330,6 +381,7 @@ export default function Dashboard() {
           leaderboard={leaderboard} 
           currentLevel={levelInfo.level}
           onLogWorkout={() => setActiveTab('log')}
+          onViewProfile={(profileUser) => setSelectedProfile(profileUser)}
         />
       )}
 
@@ -468,8 +520,27 @@ export default function Dashboard() {
               </span>
             </div>
             
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-yellow-500/30 to-orange-500/30 flex items-center justify-center mx-auto mb-4 border-2 border-yellow-500/30">
-              <Target size={48} className="text-yellow-400" />
+            {/* Profile Photo Avatar */}
+            <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-yellow-500/30 to-orange-500/30 flex items-center justify-center mx-auto mb-4 border-2 border-yellow-500/30 overflow-hidden group">
+              {profilePhoto ? (
+                <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-4xl font-black text-yellow-400">{getInitials(user.name)}</span>
+              )}
+              {/* Upload overlay */}
+              <div 
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              >
+                <Camera size={24} className="text-white" />
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handlePhotoUpload}
+              />
             </div>
             <h2 className="text-3xl font-black text-white">{user.name}</h2>
             <p className="text-gray-400 text-sm mt-1">Squad {user.group_id || 'NONE'}</p>
@@ -648,6 +719,14 @@ export default function Dashboard() {
         }`}>
           {toast.message}
         </div>
+      )}
+
+      {/* Profile Modal for viewing other users */}
+      {selectedProfile && (
+        <ProfileModal
+          user={selectedProfile}
+          onClose={() => setSelectedProfile(null)}
+        />
       )}
     </div>
   );
