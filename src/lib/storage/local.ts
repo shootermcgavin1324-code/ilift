@@ -20,6 +20,8 @@ const KEYS = {
   PENDING_EMAIL: 'ilift_pending_email',
   PENDING_CODE: 'ilift_pending_code',
   ONBOARDING: 'ilift_onboarding',
+  FITNESS_GOAL: 'ilift_fitness_goal',
+  EXPERIENCE: 'ilift_experience',
 };
 
 // Get user from localStorage
@@ -191,4 +193,22 @@ export function setOnboardingComplete(): void {
 
 export function clearOnboarding(): void {
   localStorage.removeItem(KEYS.ONBOARDING);
+}
+
+// Fitness goal from onboarding
+export function getFitnessGoal(): string | null {
+  return localStorage.getItem(KEYS.FITNESS_GOAL);
+}
+
+export function setFitnessGoal(goal: string): void {
+  localStorage.setItem(KEYS.FITNESS_GOAL, goal);
+}
+
+// Experience level from onboarding
+export function getExperience(): string | null {
+  return localStorage.getItem(KEYS.EXPERIENCE);
+}
+
+export function setExperience(level: string): void {
+  localStorage.setItem(KEYS.EXPERIENCE, level);
 }

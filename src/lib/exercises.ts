@@ -7,7 +7,7 @@ export interface Exercise {
 }
 
 // Categories for filtering
-export const CATEGORIES = ['All', 'Push', 'Pull', 'Legs', 'Cardio'] as const;
+export const CATEGORIES = ['All', 'Push', 'Pull', 'Legs', 'Cardio', 'Calisthenics'] as const;
 export type Category = typeof CATEGORIES[number];
 
 export const QUICK_EXERCISES: Exercise[] = [
@@ -34,6 +34,20 @@ export const QUICK_EXERCISES: Exercise[] = [
   { name: 'Romanian Deadlift', category: 'Legs' },
   // Cardio
   { name: 'Running', category: 'Cardio' },
+  // Calisthenics (renamed to avoid duplicates)
+  { name: 'Muscle Up', category: 'Calisthenics' },
+  { name: 'Chin Up', category: 'Calisthenics' },
+  { name: 'Diamond Push Up', category: 'Calisthenics' },
+  { name: 'Pistol Squat', category: 'Calisthenics' },
+  { name: 'Squat Jump', category: 'Calisthenics' },
+  { name: 'Lunge Jump', category: 'Calisthenics' },
+  { name: 'Plank', category: 'Calisthenics' },
+  { name: 'Side Plank', category: 'Calisthenics' },
+  { name: 'Hollow Body', category: 'Calisthenics' },
+  { name: 'L-Sit', category: 'Calisthenics' },
+  { name: 'Burpee', category: 'Calisthenics' },
+  { name: 'Mountain Climber', category: 'Calisthenics' },
+  { name: 'Box Jump', category: 'Calisthenics' },
 ];
 
 // Legacy exercises (backwards compatibility)

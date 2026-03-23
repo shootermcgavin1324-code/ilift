@@ -186,4 +186,8 @@ export {
   setOnboardingComplete,
   clearOnboarding,
   clearLocalData,
+  getFitnessGoal,
+  setFitnessGoal,
+  getExperience,
+  setExperience,
 } from './local';

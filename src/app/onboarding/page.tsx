@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { icons } from '@/lib/icons';
-import { hasCompletedOnboarding, getPendingEmail, getPendingCode, clearPendingEmail, clearPendingCode, setOnboardingComplete, getLocalUser, saveLocalUser, createUser } from '@/lib/storage';
+import { hasCompletedOnboarding, getPendingEmail, getPendingCode, clearPendingEmail, clearPendingCode, setOnboardingComplete, getLocalUser, saveLocalUser, createUser, setFitnessGoal, setExperience } from '@/lib/storage';
 
 export default function Onboarding() {
   const router = useRouter();
@@ -81,6 +81,10 @@ export default function Onboarding() {
       clearPendingEmail();
       clearPendingCode();
       setOnboardingComplete();
+      
+      // Save fitness goal and experience from onboarding state
+      if (fitnessGoal) setFitnessGoal(fitnessGoal);
+      if (experience) setExperience(experience);
       
       router.push('/dashboard');
     } catch (err) {

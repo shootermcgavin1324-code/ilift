@@ -5,6 +5,7 @@
 import { useState, useCallback, memo } from 'react';
 import type { SetData } from '@/lib/types';
 import { CATEGORIES, QUICK_EXERCISES, getExercisesByCategory } from '@/lib/exercises';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Shared styles for consistency - extracted from Tailwind for maintainability
 const styles = {

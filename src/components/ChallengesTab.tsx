@@ -1,6 +1,9 @@
 // ChallengesTab Component
 // Displays daily, weekly, monthly, and lifetime challenges
 
+'use client';
+
+import { motion } from 'framer-motion';
 import { Clock, Calendar, Trophy, Flame, Dumbbell, Zap, Video, Star } from 'lucide-react';
 import { User } from '@/lib/data';
 import { CHALLENGES } from '@/lib/challenges';
