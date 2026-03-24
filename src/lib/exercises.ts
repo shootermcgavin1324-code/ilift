@@ -24,6 +24,7 @@ export const EXERCISES: Exercise[] = [
   { name: 'Cable Tricep Extensions', category: 'Push' },
   { name: 'Dumbbell Front Raises', category: 'Push' },
   { name: 'Dumbbell Lateral Raises', category: 'Push' },
+  { name: 'Cable Lateral Raise', category: 'Push' },
 
   // ============ PULL ============
   { name: 'Pull-Ups', category: 'Pull' },
@@ -40,6 +41,8 @@ export const EXERCISES: Exercise[] = [
   { name: 'Cable Curls', category: 'Pull' },
   { name: 'Alternating Dumbbell Bicep Curls', category: 'Pull' },
   { name: 'Dumbbell Hammer Curls', category: 'Pull' },
+  { name: 'Rear Delt Fly', category: 'Pull' },
+  { name: 'Incline Dumbbell Curl', category: 'Pull' },
 
   // ============ LEGS ============
   { name: 'Barbell Back Squat', category: 'Legs' },
@@ -81,6 +84,7 @@ export const EXERCISES: Exercise[] = [
   { name: 'Pistol Squats', category: 'Calisthenics' },
   { name: 'Burpees', category: 'Calisthenics' },
   { name: 'Mountain Climbers', category: 'Calisthenics' },
+  { name: 'Walking Lunges', category: 'Calisthenics' },
   { name: 'Plank', category: 'Calisthenics' },
 ];
 

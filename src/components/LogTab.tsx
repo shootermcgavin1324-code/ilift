@@ -189,7 +189,7 @@ function LogTab({
   const currentExerciseCategory = currentExercise ? getExerciseCategory(currentExercise) : null;
   
   // Determine if exercise is strength (Push/Pull/Legs)
-  const isStrength = currentExerciseCategory && ['Push', 'Pull', 'Legs'].includes(currentExerciseCategory);
+  const isStrength = currentExerciseCategory && ['Push', 'Pull', 'Legs', 'Core'].includes(currentExerciseCategory);
   const isCardio = currentExerciseCategory === 'Cardio';
   const isCalisthenics = currentExerciseCategory === 'Calisthenics';
 
