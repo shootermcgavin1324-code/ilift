@@ -1,14 +1,14 @@
 // ============================================
 // CONVEX SCHEMA - iLift Database
+// Simplified for localStorage auth (no Clerk)
 // ============================================
 
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
-  // Users table
+  // Users table - indexed by email (for localStorage auth)
   users: defineTable({
-    clerkId: v.string(),           // Clerk user ID
     email: v.string(),
     name: v.string(),
     total_xp: v.number(),
@@ -21,40 +21,37 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   })
-    .index("by_clerk_id", ["clerkId"])
     .index("by_email", ["email"])
     .index("by_group", ["group_id"]),
 
   // Workouts table
   workouts: defineTable({
-    userId: v.id("users"),
-    userClerkId: v.string(),
-    userName: v.string(),
+    userEmail: v.string(),
+    userName: v.optional(v.string()),
     exercise: v.string(),
     score: v.number(),
     date: v.string(),
     createdAt: v.number(),
   })
-    .index("by_user", ["userClerkId"])
+    .index("by_user", ["userEmail"])
     .index("by_date", ["date"])
-    .index("by_user_date", ["userClerkId", "date"]),
+    .index("by_user_date", ["userEmail", "date"]),
 
   // Personal Records
   prs: defineTable({
-    userId: v.id("users"),
-    userClerkId: v.string(),
+    userEmail: v.string(),
     exercise: v.string(),
     maxWeight: v.number(),
     date: v.string(),
     updatedAt: v.number(),
   })
-    .index("by_user_exercise", ["userClerkId", "exercise"]),
+    .index("by_user_exercise", ["userEmail", "exercise"]),
 
   // Squads/Groups
   squads: defineTable({
-    code: v.string(),              // Squad code (e.g., "GOOP")
+    code: v.string(),
     name: v.string(),
-    createdBy: v.string(),         // Clerk ID of creator
+    createdBy: v.string(),
     createdAt: v.number(),
   })
     .index("by_code", ["code"]),

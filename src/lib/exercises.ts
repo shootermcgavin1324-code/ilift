@@ -27,7 +27,7 @@ export const EXERCISES: Exercise[] = [
   { name: 'Cable Lateral Raise', category: 'Push' },
 
   // ============ PULL ============
-  { name: 'Pull-Ups', category: 'Pull' },
+  // Note: Pull-Ups moved to Calisthenics
   { name: 'Lat Pulldown (Underhand / Close Grip)', category: 'Pull' },
   { name: 'Lat Pulldown (Wide Grip)', category: 'Pull' },
   { name: 'Barbell Rows', category: 'Pull' },
@@ -85,6 +85,7 @@ export const EXERCISES: Exercise[] = [
   { name: 'Burpees', category: 'Calisthenics' },
   { name: 'Mountain Climbers', category: 'Calisthenics' },
   { name: 'Walking Lunges', category: 'Calisthenics' },
+  { name: 'Pull-Ups', category: 'Calisthenics' },
   { name: 'Plank', category: 'Calisthenics' },
 ];
 
@@ -95,8 +96,7 @@ export const QUICK_EXERCISES: Exercise[] = [
   { name: 'Incline Dumbbell Press', category: 'Push' },
   { name: 'Push-Ups', category: 'Push' },
   { name: 'Dumbbell Lateral Raises', category: 'Push' },
-  // Pull
-  { name: 'Pull-Ups', category: 'Pull' },
+  // Pull (Pull-Ups moved to Calisthenics)
   { name: 'Barbell Rows', category: 'Pull' },
   { name: 'Dumbbell Rows', category: 'Pull' },
   { name: 'Dumbbell Hammer Curls', category: 'Pull' },

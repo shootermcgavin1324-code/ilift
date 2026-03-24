@@ -2,7 +2,7 @@
 // Displays squad members and leaderboard
 
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Send } from 'lucide-react';
 import ProfileModal from './ProfileModal';
 
@@ -27,12 +27,34 @@ export default function SquadTab({ user, leaderboard }: SquadTabProps) {
   const nextPlayer = userRank > 0 && userRank < leaderboard.length ? leaderboard[userRank] : null;
   const xpToPass = nextPlayer ? Math.max(0, (nextPlayer.total_xp || 0) - (user.total_xp || 0)) : 0;
   
-  // Chat state
-  const [messages, setMessages] = useState<Message[]>([
-    { id: '1', type: 'system', name: 'System', text: 'Welcome to the squad chat!', time: 'now' },
-    { id: '2', type: 'user', name: user.name || 'You', text: 'Lets go everyone 💪', time: '1m' },
-  ]);
+  // Chat state - load from localStorage
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
+  
+  // Load messages on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('ilift_chat_messages');
+    if (saved) {
+      try {
+        setMessages(JSON.parse(saved));
+      } catch {
+        setMessages([
+          { id: '1', type: 'system', name: 'System', text: 'Welcome to the squad chat!', time: 'now' },
+        ]);
+      }
+    } else {
+      setMessages([
+        { id: '1', type: 'system', name: 'System', text: 'Welcome to the squad chat!', time: 'now' },
+      ]);
+    }
+  }, []);
+  
+  // Save messages to localStorage when they change
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem('ilift_chat_messages', JSON.stringify(messages));
+    }
+  }, [messages]);
   
   const handleSend = () => {
     if (!inputValue.trim()) return;

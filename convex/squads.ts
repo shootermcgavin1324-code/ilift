@@ -1,5 +1,6 @@
 // ============================================
 // SQUAD FUNCTIONS - Groups/Teams
+// Using email for localStorage auth
 // ============================================
 
 import { query, mutation } from "./_generated/server";
@@ -10,7 +11,7 @@ export const createSquad = mutation({
   args: {
     code: v.string(),
     name: v.string(),
-    createdBy: v.string(), // Clerk ID
+    createdBy: v.string(), // email
   },
   handler: async (ctx, args) => {
     // Check if squad already exists
@@ -46,7 +47,7 @@ export const getSquadByCode = query({
 // Join a squad (update user's group_id)
 export const joinSquad = mutation({
   args: {
-    clerkId: v.string(),
+    email: v.string(),
     squadCode: v.string(),
   },
   handler: async (ctx, args) => {
@@ -63,7 +64,7 @@ export const joinSquad = mutation({
     // Update user's group_id
     const user = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .withIndex("by_email", (q) => q.eq("email", args.email))
       .first();
 
     if (!user) {
@@ -71,10 +72,23 @@ export const joinSquad = mutation({
     }
 
     await ctx.db.patch(user._id, {
-      group_id: squad.code,
+      group_id: args.squadCode.toUpperCase(),
       updatedAt: Date.now(),
     });
 
     return squad;
+  },
+});
+
+// Get squad members
+export const getSquadMembers = query({
+  args: { code: v.string() },
+  handler: async (ctx, args) => {
+    const members = await ctx.db
+      .query("users")
+      .withIndex("by_group", (q) => q.eq("group_id", args.code.toUpperCase()))
+      .collect();
+
+    return members.sort((a, b) => b.total_xp - a.total_xp);
   },
 });

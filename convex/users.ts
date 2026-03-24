@@ -1,21 +1,10 @@
 // ============================================
 // USER FUNCTIONS - Convex Backend
+// Using email for localStorage auth
 // ============================================
 
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-
-// Get user by Clerk ID
-export const getByClerkId = query({
-  args: { clerkId: v.string() },
-  handler: async (ctx, args) => {
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
-      .first();
-    return user;
-  },
-});
 
 // Get user by email
 export const getByEmail = query({
@@ -37,24 +26,24 @@ export const getById = query({
   },
 });
 
-// Create or update user (called after Clerk sign-in)
+// Create or update user
 export const upsertUser = mutation({
   args: {
-    clerkId: v.string(),
     email: v.string(),
     name: v.string(),
+    groupCode: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .withIndex("by_email", (q) => q.eq("email", args.email))
       .first();
 
     if (existing) {
       // Update existing user
       await ctx.db.patch(existing._id, {
         name: args.name,
-        email: args.email,
+        group_id: args.groupCode?.toUpperCase(),
         updatedAt: Date.now(),
       });
       return existing._id;
@@ -62,13 +51,12 @@ export const upsertUser = mutation({
       // Create new user
       const now = Date.now();
       return await ctx.db.insert("users", {
-        clerkId: args.clerkId,
         email: args.email,
         name: args.name,
         total_xp: 0,
         streak: 0,
         badges: [],
-        group_id: undefined,
+        group_id: args.groupCode?.toUpperCase(),
         bestStreak: 0,
         highestRank: 1,
         createdAt: now,
@@ -78,16 +66,16 @@ export const upsertUser = mutation({
   },
 });
 
-// Update user XP and stats
+// Update user XP
 export const addXP = mutation({
   args: {
-    clerkId: v.string(),
+    email: v.string(),
     xpToAdd: v.number(),
   },
   handler: async (ctx, args) => {
     const user = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .withIndex("by_email", (q) => q.eq("email", args.email))
       .first();
 
     if (!user) throw new Error("User not found");
@@ -105,13 +93,13 @@ export const addXP = mutation({
 // Update streak
 export const updateStreak = mutation({
   args: {
-    clerkId: v.string(),
+    email: v.string(),
     streak: v.number(),
   },
   handler: async (ctx, args) => {
     const user = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .withIndex("by_email", (q) => q.eq("email", args.email))
       .first();
 
     if (!user) throw new Error("User not found");
@@ -131,7 +119,7 @@ export const updateStreak = mutation({
 // Update user profile
 export const updateProfile = mutation({
   args: {
-    clerkId: v.string(),
+    email: v.string(),
     updates: v.object({
       name: v.optional(v.string()),
       group_id: v.optional(v.string()),
@@ -141,7 +129,7 @@ export const updateProfile = mutation({
   handler: async (ctx, args) => {
     const user = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .withIndex("by_email", (q) => q.eq("email", args.email))
       .first();
 
     if (!user) throw new Error("User not found");
@@ -179,51 +167,5 @@ export const getSquadMembers = query({
       .collect();
 
     return members.sort((a, b) => b.total_xp - a.total_xp);
-  },
-});
-
-// Complete onboarding - create user with squad
-export const completeOnboarding = mutation({
-  args: {
-    clerkId: v.string(),
-    email: v.string(),
-    name: v.string(),
-    squadCode: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const now = Date.now();
-    const upperCode = args.squadCode?.toUpperCase();
-    
-    // Check if user exists
-    const existing = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
-      .first();
-
-    if (existing) {
-      // Update existing user
-      await ctx.db.patch(existing._id, {
-        name: args.name,
-        email: args.email,
-        group_id: upperCode,
-        updatedAt: now,
-      });
-      return existing._id;
-    }
-
-    // Create new user
-    return await ctx.db.insert("users", {
-      clerkId: args.clerkId,
-      email: args.email,
-      name: args.name,
-      total_xp: 0,
-      streak: 0,
-      badges: [],
-      group_id: upperCode,
-      bestStreak: 0,
-      highestRank: 1,
-      createdAt: now,
-      updatedAt: now,
-    });
   },
 });

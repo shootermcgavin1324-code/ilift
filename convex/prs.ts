@@ -1,5 +1,6 @@
 // ============================================
 // PR FUNCTIONS - Personal Records
+// Using email for localStorage auth
 // ============================================
 
 import { query, mutation } from "./_generated/server";
@@ -7,11 +8,11 @@ import { v } from "convex/values";
 
 // Get all PRs for a user
 export const getUserPRs = query({
-  args: { userClerkId: v.string() },
+  args: { userEmail: v.string() },
   handler: async (ctx, args) => {
     const prs = await ctx.db
       .query("prs")
-      .withIndex("by_user_exercise", (q) => q.eq("userClerkId", args.userClerkId))
+      .withIndex("by_user_exercise", (q) => q.eq("userEmail", args.userEmail))
       .collect();
 
     // Convert to map
@@ -30,8 +31,7 @@ export const getUserPRs = query({
 // Save a PR (only if it's a new record)
 export const savePR = mutation({
   args: {
-    userClerkId: v.string(),
-    userId: v.id("users"),
+    userEmail: v.string(),
     exercise: v.string(),
     weight: v.number(),
   },
@@ -42,7 +42,7 @@ export const savePR = mutation({
     const existing = await ctx.db
       .query("prs")
       .withIndex("by_user_exercise", (q) => 
-        q.eq("userClerkId", args.userClerkId).eq("exercise", args.exercise)
+        q.eq("userEmail", args.userEmail).eq("exercise", args.exercise)
       )
       .first();
 
@@ -60,8 +60,7 @@ export const savePR = mutation({
     } else {
       // Create new PR
       await ctx.db.insert("prs", {
-        userClerkId: args.userClerkId,
-        userId: args.userId,
+        userEmail: args.userEmail,
         exercise: args.exercise,
         maxWeight: args.weight,
         date: today,
