@@ -190,4 +190,7 @@ export {
   setFitnessGoal,
   getExperience,
   setExperience,
+  getTotalWorkouts,
+  setTotalWorkouts,
+  incrementTotalWorkouts,
 } from './local';

@@ -22,6 +22,7 @@ const KEYS = {
   ONBOARDING: 'ilift_onboarding',
   FITNESS_GOAL: 'ilift_fitness_goal',
   EXPERIENCE: 'ilift_experience',
+  TOTAL_WORKOUTS: 'ilift_total_workouts',
 };
 
 // Get user from localStorage
@@ -39,12 +40,17 @@ export function getLocalUser(): User | null {
     badges: onboarding.badges || [],
     group_id: onboarding.groupCode || 'TEST',
     lastWorkoutDate: onboarding.lastWorkoutDate,
+    totalWorkouts: onboarding.totalWorkouts || 0,
     onboarding
   };
 }
 
 // Save user to localStorage
 export function saveLocalUser(user: User): void {
+  // Preserve existing totalWorkouts if not in user object
+  const existingData = localStorage.getItem(KEYS.USER_DATA);
+  const existing = existingData ? JSON.parse(existingData) : {};
+  
   localStorage.setItem(KEYS.EMAIL, user.email);
   localStorage.setItem(KEYS.USER_DATA, JSON.stringify({
     name: user.name,
@@ -53,6 +59,7 @@ export function saveLocalUser(user: User): void {
     streak: user.streak,
     badges: user.badges,
     lastWorkoutDate: user.lastWorkoutDate,
+    totalWorkouts: user.totalWorkouts ?? existing.totalWorkouts ?? 0,
     ...user.onboarding
   }));
 }
@@ -88,12 +95,11 @@ export function clearLocalData(): void {
   localStorage.removeItem(KEYS.WORKOUTS);
   localStorage.removeItem(KEYS.USER_ID);
   localStorage.removeItem(KEYS.PRS);
-  localStorage.removeItem(KEYS.BEST_STREAK);
-  localStorage.removeItem(KEYS.HIGHEST_RANK);
   localStorage.removeItem(KEYS.FAVORITES);
   localStorage.removeItem(KEYS.PENDING_EMAIL);
   localStorage.removeItem(KEYS.PENDING_CODE);
   localStorage.removeItem(KEYS.ONBOARDING);
+  // Keep streak, rank, and totalWorkouts - they persist across sessions
 }
 
 // PR type
@@ -211,4 +217,36 @@ export function getExperience(): string | null {
 
 export function setExperience(level: string): void {
   localStorage.setItem(KEYS.EXPERIENCE, level);
+}
+
+// Total workouts count (persists across sessions in user data)
+export function getTotalWorkouts(): number {
+  // First check user data (persistent)
+  const data = localStorage.getItem(KEYS.USER_DATA);
+  if (data) {
+    const parsed = JSON.parse(data);
+    if (parsed.totalWorkouts && parsed.totalWorkouts > 0) {
+      return parsed.totalWorkouts;
+    }
+  }
+  // Fallback to separate key (for backwards compatibility)
+  return parseInt(localStorage.getItem(KEYS.TOTAL_WORKOUTS) || '0');
+}
+
+export function setTotalWorkouts(count: number): void {
+  localStorage.setItem(KEYS.TOTAL_WORKOUTS, count.toString());
+  // Also save to user data for persistence
+  const data = localStorage.getItem(KEYS.USER_DATA);
+  if (data) {
+    const parsed = JSON.parse(data);
+    parsed.totalWorkouts = count;
+    localStorage.setItem(KEYS.USER_DATA, JSON.stringify(parsed));
+  }
+}
+
+export function incrementTotalWorkouts(): number {
+  const current = getTotalWorkouts();
+  const newCount = current + 1;
+  setTotalWorkouts(newCount);
+  return newCount;
 }

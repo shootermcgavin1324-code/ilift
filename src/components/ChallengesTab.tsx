@@ -69,9 +69,10 @@ function ChallengeCard({ challenge, progress, color, earned, remaining }: Challe
 interface ChallengesTabProps {
   user: User;
   workouts?: any[];
+  totalWorkouts?: number;
 }
 
-export default function ChallengesTab({ user, workouts = [] }: ChallengesTabProps) {
+export default function ChallengesTab({ user, workouts = [], totalWorkouts = 0 }: ChallengesTabProps) {
   const today = new Date().toISOString().split('T')[0];
   
   // Get today's date string
@@ -183,7 +184,7 @@ export default function ChallengesTab({ user, workouts = [] }: ChallengesTabProp
         </div>
         <div className="text-center">
           <Dumbbell className="w-6 h-6 text-blue-500 mx-auto mb-1" />
-          <p className="text-xl font-black">{workouts.length}</p>
+          <p className="text-xl font-black">{totalWorkouts}</p>
           <p className="text-xs text-gray-400">Workouts</p>
         </div>
       </div>

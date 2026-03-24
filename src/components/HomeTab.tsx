@@ -21,20 +21,21 @@ interface HomeTabProps {
   user: User;
   leaderboard: LeaderboardEntry[];
   currentLevel: number;
+  xpToNextLevel?: number; // Passed from levelInfo
   onLogWorkout: () => void;
   onViewProfile?: (user: any) => void;
 }
 
-function HomeTab({ user, leaderboard, currentLevel, onLogWorkout, onViewProfile }: HomeTabProps) {
+function HomeTab({ user, leaderboard, currentLevel, xpToNextLevel: propXpToNextLevel, onLogWorkout, onViewProfile }: HomeTabProps) {
   const userRank = leaderboard.findIndex((u: any) => u.id === user.id) + 1;
   const rankAhead = leaderboard[userRank - 2];
   
-  // Calculate XP progress
-  const currentLevelXP = (currentLevel - 1) * 500;
-  const nextLevelXP = currentLevel * 500;
+  // Calculate XP progress - use prop if available (from levelInfo), else calculate
+  const xpToNext = propXpToNextLevel ?? 500; // Default to 500 if not provided
+  const currentLevelXP = (user.total_xp || 0) - ((user.total_xp || 0) % xpToNext);
   const xpIntoLevel = (user.total_xp || 0) - currentLevelXP;
-  const xpToNextLevel = nextLevelXP - (user.total_xp || 0);
-  const progressPercent = Math.min(100, (xpIntoLevel / 500) * 100);
+  const xpToNextLevel = propXpToNextLevel ?? (xpToNext - xpIntoLevel);
+  const progressPercent = Math.min(100, (xpIntoLevel / xpToNext) * 100);
 
   return (
     <motion.div 
@@ -51,7 +52,7 @@ function HomeTab({ user, leaderboard, currentLevel, onLogWorkout, onViewProfile 
       >
         <XPProgressBar 
           current={user.total_xp || 0} 
-          nextLevel={nextLevelXP}
+          nextLevel={currentLevelXP + xpToNext}
           label={`Level ${currentLevel}`}
         />
         <p className="text-gray-500 text-xs mt-2">

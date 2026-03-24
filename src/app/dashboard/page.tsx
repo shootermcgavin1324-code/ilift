@@ -23,7 +23,7 @@ import { calculateScore, getExerciseType, calculateLevelInfo, performPrestige, g
 import { checkBadges } from '@/lib/badges';
 import { getPlayerTitle } from '@/lib/player';
 import { ACHIEVEMENTS } from '@/lib/achievements';
-import { getPRs, savePR, getBestStreak, setBestStreak, getHighestRank, setHighestRank, uploadVideo } from '@/lib/storage';
+import { getPRs, savePR, getBestStreak, setBestStreak, getHighestRank, setHighestRank, uploadVideo, getTotalWorkouts, incrementTotalWorkouts } from '@/lib/storage';
 
 // Loading fallback for lazy components
 function TabLoader() {
@@ -220,8 +220,8 @@ export default function Dashboard() {
     // Add XP to the updated user
     updatedUser.total_xp = newXP;
     
-    // Check badges
-    const totalWorkouts = workouts.length + 1;
+    // Check badges - use persistent total workouts count
+    const totalWorkouts = incrementTotalWorkouts();
     const { newlyEarned } = checkBadges(
       { total_xp: newXP, streak: updatedUser.streak, badges: currentUser.badges || [] },
       totalWorkouts
@@ -380,6 +380,7 @@ export default function Dashboard() {
           user={user} 
           leaderboard={leaderboard} 
           currentLevel={levelInfo.level}
+          xpToNextLevel={levelInfo.xpToNextLevel}
           onLogWorkout={() => setActiveTab('log')}
           onViewProfile={(profileUser) => setSelectedProfile(profileUser)}
         />
@@ -414,13 +415,13 @@ export default function Dashboard() {
       
       {activeTab === 'challenges' && (
         <Suspense fallback={<TabLoader />}>
-          <ChallengesTab user={user} workouts={workouts} />
+          <ChallengesTab user={user} workouts={workouts} totalWorkouts={getTotalWorkouts()} />
         </Suspense>
       )}
 
       {activeTab === 'history' && (
         <Suspense fallback={<TabLoader />}>
-          <HistoryTab workouts={workouts} />
+          <HistoryTab workouts={workouts} totalWorkouts={getTotalWorkouts()} />
         </Suspense>
       )}
 
@@ -581,7 +582,7 @@ export default function Dashboard() {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div className="bg-gray-900 rounded-xl p-4 text-center border border-gray-800">
               <Zap size={24} className="mx-auto text-yellow-400 mb-2" />
               <p className="text-2xl font-black text-white">{(user.total_xp || 0).toLocaleString()}</p>
@@ -589,18 +590,13 @@ export default function Dashboard() {
             </div>
             <div className="bg-gray-900 rounded-xl p-4 text-center border border-gray-800">
               <Dumbbell size={24} className="mx-auto text-blue-400 mb-2" />
-              <p className="text-2xl font-black text-white">{workouts.length}</p>
+              <p className="text-2xl font-black text-white">{getTotalWorkouts()}</p>
               <p className="text-gray-500 text-xs uppercase tracking-wider">Workouts</p>
             </div>
             <div className="bg-gray-900 rounded-xl p-4 text-center border border-gray-800">
               <Flame size={24} className="mx-auto text-orange-400 mb-2" />
               <p className="text-2xl font-black text-white">{bestStreak || user.streak || 0}</p>
               <p className="text-gray-500 text-xs uppercase tracking-wider">Best Streak</p>
-            </div>
-            <div className="bg-gray-900 rounded-xl p-4 text-center border border-gray-800">
-              <Trophy size={24} className="mx-auto text-yellow-400 mb-2" />
-              <p className="text-2xl font-black text-white">{highestRank || levelInfo.level}</p>
-              <p className="text-gray-500 text-xs uppercase tracking-wider">Highest Rank</p>
             </div>
           </div>
           

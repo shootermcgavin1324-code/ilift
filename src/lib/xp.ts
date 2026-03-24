@@ -13,10 +13,12 @@ export type ExerciseType = 'strength' | 'cardio' | 'calisthenics';
 export const MAX_LEVEL = 55;
 export const PRESTIGE_BONUS_MULTIPLIER = 1.10; // +10% XP boost after prestige
 
-// XP required for each level (1-55)
-// Simplified: 100 XP per level = 5,500 total to prestige (~4 months)
+// XP required per level (500 matches HomeTab/PostWorkoutModal)
+export const XP_PER_LEVEL = 500;
+
+// Get XP required for a specific level
 export function getXPForLevel(level: number): number {
-  return 100;
+  return XP_PER_LEVEL;
 }
 
 // Calculate total XP needed to reach a specific level

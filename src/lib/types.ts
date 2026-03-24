@@ -11,6 +11,7 @@ export interface User {
   badges: string[];
   group_id: string;
   lastWorkoutDate?: string; // YYYY-MM-DD format
+  totalWorkouts?: number; // Persistent workout count
   onboarding?: Record<string, any>;
 }
 

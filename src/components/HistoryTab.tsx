@@ -15,9 +15,10 @@ interface Workout {
 
 interface HistoryTabProps {
   workouts: Workout[];
+  totalWorkouts?: number;
 }
 
-export default function HistoryTab({ workouts }: HistoryTabProps) {
+export default function HistoryTab({ workouts, totalWorkouts = 0 }: HistoryTabProps) {
   const parentRef = useRef<HTMLDivElement>(null);
 
   const virtualizer = useVirtualizer({

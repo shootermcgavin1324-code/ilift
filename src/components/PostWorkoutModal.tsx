@@ -11,11 +11,12 @@ interface PostWorkoutModalProps {
   showXPGain: number | null;
   user: any;
   currentLevel: number;
+  xpToNextLevel?: number;
   onLogAnother: () => void;
   onFinish: () => void;
 }
 
-export default function PostWorkoutModal({ showXPGain, user, currentLevel, onLogAnother, onFinish }: PostWorkoutModalProps) {
+export default function PostWorkoutModal({ showXPGain, user, currentLevel, xpToNextLevel: propXpToNextLevel, onLogAnother, onFinish }: PostWorkoutModalProps) {
   const [xpCount, setXpCount] = useState(0);
   const [shareToast, setShareToast] = useState<string | null>(null);
 
@@ -64,8 +65,9 @@ export default function PostWorkoutModal({ showXPGain, user, currentLevel, onLog
 
   if (!showXPGain) return null;
   
-  const progressPercent = ((user.total_xp || 0) % 500) / 500 * 100;
-  const nextLevelXP = currentLevel * 500;
+  const xpToNext = propXpToNextLevel ?? 500;
+  const progressPercent = ((user.total_xp || 0) % xpToNext) / xpToNext * 100;
+  const nextLevelXP = (user.total_xp || 0) + xpToNext;
   
   return (
     <motion.div 
