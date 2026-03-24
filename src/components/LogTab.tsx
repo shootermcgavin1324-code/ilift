@@ -289,7 +289,7 @@ function LogTab({
         </div>
         <div className="flex flex-wrap gap-2">
           <StyledButton
-            onPress={() => ['Bench Press', 'Squat', 'Pull Up'].forEach((ex, i) => setTimeout(() => quickLog(ex), i * 100))}
+            onPress={() => ['Dumbbell Flat Bench Press', 'Goblet Squat', 'Pull-Up'].forEach((ex, i) => setTimeout(() => quickLog(ex), i * 100))}
             style={styles.buttonBase}
             activeStyle={styles.buttonSecondary}
             pressedStyle={{ opacity: 0.8, transform: 'scale(0.98)' }}
@@ -298,7 +298,7 @@ function LogTab({
             Push Day +
           </StyledButton>
           <StyledButton
-            onPress={() => ['Deadlift', 'Barbell Row', 'Pull Up'].forEach((ex, i) => setTimeout(() => quickLog(ex), i * 100))}
+            onPress={() => ['TRX Row', 'Single Arm Dumbbell Row', 'Pull-Up'].forEach((ex, i) => setTimeout(() => quickLog(ex), i * 100))}
             style={styles.buttonBase}
             activeStyle={styles.buttonSuccess}
             pressedStyle={{ opacity: 0.8, transform: 'scale(0.98)' }}
@@ -307,7 +307,7 @@ function LogTab({
             Pull Day +
           </StyledButton>
           <StyledButton
-            onPress={() => ['Squat', 'Leg Press', 'Calf Raise'].forEach((ex, i) => setTimeout(() => quickLog(ex), i * 100))}
+            onPress={() => ['Goblet Squat', 'Split Squat', 'Walking Lunge'].forEach((ex, i) => setTimeout(() => quickLog(ex), i * 100))}
             style={styles.buttonBase}
             activeStyle={styles.buttonWarning}
             pressedStyle={{ opacity: 0.8, transform: 'scale(0.98)' }}
@@ -356,7 +356,7 @@ function LogTab({
             const isActive = workoutSession.some(w => w.name === ex.name);
             return (
               <StyledButton
-                key={ex.name}
+                key={`${ex.name}-${ex.category}`}
                 onPress={() => quickLog(ex.name)}
                 style={isActive ? styles.exerciseCardActive : styles.exerciseCard}
                 activeStyle={!isActive ? { borderColor: 'rgba(234, 179, 8, 0.5)' } : {}}
