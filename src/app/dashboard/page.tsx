@@ -98,18 +98,17 @@ export default function Dashboard() {
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load profile photo from localStorage
+  // Load profile photo from localStorage (use email as stable key)
   useEffect(() => {
-    if (user?.id) {
-      const saved = localStorage.getItem(`ilift_profile_photo_${user.id}`);
-      if (saved) setProfilePhoto(saved);
-    }
-  }, [user?.id]);
+    const userKey = user?.email || user?.id || 'guest';
+    const saved = localStorage.getItem(`ilift_profile_photo_${userKey}`);
+    if (saved) setProfilePhoto(saved);
+  }, [user?.email, user?.id]);
 
   // Handle photo upload
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user?.id) return;
+    if (!file) return;
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -126,7 +125,8 @@ export default function Dashboard() {
     const reader = new FileReader();
     reader.onload = (event) => {
       const base64 = event.target?.result as string;
-      localStorage.setItem(`ilift_profile_photo_${user.id}`, base64);
+      const userKey = user?.email || user?.id || 'guest';
+      localStorage.setItem(`ilift_profile_photo_${userKey}`, base64);
       setProfilePhoto(base64);
       showToast('Profile photo updated!', 'success');
     };
