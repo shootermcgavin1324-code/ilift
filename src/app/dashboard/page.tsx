@@ -21,8 +21,8 @@ import { useUserStore, useWorkoutStore, useUIStore } from '@/lib/store';
 // Lib functions
 import { calculateScore, getExerciseType, calculateLevelInfo, performPrestige, getPrestigeStars, formatLevelDisplay, applyPrestigeBonus, processWorkout, getTotalXPForLevel, MAX_LEVEL } from '@/lib/data';
 import { checkBadges } from '@/lib/badges';
+import { getAchievementsByCategory, ACHIEVEMENTS } from '@/lib/achievements';
 import { getPlayerTitle } from '@/lib/player';
-import { ACHIEVEMENTS } from '@/lib/achievements';
 import { getPRs, savePR, getBestStreak, setBestStreak, getHighestRank, setHighestRank, uploadVideo, getTotalWorkouts, incrementTotalWorkouts } from '@/lib/storage';
 
 // Loading fallback for lazy components
@@ -222,9 +222,16 @@ export default function Dashboard() {
     
     // Check badges - use persistent total workouts count
     const totalWorkouts = incrementTotalWorkouts();
+    
     const { newlyEarned } = checkBadges(
       { total_xp: newXP, streak: updatedUser.streak, badges: currentUser.badges || [] },
-      totalWorkouts
+      totalWorkouts,
+      false,
+      {
+        xpEarnedToday: bonusXP,
+        workoutsToday: 1,
+        workoutTypesToday: [currentExercise],
+      }
     );
     
     // Update badges
@@ -415,7 +422,7 @@ export default function Dashboard() {
       
       {activeTab === 'challenges' && (
         <Suspense fallback={<TabLoader />}>
-          <ChallengesTab user={user} workouts={workouts} totalWorkouts={getTotalWorkouts()} />
+          <ChallengesTab user={user} />
         </Suspense>
       )}
 
@@ -426,10 +433,11 @@ export default function Dashboard() {
       )}
 
       {activeTab === 'awards' && (
-        <div className="p-4 space-y-3">
+        <div className="p-4 space-y-4">
+          {/* Progress Header */}
           <div className="bg-gray-950 rounded-xl p-4 flex justify-between items-center">
             <div>
-              <p className="text-gray-400">Badges</p>
+              <p className="text-gray-400">Achievements</p>
               <p className="text-3xl font-black text-yellow-500">{user.badges?.length || 0} / {ACHIEVEMENTS.length}</p>
             </div>
           </div>
@@ -493,21 +501,93 @@ export default function Dashboard() {
             )}
           </div>
 
-          {ACHIEVEMENTS.map(ach => {
-            const earned = user.badges?.includes(ach.id);
-            return (
-              <div key={ach.id} className={`p-4 rounded-xl flex items-center gap-4 ${earned ? 'bg-gray-950 border-yellow-400/30' : 'bg-gray-950/50 opacity-50'}`}>
-                <div className={earned ? 'text-yellow-500' : 'text-gray-600'}>
-                  <Star size={28} />
-                </div>
-                <div className="flex-1">
-                  <p className="font-bold">{ach.name}</p>
-                  <p className="text-gray-400 text-sm">{ach.desc}</p>
-                </div>
-                <span className="text-yellow-500 font-bold">+{ach.points}</span>
-              </div>
-            );
-          })}
+          {/* ⚡ DAILY */}
+          <div>
+            <p className="text-yellow-400 font-bold text-sm mb-2">⚡ DAILY</p>
+            <div className="space-y-2">
+              {getAchievementsByCategory('daily').map(ach => {
+                const earned = user.badges?.includes(ach.id);
+                return (
+                  <div key={ach.id} className={`p-3 rounded-xl flex items-center gap-3 ${earned ? 'bg-gray-950 border-yellow-400/30 border' : 'bg-gray-950/50 opacity-40'}`}>
+                    <div className={earned ? 'text-yellow-500' : 'text-gray-600'}>
+                      <Star size={20} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-sm">{ach.name}</p>
+                      <p className="text-gray-500 text-xs">{ach.desc}</p>
+                    </div>
+                    <span className="text-yellow-500 font-bold text-sm">+{ach.points}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 🏆 WEEKLY */}
+          <div>
+            <p className="text-blue-400 font-bold text-sm mb-2">🏆 WEEKLY</p>
+            <div className="space-y-2">
+              {getAchievementsByCategory('weekly').map(ach => {
+                const earned = user.badges?.includes(ach.id);
+                return (
+                  <div key={ach.id} className={`p-3 rounded-xl flex items-center gap-3 ${earned ? 'bg-gray-950 border-blue-400/30 border' : 'bg-gray-950/50 opacity-40'}`}>
+                    <div className={earned ? 'text-blue-400' : 'text-gray-600'}>
+                      <Star size={20} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-sm">{ach.name}</p>
+                      <p className="text-gray-500 text-xs">{ach.desc}</p>
+                    </div>
+                    <span className="text-blue-400 font-bold text-sm">+{ach.points}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 🧠 ALL-TIME */}
+          <div>
+            <p className="text-purple-400 font-bold text-sm mb-2">🧠 ALL-TIME</p>
+            <div className="space-y-2">
+              {getAchievementsByCategory('alltime').map(ach => {
+                const earned = user.badges?.includes(ach.id);
+                return (
+                  <div key={ach.id} className={`p-3 rounded-xl flex items-center gap-3 ${earned ? 'bg-gray-950 border-purple-400/30 border' : 'bg-gray-950/50 opacity-40'}`}>
+                    <div className={earned ? 'text-purple-400' : 'text-gray-600'}>
+                      <Star size={20} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-sm">{ach.name}</p>
+                      <p className="text-gray-500 text-xs">{ach.desc}</p>
+                    </div>
+                    <span className="text-purple-400 font-bold text-sm">+{ach.points}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 🎥 SPECIAL WEEKLY */}
+          <div>
+            <p className="text-red-400 font-bold text-sm mb-2">🎥 SPECIAL WEEKLY</p>
+            <div className="space-y-2">
+              {getAchievementsByCategory('special').map(ach => {
+                const earned = user.badges?.includes(ach.id);
+                return (
+                  <div key={ach.id} className={`p-3 rounded-xl flex items-center gap-3 ${earned ? 'bg-gray-950 border-red-400/30 border' : 'bg-gray-950/50 opacity-40'}`}>
+                    <div className={earned ? 'text-red-400' : 'text-gray-600'}>
+                      <Star size={20} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-sm">{ach.name}</p>
+                      <p className="text-gray-500 text-xs">{ach.desc}</p>
+                    </div>
+                    <span className="text-red-400 font-bold text-sm">+{ach.points}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
 
