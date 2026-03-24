@@ -422,7 +422,10 @@ export default function Dashboard() {
       
       {activeTab === 'challenges' && (
         <Suspense fallback={<TabLoader />}>
-          <ChallengesTab user={user} />
+          <ChallengesTab user={user} onUploadVideo={() => {
+              setActiveTab('awards');
+              showToast('Upload your workout video in the Awards tab!', 'info');
+            }} />
         </Suspense>
       )}
 

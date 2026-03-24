@@ -9,9 +9,10 @@ import { getAchievementsByCategory } from '@/lib/achievements';
 
 interface AchievementsTabProps {
   user: any;
+  onUploadVideo?: () => void;
 }
 
-export default function AchievementsTab({ user }: AchievementsTabProps) {
+export default function AchievementsTab({ user, onUploadVideo }: AchievementsTabProps) {
   const userBadges = user?.badges || [];
   
   // Get achievements by category
@@ -20,11 +21,52 @@ export default function AchievementsTab({ user }: AchievementsTabProps) {
   const alltimeAchievements = getAchievementsByCategory('alltime');
   const specialAchievements = getAchievementsByCategory('special');
   
+  // Featured special achievement (rotates weekly based on week number)
+  const featuredIndex = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000)) % specialAchievements.length;
+  const featuredAchievement = specialAchievements[featuredIndex];
+  const featuredEarned = userBadges.includes(featuredAchievement?.id);
+  
   const earnedCount = userBadges.length;
   const totalCount = dailyAchievements.length + weeklyAchievements.length + alltimeAchievements.length + specialAchievements.length;
 
   return (
     <div className="p-4 space-y-6 overflow-y-auto pb-24">
+      {/* Featured Special Achievement */}
+      {featuredAchievement && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`relative overflow-hidden rounded-2xl p-6 ${featuredEarned ? 'bg-gradient-to-br from-yellow-900/50 to-orange-900/50 border-2 border-yellow-500/50' : 'bg-gradient-to-br from-red-900/30 to-purple-900/30 border-2 border-red-500/30'}`}
+        >
+          <div className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+            WEEKLY CHALLENGE
+          </div>
+          <div className="flex items-start gap-4">
+            <div className={`p-4 rounded-xl ${featuredEarned ? 'bg-yellow-500/20' : 'bg-red-500/20'}`}>
+              <Video size={32} className={featuredEarned ? 'text-yellow-400' : 'text-red-400'} />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-black text-white mb-1">{featuredAchievement.name}</h3>
+              <p className="text-gray-400 text-sm mb-3">{featuredAchievement.desc}</p>
+              <div className="flex items-center justify-between">
+                <span className={`text-2xl font-black ${featuredEarned ? 'text-yellow-400' : 'text-red-400'}`}>
+                  {featuredEarned ? '✓ COMPLETED' : `+${featuredAchievement.points} PTS`}
+                </span>
+                {!featuredEarned && (
+                  <button 
+                    onClick={onUploadVideo}
+                    className="px-4 py-2 bg-red-500 hover:bg-red-400 text-white font-bold rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <Video size={16} />
+                    Submit Proof
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Header Stats */}
       <div className="bg-gray-950 rounded-xl p-4 flex justify-between items-center">
         <div>
