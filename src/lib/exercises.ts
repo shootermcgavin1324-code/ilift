@@ -1,113 +1,124 @@
-// Exercise data - extracted for reusability
-// Used by LogTab, workout tracking, and analytics
+// ============================================
+// EXERCISE DATABASE - Clean, standardized, deduplicated
+// ============================================
 
 export interface Exercise {
   name: string;
-  category?: string;
+  category: 'Push' | 'Pull' | 'Legs' | 'Core' | 'Cardio' | 'Calisthenics';
 }
 
 // Categories for filtering
-export const CATEGORIES = ['All', 'Push', 'Pull', 'Legs', 'Core', 'Calisthenics'] as const;
+export const CATEGORIES = ['All', 'Push', 'Pull', 'Legs', 'Core', 'Cardio', 'Calisthenics'] as const;
 export type Category = typeof CATEGORIES[number];
 
-// Standardized exercise library
+// Standardized exercise library - deduplicated
 export const EXERCISES: Exercise[] = [
   // ============ PUSH ============
-  { name: 'DB Flat Bench Press', category: 'Push' },
-  { name: 'Incline DB Chest Press', category: 'Push' },
-  { name: 'DB Military Press', category: 'Push' },
-  { name: 'Standing DB Shoulder Press', category: 'Push' },
-  { name: 'DB Lateral Raise', category: 'Push' },
-  { name: 'Seated DB Lateral Raise', category: 'Push' },
-  { name: 'Cable Lateral Raise', category: 'Push' },
-  { name: 'Cross-Body Triceps Extension', category: 'Push' },
+  { name: 'Barbell Bench Press', category: 'Push' },
+  { name: 'Incline Dumbbell Press', category: 'Push' },
+  { name: 'Flat Dumbbell Bench Press', category: 'Push' },
+  { name: 'Alternating Incline Dumbbell Press', category: 'Push' },
+  { name: 'Dumbbell Overhead Press', category: 'Push' },
+  { name: 'Military Press', category: 'Push' },
+  { name: 'Push-Ups', category: 'Push' },
+  { name: 'Cable Tricep Extensions', category: 'Push' },
+  { name: 'Dumbbell Front Raises', category: 'Push' },
+  { name: 'Dumbbell Lateral Raises', category: 'Push' },
 
   // ============ PULL ============
-  { name: 'TRX Row', category: 'Pull' },
-  { name: 'Single Arm DB Row', category: 'Pull' },
-  { name: 'Chin-Up', category: 'Pull' },
-  { name: 'Pull-Up', category: 'Pull' },
-  { name: 'Inverted Row', category: 'Pull' },
-  { name: 'Face Pull', category: 'Pull' },
-  { name: 'Rear Delt Pulldown', category: 'Pull' },
-  { name: 'Incline Bench Curl', category: 'Pull' },
-  { name: 'DB Hammer Curl', category: 'Pull' },
-  { name: 'Bicep Curl', category: 'Pull' },
+  { name: 'Pull-Ups', category: 'Pull' },
+  { name: 'Lat Pulldown (Underhand / Close Grip)', category: 'Pull' },
+  { name: 'Lat Pulldown (Wide Grip)', category: 'Pull' },
+  { name: 'Barbell Rows', category: 'Pull' },
+  { name: 'Alternating Cable Rows', category: 'Pull' },
+  { name: 'Dumbbell Rows', category: 'Pull' },
+  { name: 'Single Arm Dumbbell Row', category: 'Pull' },
+  { name: 'Chest Supported Dumbbell Rows', category: 'Pull' },
+  { name: 'Low Dumbbell Rows', category: 'Pull' },
+  { name: 'TRX Rows', category: 'Pull' },
+  { name: 'Dumbbell Renegade Rows', category: 'Pull' },
+  { name: 'Cable Curls', category: 'Pull' },
+  { name: 'Alternating Dumbbell Bicep Curls', category: 'Pull' },
+  { name: 'Dumbbell Hammer Curls', category: 'Pull' },
 
   // ============ LEGS ============
-  { name: 'Single-Leg Romanian Deadlift', category: 'Legs' },
-  { name: 'Goblet Squat', category: 'Legs' },
-  { name: 'Split Squat', category: 'Legs' },
-  { name: 'Walking Lunge', category: 'Legs' },
+  { name: 'Barbell Back Squat', category: 'Legs' },
+  { name: 'Front Squat', category: 'Legs' },
+  { name: 'Paused Squat', category: 'Legs' },
+  { name: 'Barbell Deadlift', category: 'Legs' },
+  { name: 'Deadlift (variation)', category: 'Legs' },
+  { name: 'Bulgarian Split Squat', category: 'Legs' },
+  { name: 'Dumbbell Split Squats', category: 'Legs' },
+  { name: 'Dumbbell Reverse Lunges', category: 'Legs' },
+  { name: 'Dumbbell Forward Walking Lunges', category: 'Legs' },
+  { name: 'Lateral Lunges', category: 'Legs' },
+  { name: 'Glute Bridges', category: 'Legs' },
+  { name: 'Dumbbell Romanian Deadlift', category: 'Legs' },
+  { name: 'Heavy Dumbbell Kickstand RDL', category: 'Legs' },
+  { name: 'Barbell Good Mornings', category: 'Legs' },
+  { name: 'Leg Curl Machine', category: 'Legs' },
+  { name: 'Leg Extension Machine', category: 'Legs' },
+  { name: 'Bodyweight Squats', category: 'Legs' },
 
   // ============ CORE ============
-  { name: 'Standing Ab Crunch', category: 'Core' },
-  { name: 'Hanging Leg Raise', category: 'Core' },
-  { name: 'Copenhagen Plank', category: 'Core' },
+  { name: 'Ab Roller', category: 'Core' },
+  { name: 'Hanging Leg Lifts', category: 'Core' },
+  { name: 'Hanging Crunches', category: 'Core' },
+  { name: 'GHR Crunches', category: 'Core' },
+  { name: 'Beast Hold', category: 'Core' },
+  { name: 'Alt Toe Touch Crunch', category: 'Core' },
+  { name: 'Core Transitions', category: 'Core' },
+  { name: 'Hamstring Iso Holds', category: 'Core' },
+
+  // ============ CARDIO ============
+  { name: 'Rower', category: 'Cardio' },
+  { name: 'Bike', category: 'Cardio' },
+  { name: 'Running', category: 'Cardio' },
 
   // ============ CALISTHENICS ============
-  { name: 'Push-Up', category: 'Calisthenics' },
-  { name: 'Deficit Push-Up', category: 'Calisthenics' },
-  { name: 'Chin-Up', category: 'Calisthenics' },
-  { name: 'Pull-Up', category: 'Calisthenics' },
-  { name: 'Inverted Row', category: 'Calisthenics' },
-  { name: 'Hanging Leg Raise', category: 'Calisthenics' },
+  { name: 'Dips', category: 'Calisthenics' },
+  { name: 'Muscle-Ups', category: 'Calisthenics' },
+  { name: 'Pistol Squats', category: 'Calisthenics' },
+  { name: 'Burpees', category: 'Calisthenics' },
+  { name: 'Mountain Climbers', category: 'Calisthenics' },
+  { name: 'Plank', category: 'Calisthenics' },
 ];
 
 // Quick select exercises (most common for fast logging)
 export const QUICK_EXERCISES: Exercise[] = [
   // Push
-  { name: 'DB Flat Bench Press', category: 'Push' },
-  { name: 'Incline DB Chest Press', category: 'Push' },
-  { name: 'DB Military Press', category: 'Push' },
-  { name: 'DB Lateral Raise', category: 'Push' },
-  { name: 'Cross-Body Triceps Extension', category: 'Push' },
+  { name: 'Barbell Bench Press', category: 'Push' },
+  { name: 'Incline Dumbbell Press', category: 'Push' },
+  { name: 'Push-Ups', category: 'Push' },
+  { name: 'Dumbbell Lateral Raises', category: 'Push' },
   // Pull
-  { name: 'TRX Row', category: 'Pull' },
-  { name: 'Single Arm DB Row', category: 'Pull' },
-  { name: 'Chin-Up', category: 'Pull' },
-  { name: 'Pull-Up', category: 'Pull' },
-  { name: 'Face Pull', category: 'Pull' },
-  { name: 'Bicep Curl', category: 'Pull' },
+  { name: 'Pull-Ups', category: 'Pull' },
+  { name: 'Barbell Rows', category: 'Pull' },
+  { name: 'Dumbbell Rows', category: 'Pull' },
+  { name: 'Dumbbell Hammer Curls', category: 'Pull' },
   // Legs
-  { name: 'Goblet Squat', category: 'Legs' },
-  { name: 'Split Squat', category: 'Legs' },
-  { name: 'Walking Lunge', category: 'Legs' },
-  { name: 'Single-Leg Romanian Deadlift', category: 'Legs' },
+  { name: 'Barbell Back Squat', category: 'Legs' },
+  { name: 'Barbell Deadlift', category: 'Legs' },
+  { name: 'Bulgarian Split Squat', category: 'Legs' },
+  { name: 'Dumbbell Romanian Deadlift', category: 'Legs' },
   // Core
-  { name: 'Standing Ab Crunch', category: 'Core' },
-  { name: 'Hanging Leg Raise', category: 'Core' },
-  { name: 'Copenhagen Plank', category: 'Core' },
-  // Calisthenics
-  { name: 'Push-Up', category: 'Calisthenics' },
-  { name: 'Pull-Up', category: 'Calisthenics' },
-  { name: 'Inverted Row', category: 'Calisthenics' },
+  { name: 'Ab Roller', category: 'Core' },
+  { name: 'Hanging Leg Lifts', category: 'Core' },
+  // Cardio
+  { name: 'Rower', category: 'Cardio' },
+  { name: 'Bike', category: 'Cardio' },
+  { name: 'Running', category: 'Cardio' },
+
+  // ============ CALISTHENICS ============
+  { name: 'Dips', category: 'Calisthenics' },
+  { name: 'Muscle-Ups', category: 'Calisthenics' },
+  { name: 'Pistol Squats', category: 'Calisthenics' },
+  { name: 'Burpees', category: 'Calisthenics' },
+  { name: 'Mountain Climbers', category: 'Calisthenics' },
+  { name: 'Plank', category: 'Calisthenics' },
 ];
 
-// Legacy exercises (backwards compatibility)
-export const LEGACY_EXERCISES: Exercise[] = [
-  { name: 'Bench Press', category: 'Chest' },
-  { name: 'Squat', category: 'Legs' },
-  { name: 'Deadlift', category: 'Back' },
-  { name: 'Pull-Up', category: 'Back' },
-  { name: 'Dips', category: 'Chest' },
-  { name: 'Overhead Press', category: 'Shoulders' },
-  { name: 'Barbell Row', category: 'Back' },
-  { name: 'Leg Press', category: 'Legs' },
-  { name: 'Romanian Deadlift', category: 'Legs' },
-  { name: 'Lat Pulldown', category: 'Back' },
-  { name: 'Cable Fly', category: 'Chest' },
-  { name: 'Leg Curl', category: 'Legs' },
-  { name: 'Calf Raise', category: 'Legs' },
-  { name: 'Face Pull', category: 'Shoulders' },
-  { name: 'Bicep Curl', category: 'Arms' },
-  { name: 'Tricep Pushdown', category: 'Arms' },
-  { name: 'Lateral Raise', category: 'Shoulders' },
-  { name: 'Cable Row', category: 'Back' },
-  { name: 'Leg Extension', category: 'Legs' },
-  { name: 'Hip Thrust', category: 'Legs' },
-];
-
+// Helper functions
 export function getExerciseNames(): string[] {
   return EXERCISES.map(e => e.name);
 }
@@ -120,4 +131,16 @@ export function searchExercises(query: string): Exercise[] {
 export function getExercisesByCategory(category: string): Exercise[] {
   if (category === 'All') return EXERCISES;
   return EXERCISES.filter(e => e.category === category);
+}
+
+export function getCategoryColor(category: string): string {
+  switch (category) {
+    case 'Push': return 'text-blue-400';
+    case 'Pull': return 'text-green-400';
+    case 'Legs': return 'text-orange-400';
+    case 'Core': return 'text-purple-400';
+    case 'Cardio': return 'text-red-400';
+    case 'Calisthenics': return 'text-yellow-400';
+    default: return 'text-gray-400';
+  }
 }

@@ -4,7 +4,7 @@
 
 import { useState, useCallback, memo } from 'react';
 import type { SetData } from '@/lib/types';
-import { CATEGORIES, QUICK_EXERCISES, getExercisesByCategory } from '@/lib/exercises';
+import { CATEGORIES, EXERCISES, QUICK_EXERCISES, getExercisesByCategory } from '@/lib/exercises';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Shared styles for consistency - extracted from Tailwind for maintainability
@@ -151,6 +151,21 @@ function StyledButton({
   );
 }
 
+// Helper to get exercise category from exercise name
+function getExerciseCategory(exerciseName: string): string {
+  // Try exact match first
+  let exercise = EXERCISES.find(e => e.name === exerciseName);
+  // Try case-insensitive match
+  if (!exercise) {
+    exercise = EXERCISES.find(e => e.name.toLowerCase() === exerciseName.toLowerCase());
+  }
+  // Try partial match
+  if (!exercise) {
+    exercise = EXERCISES.find(e => exerciseName.toLowerCase().includes(e.name.toLowerCase()));
+  }
+  return exercise?.category || 'Strength'; // Default to Strength if not found
+}
+
 function LogTab({
   currentExercise,
   setCurrentExercise,
@@ -169,15 +184,43 @@ function LogTab({
 }: LogTabProps) {
   const [exerciseSearch, setExerciseSearch] = useState('');
   const [category, setCategory] = useState('All');
+  
+  // Get current exercise category for conditional input rendering
+  const currentExerciseCategory = currentExercise ? getExerciseCategory(currentExercise) : null;
+  
+  // Determine if exercise is strength (Push/Pull/Legs)
+  const isStrength = currentExerciseCategory && ['Push', 'Pull', 'Legs'].includes(currentExerciseCategory);
+  const isCardio = currentExerciseCategory === 'Cardio';
+  const isCalisthenics = currentExerciseCategory === 'Calisthenics';
 
   const addToWorkout = (exerciseName: string) => {
+    const category = getExerciseCategory(exerciseName);
+    let defaultSets;
+    
+    if (category === 'Cardio') {
+      defaultSets = [
+        { weight: 1.0, reps: 0, rpe: 7, done: false },
+        { weight: 1.0, reps: 0, rpe: 7, done: false },
+        { weight: 1.0, reps: 0, rpe: 7, done: false },
+      ];
+    } else if (category === 'Calisthenics') {
+      defaultSets = [
+        { weight: 0, reps: 10, rpe: 7, done: false },
+        { weight: 0, reps: 10, rpe: 7, done: false },
+        { weight: 0, reps: 10, rpe: 7, done: false },
+      ];
+    } else {
+      // Push, Pull, Legs, Core - strength defaults
+      defaultSets = [
+        { weight: 135, reps: 10, rpe: 7, done: false },
+        { weight: 135, reps: 10, rpe: 7, done: false },
+        { weight: 135, reps: 10, rpe: 7, done: false },
+      ];
+    }
+    
     const newExercise = {
       name: exerciseName,
-      sets: [
-        { weight: 135, reps: 10, rpe: 7, done: false },
-        { weight: 135, reps: 10, rpe: 7, done: false },
-        { weight: 135, reps: 10, rpe: 7, done: false },
-      ]
+      sets: defaultSets,
     };
     setWorkoutSession([...workoutSession, newExercise]);
     setCurrentExercise(exerciseName);
@@ -349,7 +392,7 @@ function LogTab({
 
       {!currentExercise ? (
         <div className="grid grid-cols-3 gap-2">
-          {QUICK_EXERCISES.filter(e => 
+          {EXERCISES.filter(e => 
             (category === 'All' || e.category === category) &&
             (!exerciseSearch || e.name.toLowerCase().includes(exerciseSearch))
           ).map(ex => {
@@ -394,7 +437,7 @@ function LogTab({
             return (
               <div 
                 key={i} 
-                className={`p-3 rounded-xl flex items-center gap-3 transition-all duration-150 ${
+                className={`p-3 rounded-xl flex items-center gap-2 transition-all duration-150 ${
                   isDone 
                     ? 'bg-green-900/20 border border-green-500/20 opacity-50 scale-[0.98]' 
                     : isCurrent 
@@ -402,42 +445,109 @@ function LogTab({
                       : 'bg-gray-900'
                 }`}
               >
-                <span className="text-gray-400 font-bold w-8">{i + 1}</span>
-                <input 
-                  type="number" 
-                  value={set.weight} 
-                  onChange={(e) => {
-                    const newSets = [...sets];
-                    newSets[i].weight = parseInt(e.target.value) || 0;
-                    setSets(newSets);
-                  }} 
-                  className="w-20 p-2 bg-gray-950 rounded-lg text-center" 
-                  placeholder="lbs" 
-                />
-                <span className="text-gray-400">×</span>
-                <input 
-                  type="number" 
-                  value={set.reps} 
-                  onChange={(e) => {
-                    const newSets = [...sets];
-                    newSets[i].reps = parseInt(e.target.value) || 0;
-                    setSets(newSets);
-                  }} 
-                  className="w-16 p-2 bg-gray-950 rounded-lg text-center" 
-                  placeholder="Reps" 
-                />
-                <span className="text-gray-400">@</span>
-                <select 
-                  value={set.rpe} 
-                  onChange={(e) => {
-                    const newSets = [...sets];
-                    newSets[i].rpe = parseInt(e.target.value);
-                    setSets(newSets);
-                  }} 
-                  className="bg-gray-950 p-2 rounded-lg"
-                >
-                  {[5,6,7,8,9,10].map(r => <option key={r} value={r}>RPE {r}</option>)}
-                </select>
+                <span className="text-gray-400 font-bold w-6">{i + 1}</span>
+                
+                {/* STRENGTH: weight, reps, RPE */}
+                {isStrength && (
+                  <>
+                    <input 
+                      type="number" 
+                      value={set.weight} 
+                      onChange={(e) => {
+                        const newSets = [...sets];
+                        newSets[i].weight = parseInt(e.target.value) || 0;
+                        setSets(newSets);
+                      }} 
+                      className="w-20 p-2 bg-gray-950 rounded-lg text-center" 
+                      placeholder="lbs" 
+                    />
+                    <span className="text-gray-400">×</span>
+                    <input 
+                      type="number" 
+                      value={set.reps} 
+                      onChange={(e) => {
+                        const newSets = [...sets];
+                        newSets[i].reps = parseInt(e.target.value) || 0;
+                        setSets(newSets);
+                      }} 
+                      className="w-16 p-2 bg-gray-950 rounded-lg text-center" 
+                      placeholder="Reps" 
+                    />
+                    <span className="text-gray-400">@</span>
+                    <select 
+                      value={set.rpe} 
+                      onChange={(e) => {
+                        const newSets = [...sets];
+                        newSets[i].rpe = parseInt(e.target.value);
+                        setSets(newSets);
+                      }} 
+                      className="bg-gray-950 p-2 rounded-lg"
+                    >
+                      {[5,6,7,8,9,10].map(r => <option key={r} value={r}>RPE {r}</option>)}
+                    </select>
+                  </>
+                )}
+                
+                {/* CARDIO: distance (miles), RPE */}
+                {isCardio && (
+                  <>
+                    <input 
+                      type="number" 
+                      value={set.weight} 
+                      onChange={(e) => {
+                        const newSets = [...sets];
+                        newSets[i].weight = parseFloat(e.target.value) || 0;
+                        setSets(newSets);
+                      }} 
+                      className="w-24 p-2 bg-gray-950 rounded-lg text-center" 
+                      placeholder="0.0" 
+                      step="0.1"
+                    />
+                    <span className="text-gray-400 text-sm">miles</span>
+                    <span className="text-gray-400">@</span>
+                    <select 
+                      value={set.rpe} 
+                      onChange={(e) => {
+                        const newSets = [...sets];
+                        newSets[i].rpe = parseInt(e.target.value);
+                        setSets(newSets);
+                      }} 
+                      className="bg-gray-950 p-2 rounded-lg"
+                    >
+                      {[5,6,7,8,9,10].map(r => <option key={r} value={r}>RPE {r}</option>)}
+                    </select>
+                  </>
+                )}
+                
+                {/* CALISTHENICS: reps only, RPE */}
+                {isCalisthenics && (
+                  <>
+                    <input 
+                      type="number" 
+                      value={set.reps} 
+                      onChange={(e) => {
+                        const newSets = [...sets];
+                        newSets[i].reps = parseInt(e.target.value) || 0;
+                        setSets(newSets);
+                      }} 
+                      className="w-20 p-2 bg-gray-950 rounded-lg text-center" 
+                      placeholder="Reps" 
+                    />
+                    <span className="text-gray-400">@</span>
+                    <select 
+                      value={set.rpe} 
+                      onChange={(e) => {
+                        const newSets = [...sets];
+                        newSets[i].rpe = parseInt(e.target.value);
+                        setSets(newSets);
+                      }} 
+                      className="bg-gray-950 p-2 rounded-lg"
+                    >
+                      {[5,6,7,8,9,10].map(r => <option key={r} value={r}>RPE {r}</option>)}
+                    </select>
+                  </>
+                )}
+                
                 <button 
                   onClick={() => {
                     const newSets = [...sets];
@@ -450,13 +560,32 @@ function LogTab({
                 >
                   {isDone ? '✓' : 'Done'}
                 </button>
-                {isDone && <span className="text-xs text-yellow-400">+{Math.round(set.rpe * set.reps * 0.5)}</span>}
+                {isDone && (
+                  <span className="text-xs text-yellow-400">
+                    {isCardio 
+                      ? `+${Math.round(set.weight * 10 + set.rpe * set.weight)}` 
+                      : isCalisthenics 
+                        ? `+${Math.round(set.reps + set.rpe * set.reps * 0.1)}` 
+                        : `+${Math.round(set.rpe * set.reps * 0.5)}`
+                    }
+                  </span>
+                )}
               </div>
             );
           })}
 
           <button 
-            onClick={() => setSets([...sets, { weight: 135, reps: 10, rpe: 7, done: false }])} 
+            onClick={() => {
+              let newSet;
+              if (isCardio) {
+                newSet = { weight: 1.0, reps: 0, rpe: 7, done: false };
+              } else if (isCalisthenics) {
+                newSet = { weight: 0, reps: 10, rpe: 7, done: false };
+              } else {
+                newSet = { weight: 135, reps: 10, rpe: 7, done: false };
+              }
+              setSets([...sets, newSet]);
+            }} 
             className="w-full py-2 bg-gray-900 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800 transition-all"
           >
             + Add Set
