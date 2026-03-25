@@ -9,14 +9,14 @@ export interface User {
   total_xp: number;
   streak: number;
   badges: string[];
-  group_id: string;
+  group_id?: string;
   lastWorkoutDate?: string; // YYYY-MM-DD format
   totalWorkouts?: number; // Persistent workout count
   onboarding?: Record<string, any>;
 }
 
 export interface Workout {
-  id: string;
+  id?: string;
   exercise: string;
   score: number;
   date: string;

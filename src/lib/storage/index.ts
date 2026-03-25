@@ -1,26 +1,11 @@
 // ============================================
-// HYBRID STORAGE - Primary + Fallback
-// Uses localStorage as primary, Convex as sync
-// NEVER breaks - always has fallback
+// HYBRID STORAGE - Convex Primary + Local Fallback
+// Convex is primary, localStorage is fallback for offline
 // ============================================
 
 import type { User, Workout } from '../types';
 import * as local from './local';
-
-// ============================================
-// CONVEX STORAGE - Sync layer
-// Uses Convex hooks for cloud sync
-// ============================================
-
-// Lazy load convex hooks to avoid SSR issues
-let convexHooks: typeof import('@/lib/convex/hooks') | null = null;
-
-async function getConvexHooks() {
-  if (!convexHooks) {
-    convexHooks = await import('@/lib/convex/hooks');
-  }
-  return convexHooks;
-}
+import * as convex from '../convex/client-wrapper';
 
 // ============================================
 // USER FUNCTIONS
@@ -32,14 +17,19 @@ export async function getUser(email?: string): Promise<User> {
   
   if (userEmail) {
     try {
-      const hooks = await getConvexHooks();
-      // For now, we'll use localStorage directly since hooks need React context
-      // The Convex integration will be done via components using hooks
-    } catch {
-      // Convex not available
+      // Try Convex first
+      const convexUser = await convex.getUser(userEmail);
+      if (convexUser) {
+        // Cache in localStorage for offline
+        local.saveLocalUser(convexUser);
+        return convexUser;
+      }
+    } catch (err) {
+      console.warn('Convex unavailable, using localStorage:', err);
     }
   }
   
+  // Fallback to localStorage
   const localUser = local.getLocalUser();
   if (localUser) {
     return localUser;
@@ -55,31 +45,86 @@ export async function getUser(email?: string): Promise<User> {
   };
 }
 
-// Create user - saves to local (Convex sync via hooks in components)
+// Create user - saves to Convex, then local
 export async function createUser(user: User): Promise<string | null> {
+  // Save to Convex first
+  try {
+    await convex.upsertUser(user.email, user.name, user.group_id);
+  } catch (err) {
+    console.warn('Convex createUser failed, local only:', err);
+  }
+  
+  // Always save locally too
   local.saveLocalUser(user);
-  // Convex sync will happen via useUpsertUser hook in signup flow
   return user.email;
 }
 
-// Update user - saves to local
+// Update user - saves to Convex, then local
 export async function updateUser(user: User): Promise<void> {
+  // Save to Convex
+  try {
+    await convex.updateProfile(user.email, {
+      name: user.name,
+      group_id: user.group_id,
+      badges: user.badges,
+    });
+  } catch (err) {
+    console.warn('Convex updateUser failed, local only:', err);
+  }
+  
+  // Always save locally too
   local.saveLocalUser(user);
-  // Convex sync will happen via useUpdateProfile hook
 }
 
 // ============================================
 // WORKOUT FUNCTIONS
 // ============================================
 
-// Save workout - saves to local
+// Save workout - saves to Convex, then local
 export async function saveWorkout(workout: Workout): Promise<void> {
+  // Save to Convex first
+  try {
+    // Get user info from workout or localStorage
+    const userEmail = workout.user_id || local.getLocalUser()?.email;
+    const userName = workout.user_name || local.getLocalUser()?.name;
+    
+    if (userEmail) {
+      await convex.saveWorkout(
+        userEmail,
+        workout.exercise,
+        workout.score,
+        workout.date,
+        userName
+      );
+    }
+  } catch (err) {
+    console.warn('Convex saveWorkout failed, local only:', err);
+  }
+  
+  // Always save locally too
   local.saveLocalWorkout(workout);
-  // Convex sync will happen via useAddWorkout hook
 }
 
-// Get workouts - local only for now
-export function getWorkouts(): Workout[] {
+// Get workouts - tries Convex first, then local
+export async function getWorkouts(userEmail?: string): Promise<Workout[]> {
+  const email = userEmail || local.getLocalUser()?.email;
+  
+  if (email) {
+    try {
+      const convexWorkouts = await convex.getWorkouts(email);
+      if (convexWorkouts && convexWorkouts.length > 0) {
+        // Cache in localStorage (use saveLocalWorkout for each)
+        for (const w of convexWorkouts) {
+          local.saveLocalWorkout(w);
+        }
+        return convexWorkouts;
+      }
+    } catch (err) {
+      console.warn('Convex getWorkouts failed, using local:', err);
+    }
+  }
+  
+  // Fallback to local
   return local.getLocalWorkouts();
 }
 
@@ -87,10 +132,18 @@ export function getWorkouts(): Workout[] {
 // LEADERBOARD
 // ============================================
 
-// Get leaderboard - local only for now
+// Get leaderboard - uses Convex
 export async function getLeaderboard(groupCode: string): Promise<User[]> {
-  // For now, get user from local and return single-user leaderboard
-  // Convex integration via useLeaderboard hook in components
+  try {
+    const leaderboard = await convex.getLeaderboard(groupCode);
+    if (leaderboard) {
+      return leaderboard;
+    }
+  } catch (err) {
+    console.warn('Convex getLeaderboard failed, using local:', err);
+  }
+  
+  // Fallback to local
   const localUser = local.getLocalUser();
   if (localUser && localUser.group_id === groupCode) {
     return [localUser];
@@ -113,15 +166,35 @@ export function clearData(): void {
 // ============================================
 
 export async function getPRs(userId: string): Promise<Record<string, { maxWeight: number; date: string }>> {
-  // For now, use local storage
-  // Convex integration via useUserPRs hook
+  // Try Convex first
+  try {
+    const convexPRs = await convex.getPRs(userId);
+    if (convexPRs) {
+      // Cache locally by saving each PR
+      for (const [exercise, prData] of Object.entries(convexPRs)) {
+        const pr = prData as { maxWeight: number; date: string };
+        local.saveLocalPR(exercise, pr.maxWeight);
+      }
+      return convexPRs;
+    }
+  } catch (err) {
+    console.warn('Convex getPRs failed, using local:', err);
+  }
+  
+  // Fallback to local
   return local.getLocalPRs();
 }
 
 export async function savePR(userId: string, exercise: string, weight: number): Promise<void> {
-  // Save to local first (for immediate UI)
+  // Save to Convex first
+  try {
+    await convex.savePR(userId, exercise, weight);
+  } catch (err) {
+    console.warn('Convex savePR failed, local only:', err);
+  }
+  
+  // Always save locally too
   local.saveLocalPR(exercise, weight);
-  // Convex sync will happen via useSavePR hook
 }
 
 // ============================================
@@ -137,8 +210,15 @@ export function setBestStreak(streak: number): void {
 }
 
 export async function syncBestStreak(streak: number, email: string): Promise<void> {
+  // Save locally first
   local.setLocalBestStreak(streak);
-  // Convex sync via useUpdateStreak hook
+  
+  // Sync to Convex
+  try {
+    await convex.updateStreak(email, streak);
+  } catch (err) {
+    console.warn('Convex syncBestStreak failed:', err);
+  }
 }
 
 export function getHighestRank(): number {
@@ -151,7 +231,7 @@ export function setHighestRank(rank: number): void {
 
 export async function syncHighestRank(rank: number): Promise<void> {
   local.setLocalHighestRank(rank);
-  // Convex sync via useUpdateProfile hook
+  // Sync to Convex via updateUser if needed
 }
 
 // ============================================

@@ -7,7 +7,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { Dumbbell } from 'lucide-react';
 
 interface Workout {
-  id: string;
+  id?: string;
   exercise: string;
   score: number;
   date: string;

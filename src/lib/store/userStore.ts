@@ -38,7 +38,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const user = await getUser();
-      const workouts = getWorkouts();
+      const workouts = await getWorkouts();
       
       // Load best streak from storage
       const bestStreak = getBestStreak();
