@@ -74,6 +74,9 @@ export default function Onboarding() {
     setError('');
 
     try {
+      // Clear total workouts for new account (in case old user data exists)
+      localStorage.removeItem('ilift_total_workouts');
+      
       const user = createUser({
         email,
         name: name.trim(),

@@ -382,8 +382,19 @@ export function getFavorites(): string[] {
   return local.getLocalFavorites();
 }
 
-export function setFavorites(favorites: string[]): void {
+export async function setFavorites(favorites: string[]): Promise<void> {
+  // Always save locally first
   local.setLocalFavorites(favorites);
+  
+  // Sync to Convex
+  try {
+    const email = local.getLocalUser()?.email;
+    if (email) {
+      await convex.updateProfile(email, { favorites });
+    }
+  } catch (err) {
+    console.warn('Convex setFavorites failed:', err);
+  }
 }
 
 // ============================================
@@ -403,6 +414,87 @@ export async function uploadAvatar(userId: string, file: File): Promise<string |
 // ============================================
 // RE-EXPORT LOCAL HELPERS
 // ============================================
+
+// ============================================
+// MESSAGE FUNCTIONS
+// ============================================
+
+export interface Message {
+  id: string;
+  groupCode: string;
+  userEmail: string;
+  userName: string;
+  text: string;
+  createdAt: number;
+}
+
+export async function getGroupMessages(groupCode: string): Promise<Message[]> {
+  try {
+    const messages = await convex.getMessages(groupCode);
+    return messages.map((m: any) => ({
+      id: m._id || Math.random().toString(36),
+      groupCode: m.groupCode,
+      userEmail: m.userEmail,
+      userName: m.userName,
+      text: m.text,
+      createdAt: m.createdAt,
+    }));
+  } catch (err) {
+    console.warn('Convex getMessages failed:', err);
+    // Fallback to localStorage - convert to Message format
+    const saved = local.getLocalChatMessages();
+    return saved.map((m: any) => ({
+      id: m.id,
+      groupCode,
+      userEmail: m.userEmail,
+      userName: m.userName,
+      text: m.text,
+      createdAt: parseInt(m.id) || Date.now()
+    }));
+  }
+}
+
+export async function sendGroupMessage(groupCode: string, userEmail: string, userName: string, text: string): Promise<void> {
+  try {
+    await convex.sendMessage(groupCode, userEmail, userName, text.slice(0, 280));
+  } catch (err) {
+    console.warn('Convex sendMessage failed, saving locally:', err);
+    // Fallback to localStorage
+    local.saveLocalChatMessage({ userEmail, userName, text });
+  }
+}
+
+// ============================================
+// PROFILE PHOTO FUNCTIONS
+// ============================================
+
+export async function getProfilePhoto(userEmail: string): Promise<string | null> {
+  try {
+    const user = await convex.getUser(userEmail);
+    if (user?.profilePhoto) {
+      // Cache locally too
+      localStorage.setItem(`ilift_profile_photo_${userEmail}`, user.profilePhoto);
+      return user.profilePhoto;
+    }
+  } catch (err) {
+    console.warn('Convex getProfilePhoto failed:', err);
+  }
+  
+  // Fallback to localStorage
+  return localStorage.getItem(`ilift_profile_photo_${userEmail}`);
+}
+
+export async function setProfilePhoto(userEmail: string, photoData: string): Promise<void> {
+  // Always save locally first
+  localStorage.setItem(`ilift_profile_photo_${userEmail}`, photoData);
+  
+  // Sync to Convex
+  try {
+    await convex.updateProfile(userEmail, { profilePhoto: photoData });
+  } catch (err) {
+    console.warn('Convex setProfilePhoto failed:', err);
+  }
+}
 
 export {
   getLocalUser,

@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react';
 import { Send, Share2, Copy, Check } from 'lucide-react';
 import ProfileModal from './ProfileModal';
+import { getGroupMessages, sendGroupMessage } from '@/lib/storage';
 
 interface Message {
   id: string;
@@ -36,37 +37,57 @@ export default function SquadTab({ user, leaderboard }: SquadTabProps) {
   const nextPlayer = userRank > 0 && userRank < leaderboard.length ? leaderboard[userRank] : null;
   const xpToPass = nextPlayer ? Math.max(0, (nextPlayer.total_xp || 0) - (user.total_xp || 0)) : 0;
   
-  // Chat state - load from localStorage
+  // Chat state - load from Convex (with local fallback)
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
+  const [loadingMessages, setLoadingMessages] = useState(true);
   
-  // Load messages on mount
+  // Load messages from Convex on mount
   useEffect(() => {
-    const saved = localStorage.getItem('ilift_chat_messages');
-    if (saved) {
+    async function loadMessages() {
+      const groupCode = user?.group_id || 'TEST';
       try {
-        setMessages(JSON.parse(saved));
-      } catch {
+        const convexMsgs = await getGroupMessages(groupCode);
+        if (convexMsgs && convexMsgs.length > 0) {
+          // Convert Convex messages to UI format
+          setMessages(convexMsgs.map((m: any) => ({
+            id: m.id || Math.random().toString(36),
+            type: 'user' as const,
+            name: m.userName,
+            text: m.text,
+            time: formatTime(m.createdAt)
+          })));
+        } else {
+          // No messages yet - show welcome
+          setMessages([
+            { id: '1', type: 'system', name: 'System', text: 'Welcome to the squad chat!', time: 'now' },
+          ]);
+        }
+      } catch (err) {
+        console.warn('Failed to load messages:', err);
         setMessages([
           { id: '1', type: 'system', name: 'System', text: 'Welcome to the squad chat!', time: 'now' },
         ]);
       }
-    } else {
-      setMessages([
-        { id: '1', type: 'system', name: 'System', text: 'Welcome to the squad chat!', time: 'now' },
-      ]);
+      setLoadingMessages(false);
     }
-  }, []);
+    loadMessages();
+  }, [user?.group_id]);
   
-  // Save messages to localStorage when they change
-  useEffect(() => {
-    if (messages.length > 0) {
-      localStorage.setItem('ilift_chat_messages', JSON.stringify(messages));
-    }
-  }, [messages]);
+  // Helper to format timestamp
+  function formatTime(timestamp: number): string {
+    const diff = Date.now() - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return 'now';
+    if (minutes < 60) return `${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h`;
+    return `${Math.floor(hours / 24)}d`;
+  }
   
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!inputValue.trim()) return;
+    
     const newMsg: Message = {
       id: Date.now().toString(),
       type: 'user',
@@ -74,8 +95,19 @@ export default function SquadTab({ user, leaderboard }: SquadTabProps) {
       text: inputValue.trim(),
       time: 'now'
     };
-    setMessages([...messages, newMsg]);
+    
+    // Add to UI immediately (optimistic)
+    setMessages(prev => [...prev, newMsg]);
     setInputValue('');
+    
+    // Send to Convex
+    try {
+      const groupCode = user?.group_id || 'TEST';
+      await sendGroupMessage(groupCode, user?.email || '', user?.name || 'You', inputValue.trim());
+    } catch (err) {
+      console.warn('Failed to send message to Convex:', err);
+      // Message is already in UI, will be in local fallback
+    }
   };
   
   return (
@@ -226,7 +258,9 @@ export default function SquadTab({ user, leaderboard }: SquadTabProps) {
           </div>
           
           {/* Chat messages */}
-          {messages.map((msg) => (
+          {loadingMessages ? (
+            <div className="text-center py-4 text-gray-500 text-sm">Loading messages...</div>
+          ) : messages.map((msg) => (
             <div key={msg.id} className={`flex items-center gap-2 text-sm ${msg.type === 'user' ? 'bg-gray-800/50 -mx-2 px-2 py-1 rounded' : ''}`}>
               <span className={`w-2 h-2 rounded-full ${msg.type === 'user' ? 'bg-blue-500' : 'bg-gray-500'}`}></span>
               <span className={`font-bold ${msg.type === 'user' ? 'text-blue-400' : 'text-gray-400'}`}>{msg.name}:</span>

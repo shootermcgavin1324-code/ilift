@@ -23,6 +23,7 @@ const KEYS = {
   FITNESS_GOAL: 'ilift_fitness_goal',
   EXPERIENCE: 'ilift_experience',
   TOTAL_WORKOUTS: 'ilift_total_workouts',
+  CHAT_MESSAGES: 'ilift_chat_messages',
 };
 
 // Get user from localStorage
@@ -99,7 +100,7 @@ export function clearLocalData(): void {
   localStorage.removeItem(KEYS.PENDING_EMAIL);
   localStorage.removeItem(KEYS.PENDING_CODE);
   localStorage.removeItem(KEYS.ONBOARDING);
-  // Keep streak, rank, and totalWorkouts - they persist across sessions
+  // Keep streak, rank, and totalWorkouts - they persist across sessions for the same user
 }
 
 // PR type
@@ -249,4 +250,42 @@ export function incrementTotalWorkouts(): number {
   const newCount = current + 1;
   setTotalWorkouts(newCount);
   return newCount;
+}
+
+// ============================================
+// CHAT MESSAGE FUNCTIONS (Local fallback)
+// ============================================
+
+interface LocalMessage {
+  id: string;
+  userEmail: string;
+  userName: string;
+  text: string;
+  time: string;
+}
+
+export function getLocalChatMessages(): LocalMessage[] {
+  const saved = localStorage.getItem(KEYS.CHAT_MESSAGES);
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+export function saveLocalChatMessage(msg: { userEmail: string; userName: string; text: string }): void {
+  const messages = getLocalChatMessages();
+  const newMsg: LocalMessage = {
+    id: Date.now().toString(),
+    userEmail: msg.userEmail,
+    userName: msg.userName,
+    text: msg.text,
+    time: 'now'
+  };
+  messages.push(newMsg);
+  // Keep last 100 messages
+  localStorage.setItem(KEYS.CHAT_MESSAGES, JSON.stringify(messages.slice(-100)));
 }

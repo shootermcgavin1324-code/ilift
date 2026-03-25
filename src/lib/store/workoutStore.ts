@@ -5,7 +5,7 @@
 import { create } from 'zustand';
 import type { SetData } from '../types';
 import { calculateScore } from '../xp';
-import { getLocalFavorites, setLocalFavorites } from '../storage';
+import { getLocalFavorites, setLocalFavorites, setFavorites as syncFavoritesToConvex } from '../storage';
 
 interface WorkoutState {
   // Active workout session
@@ -143,6 +143,11 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
     // Save to localStorage via storage layer
     setLocalFavorites(newFavs);
     set({ favorites: newFavs });
+    
+    // Sync to Convex (async, don't await)
+    syncFavoritesToConvex(newFavs).catch(err => 
+      console.warn('[FAVORITES] Failed to sync to Convex:', err)
+    );
   },
   
   startRestTimer: (seconds) => {

@@ -23,7 +23,7 @@ import { calculateScore, getExerciseType, calculateLevelInfo, performPrestige, g
 import { checkBadges } from '@/lib/badges';
 import { getAchievementsByCategory, ACHIEVEMENTS } from '@/lib/achievements';
 import { getPlayerTitle } from '@/lib/player';
-import { getPRs, savePR, getBestStreak, setBestStreak, getHighestRank, setHighestRank, uploadVideo, getTotalWorkouts, incrementTotalWorkouts, saveWorkout, getLeaderboard } from '@/lib/storage';
+import { getPRs, savePR, getBestStreak, setBestStreak, getHighestRank, setHighestRank, uploadVideo, getTotalWorkouts, incrementTotalWorkouts, saveWorkout, getLeaderboard, getProfilePhoto, setProfilePhoto as syncProfilePhoto, setFavorites } from '@/lib/storage';
 import { ConvexStatus } from '@/components/ConvexStatus';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -95,20 +95,36 @@ export default function Dashboard() {
   const prestigeCount = Math.floor((user?.total_xp || 0) / xpForMaxLevel);
   const prestigeStars = getPrestigeStars(prestigeCount);
 
-  // Profile photo state (stored in localStorage)
+  // Profile photo state (synced to Convex)
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load profile photo from localStorage (use email as stable key)
+  // Load profile photo from Convex (with local fallback)
   useEffect(() => {
-    const userKey = user?.email || user?.id || 'guest';
-    const saved = localStorage.getItem(`ilift_profile_photo_${userKey}`);
-    if (saved) setProfilePhoto(saved);
+    async function loadPhoto() {
+      const userKey = user?.email || user?.id || 'guest';
+      
+      // Try Convex first
+      try {
+        const convexPhoto = await getProfilePhoto(user?.email || '');
+        if (convexPhoto) {
+          setProfilePhoto(convexPhoto);
+          return;
+        }
+      } catch (err) {
+        console.warn('Failed to load profile photo from Convex:', err);
+      }
+      
+      // Fallback to localStorage
+      const saved = localStorage.getItem(`ilift_profile_photo_${userKey}`);
+      if (saved) setProfilePhoto(saved);
+    }
+    loadPhoto();
   }, [user?.email, user?.id]);
 
   // Handle photo upload
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -125,11 +141,21 @@ export default function Dashboard() {
     }
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const base64 = event.target?.result as string;
       const userKey = user?.email || user?.id || 'guest';
+      
+      // Save locally
       localStorage.setItem(`ilift_profile_photo_${userKey}`, base64);
       setProfilePhoto(base64);
+      
+      // Sync to Convex
+      try {
+        await syncProfilePhoto(user?.email || '', base64);
+      } catch (err) {
+        console.warn('Failed to sync profile photo to Convex:', err);
+      }
+      
       showToast('Profile photo updated!', 'success');
     };
     reader.readAsDataURL(file);

@@ -35,6 +35,8 @@ export const upsertUser = mutation({
     experience: v.optional(v.string()),
     fitnessGoal: v.optional(v.string()),
     totalWorkouts: v.optional(v.number()),
+    favorites: v.optional(v.array(v.string())),
+    profilePhoto: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -49,6 +51,8 @@ export const upsertUser = mutation({
         group_id: args.groupCode?.toUpperCase(),
         experience: args.experience,
         fitnessGoal: args.fitnessGoal,
+        favorites: args.favorites,
+        profilePhoto: args.profilePhoto,
         updatedAt: Date.now(),
       });
       return existing._id;
@@ -67,6 +71,8 @@ export const upsertUser = mutation({
         experience: args.experience,
         fitnessGoal: args.fitnessGoal,
         totalWorkouts: args.totalWorkouts || 0,
+        favorites: args.favorites || [],
+        profilePhoto: args.profilePhoto,
         createdAt: now,
         updatedAt: now,
       });

@@ -1,8 +1,8 @@
 import { ConvexReactClient } from "convex/react";
 
 const convexUrl = typeof window !== "undefined" 
-  ? (process.env.NEXT_PUBLIC_CONVEX_URL || "https://fiery-aardvark-482.convex.cloud")
-  : "https://fiery-aardvark-482.convex.cloud";
+  ? (process.env.NEXT_PUBLIC_CONVEX_URL || "https://zealous-armadillo-692.convex.cloud")
+  : "https://zealous-armadillo-692.convex.cloud";
 
 export const convex = new ConvexReactClient(convexUrl);
 
@@ -14,14 +14,16 @@ export async function getAllUsers() {
   return await convex.query(api.users.getAll);
 }
 
-export async function upsertUser(email: string, name: string, groupCode: string, experience?: string, fitnessGoal?: string, totalWorkouts?: number) {
+export async function upsertUser(email: string, name: string, groupCode: string, experience?: string, fitnessGoal?: string, totalWorkouts?: number, favorites?: string[], profilePhoto?: string) {
   return await convex.mutation(api.users.upsertUser, { 
     email, 
     name, 
     groupCode,
     experience,
     fitnessGoal,
-    totalWorkouts
+    totalWorkouts,
+    favorites,
+    profilePhoto
   });
 }
 
@@ -33,7 +35,7 @@ export async function updateStreak(email: string, streak: number) {
   return await convex.mutation(api.users.updateStreak, { email, streak });
 }
 
-export async function updateProfile(email: string, updates: { name?: string; group_id?: string; badges?: string[]; experience?: string; fitnessGoal?: string; totalWorkouts?: number; bestStreak?: number; highestRank?: number }) {
+export async function updateProfile(email: string, updates: { name?: string; group_id?: string; badges?: string[]; experience?: string; fitnessGoal?: string; totalWorkouts?: number; bestStreak?: number; highestRank?: number; favorites?: string[]; profilePhoto?: string }) {
   return await convex.mutation(api.users.updateProfile, { email, updates });
 }
 
@@ -73,6 +75,22 @@ export async function getPRs(userEmail: string) {
 
 export async function savePR(userEmail: string, exercise: string, weight: number) {
   return await convex.mutation(api.prs.savePR, { userEmail, exercise, weight });
+}
+
+// ============================================
+// MESSAGE FUNCTIONS
+// ============================================
+
+export async function getMessages(groupCode: string) {
+  return await convex.query(api.messages.getByGroup, { groupCode });
+}
+
+export async function sendMessage(groupCode: string, userEmail: string, userName: string, text: string) {
+  return await convex.mutation(api.messages.sendMessage, { groupCode, userEmail, userName, text });
+}
+
+export async function getMessageCount(groupCode: string) {
+  return await convex.query(api.messages.getCount, { groupCode });
 }
 
 import { api } from "../../../convex/_generated/api";

@@ -20,7 +20,9 @@ export default defineSchema({
     highestRank: v.number(),
     experience: v.optional(v.string()), // beginner/intermediate/advanced
     fitnessGoal: v.optional(v.string()), // strength/cardio/muscle
-    totalWorkouts: v.number(),
+    totalWorkouts: v.optional(v.number()),
+    favorites: v.optional(v.array(v.string())), // favorite exercises
+    profilePhoto: v.optional(v.string()), // base64 or URL
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -58,4 +60,15 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_code", ["code"]),
+
+  // Chat Messages
+  messages: defineTable({
+    groupCode: v.string(),
+    userEmail: v.string(),
+    userName: v.string(),
+    text: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_group", ["groupCode"])
+    .index("by_group_created", ["groupCode", "createdAt"]),
 });
