@@ -4,9 +4,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { icons } from '@/lib/icons';
 import { hasCompletedOnboarding, getPendingEmail, getPendingCode, clearPendingEmail, clearPendingCode, setOnboardingComplete, getLocalUser, saveLocalUser, createUser, setFitnessGoal, setExperience } from '@/lib/storage';
+import { useUpsertUser } from '@/lib/convex/hooks';
 
 export default function Onboarding() {
   const router = useRouter();
+  
+  // Convex mutation for syncing to cloud
+  const upsertUser = useUpsertUser();
+  
   const [step, setStep] = useState(1);
   const [name, setName] = useState('');
   const [email, setEmail] = useState(() => {
@@ -76,6 +81,14 @@ export default function Onboarding() {
         streak: 0,
         badges: [],
         group_id: groupCode || 'TEST',
+      });
+
+      // Sync to Convex (async, don't block)
+      // Convex sets defaults: total_xp=0, streak=0, badges=[]
+      upsertUser({
+        email,
+        name: name.trim(),
+        groupCode: groupCode || 'TEST',
       });
 
       clearPendingEmail();

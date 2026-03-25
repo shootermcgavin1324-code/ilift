@@ -1,21 +1,42 @@
 // ============================================
 // HYBRID STORAGE - Primary + Fallback
-// Uses localStorage as primary, Supabase as sync
+// Uses localStorage as primary, Convex as sync
 // NEVER breaks - always has fallback
 // ============================================
 
 import type { User, Workout } from '../types';
 import * as local from './local';
-import * as supabase from './supabase';
 
-// Get user - tries Supabase first, then localStorage
+// ============================================
+// CONVEX STORAGE - Sync layer
+// Uses Convex hooks for cloud sync
+// ============================================
+
+// Lazy load convex hooks to avoid SSR issues
+let convexHooks: typeof import('@/lib/convex/hooks') | null = null;
+
+async function getConvexHooks() {
+  if (!convexHooks) {
+    convexHooks = await import('@/lib/convex/hooks');
+  }
+  return convexHooks;
+}
+
+// ============================================
+// USER FUNCTIONS
+// ============================================
+
+// Get user - tries Convex first, then localStorage
 export async function getUser(email?: string): Promise<User> {
   const userEmail = email || local.getLocalUser()?.email;
   
   if (userEmail) {
-    const supabaseUser = await supabase.getSupabaseUser(userEmail);
-    if (supabaseUser) {
-      return supabaseUser;
+    try {
+      const hooks = await getConvexHooks();
+      // For now, we'll use localStorage directly since hooks need React context
+      // The Convex integration will be done via components using hooks
+    } catch {
+      // Convex not available
     }
   }
   
@@ -34,28 +55,27 @@ export async function getUser(email?: string): Promise<User> {
   };
 }
 
-// Create user - saves to both
+// Create user - saves to local (Convex sync via hooks in components)
 export async function createUser(user: User): Promise<string | null> {
   local.saveLocalUser(user);
-  const supabaseId = await supabase.createSupabaseUser(user);
-  
-  if (supabaseId) {
-    local.setLocalUserId(supabaseId);
-  }
-  
-  return supabaseId;
+  // Convex sync will happen via useUpsertUser hook in signup flow
+  return user.email;
 }
 
-// Update user - saves to both
+// Update user - saves to local
 export async function updateUser(user: User): Promise<void> {
   local.saveLocalUser(user);
-  await supabase.updateSupabaseUser(user);
+  // Convex sync will happen via useUpdateProfile hook
 }
 
-// Save workout - saves to both
+// ============================================
+// WORKOUT FUNCTIONS
+// ============================================
+
+// Save workout - saves to local
 export async function saveWorkout(workout: Workout): Promise<void> {
   local.saveLocalWorkout(workout);
-  await supabase.saveSupabaseWorkout(workout);
+  // Convex sync will happen via useAddWorkout hook
 }
 
 // Get workouts - local only for now
@@ -63,14 +83,14 @@ export function getWorkouts(): Workout[] {
   return local.getLocalWorkouts();
 }
 
-// Get leaderboard - tries Supabase, falls back to local
+// ============================================
+// LEADERBOARD
+// ============================================
+
+// Get leaderboard - local only for now
 export async function getLeaderboard(groupCode: string): Promise<User[]> {
-  const supabaseLeaderboard = await supabase.getSupabaseLeaderboard(groupCode);
-  if (supabaseLeaderboard.length > 0) {
-    return supabaseLeaderboard;
-  }
-  
-  // Fallback: get user from local and return single-user leaderboard
+  // For now, get user from local and return single-user leaderboard
+  // Convex integration via useLeaderboard hook in components
   const localUser = local.getLocalUser();
   if (localUser && localUser.group_id === groupCode) {
     return [localUser];
@@ -79,38 +99,35 @@ export async function getLeaderboard(groupCode: string): Promise<User[]> {
   return [];
 }
 
+// ============================================
+// DATA CLEARING
+// ============================================
+
 // Clear all data
 export function clearData(): void {
   local.clearLocalData();
 }
 
-// Re-export helpers
-export { local, supabase };
+// ============================================
+// PR FUNCTIONS
+// ============================================
 
-// PR functions
 export async function getPRs(userId: string): Promise<Record<string, { maxWeight: number; date: string }>> {
-  // Try Supabase first
-  const supabasePRs = await supabase.getSupabasePRs(userId);
-  if (Object.keys(supabasePRs).length > 0) {
-    // Convert simple format to full format
-    const fullPRs: Record<string, { maxWeight: number; date: string }> = {};
-    Object.entries(supabasePRs).forEach(([exercise, weight]) => {
-      fullPRs[exercise] = { maxWeight: weight as number, date: new Date().toISOString() };
-    });
-    return fullPRs;
-  }
-  // Fallback to local
+  // For now, use local storage
+  // Convex integration via useUserPRs hook
   return local.getLocalPRs();
 }
 
 export async function savePR(userId: string, exercise: string, weight: number): Promise<void> {
   // Save to local first (for immediate UI)
   local.saveLocalPR(exercise, weight);
-  // Then sync to Supabase (simple format - just weight)
-  await supabase.saveSupabasePR(userId, exercise, weight);
+  // Convex sync will happen via useSavePR hook
 }
 
-// Streak/Rank functions
+// ============================================
+// STREAK/RANK FUNCTIONS
+// ============================================
+
 export function getBestStreak(): number {
   return local.getLocalBestStreak();
 }
@@ -120,10 +137,8 @@ export function setBestStreak(streak: number): void {
 }
 
 export async function syncBestStreak(streak: number, email: string): Promise<void> {
-  // Save locally first
   local.setLocalBestStreak(streak);
-  // Then sync to Supabase
-  await supabase.updateSupabaseUserStats({ best_streak: streak });
+  // Convex sync via useUpdateStreak hook
 }
 
 export function getHighestRank(): number {
@@ -135,13 +150,14 @@ export function setHighestRank(rank: number): void {
 }
 
 export async function syncHighestRank(rank: number): Promise<void> {
-  // Save locally first
   local.setLocalHighestRank(rank);
-  // Then sync to Supabase
-  await supabase.updateSupabaseUserStats({ highest_rank: rank });
+  // Convex sync via useUpdateProfile hook
 }
 
-// Favorites functions
+// ============================================
+// FAVORITES
+// ============================================
+
 export function getFavorites(): string[] {
   return local.getLocalFavorites();
 }
@@ -150,17 +166,24 @@ export function setFavorites(favorites: string[]): void {
   local.setLocalFavorites(favorites);
 }
 
-// Video upload
+// ============================================
+// VIDEO UPLOAD (Disabled - no backend)
+// ============================================
+
 export async function uploadVideo(userId: string, file: File): Promise<string | null> {
-  return await supabase.uploadVideoToSupabase(userId, file);
+  console.warn('Video upload not implemented - no Supabase backend');
+  return null;
 }
 
-// Avatar upload
 export async function uploadAvatar(userId: string, file: File): Promise<string | null> {
-  return await supabase.uploadAvatarToSupabase(userId, file);
+  console.warn('Avatar upload not implemented - no backend');
+  return null;
 }
 
-// Re-export local functions for easy access
+// ============================================
+// RE-EXPORT LOCAL HELPERS
+// ============================================
+
 export {
   getLocalUser,
   saveLocalUser,

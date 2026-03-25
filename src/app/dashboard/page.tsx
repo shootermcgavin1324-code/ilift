@@ -24,6 +24,7 @@ import { checkBadges } from '@/lib/badges';
 import { getAchievementsByCategory, ACHIEVEMENTS } from '@/lib/achievements';
 import { getPlayerTitle } from '@/lib/player';
 import { getPRs, savePR, getBestStreak, setBestStreak, getHighestRank, setHighestRank, uploadVideo, getTotalWorkouts, incrementTotalWorkouts } from '@/lib/storage';
+import { ConvexStatus } from '@/components/ConvexTest';
 
 // Loading fallback for lazy components
 function TabLoader() {
@@ -332,6 +333,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white pb-20">
+      <ConvexStatus />
+      
       {/* Header */}
       <header className="px-4 pt-4 flex justify-between items-center">
         <h1 className="text-2xl font-black"><span className="text-yellow-500">i</span>LIFT</h1>

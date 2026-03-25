@@ -169,3 +169,11 @@ export const getSquadMembers = query({
     return members.sort((a, b) => b.total_xp - a.total_xp);
   },
 });
+
+// Get all users (for testing)
+export const getAll = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("users").collect();
+  },
+});
