@@ -32,6 +32,9 @@ export const upsertUser = mutation({
     email: v.string(),
     name: v.string(),
     groupCode: v.optional(v.string()),
+    experience: v.optional(v.string()),
+    fitnessGoal: v.optional(v.string()),
+    totalWorkouts: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -44,6 +47,8 @@ export const upsertUser = mutation({
       await ctx.db.patch(existing._id, {
         name: args.name,
         group_id: args.groupCode?.toUpperCase(),
+        experience: args.experience,
+        fitnessGoal: args.fitnessGoal,
         updatedAt: Date.now(),
       });
       return existing._id;
@@ -59,6 +64,9 @@ export const upsertUser = mutation({
         group_id: args.groupCode?.toUpperCase(),
         bestStreak: 0,
         highestRank: 1,
+        experience: args.experience,
+        fitnessGoal: args.fitnessGoal,
+        totalWorkouts: args.totalWorkouts || 0,
         createdAt: now,
         updatedAt: now,
       });
@@ -124,6 +132,11 @@ export const updateProfile = mutation({
       name: v.optional(v.string()),
       group_id: v.optional(v.string()),
       badges: v.optional(v.array(v.string())),
+      experience: v.optional(v.string()),
+      fitnessGoal: v.optional(v.string()),
+      totalWorkouts: v.optional(v.number()),
+      bestStreak: v.optional(v.number()),
+      highestRank: v.optional(v.number()),
     }),
   },
   handler: async (ctx, args) => {

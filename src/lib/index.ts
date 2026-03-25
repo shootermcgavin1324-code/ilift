@@ -14,9 +14,6 @@ export * from './player';
 export * from './badges';
 export * from './streak';
 
-// Re-export from supabase (client only)
-export { supabase, uploadVideo, uploadAvatar } from './supabase';
-
 // Exercises & Icons
 export * from './exercises';
 export * from './icons';

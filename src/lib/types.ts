@@ -13,6 +13,10 @@ export interface User {
   lastWorkoutDate?: string; // YYYY-MM-DD format
   totalWorkouts?: number; // Persistent workout count
   onboarding?: Record<string, any>;
+  bestStreak?: number;
+  highestRank?: number;
+  experience?: string; // beginner/intermediate/advanced
+  fitnessGoal?: string; // strength/cardio/muscle
 }
 
 export interface Workout {

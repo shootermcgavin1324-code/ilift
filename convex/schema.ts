@@ -18,6 +18,9 @@ export default defineSchema({
     lastWorkoutDate: v.optional(v.string()),
     bestStreak: v.number(),
     highestRank: v.number(),
+    experience: v.optional(v.string()), // beginner/intermediate/advanced
+    fitnessGoal: v.optional(v.string()), // strength/cardio/muscle
+    totalWorkouts: v.number(),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

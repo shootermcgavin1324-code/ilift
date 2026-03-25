@@ -81,10 +81,10 @@ export default function Onboarding() {
         streak: 0,
         badges: [],
         group_id: groupCode || 'TEST',
+        totalWorkouts: 0,
       });
 
       // Sync to Convex (async, don't block)
-      // Convex sets defaults: total_xp=0, streak=0, badges=[]
       upsertUser({
         email,
         name: name.trim(),

@@ -3,7 +3,7 @@
 
 'use client';
 import { useState, useEffect } from 'react';
-import { Send } from 'lucide-react';
+import { Send, Share2, Copy, Check } from 'lucide-react';
 import ProfileModal from './ProfileModal';
 
 interface Message {
@@ -21,9 +21,18 @@ interface SquadTabProps {
 
 export default function SquadTab({ user, leaderboard }: SquadTabProps) {
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
+  const [copied, setCopied] = useState(false);
   
-  // Find user's rank
-  const userRank = leaderboard.findIndex((m: any) => m.id === user.id) + 1;
+  const copySquadCode = async () => {
+    const code = user.group_id || 'TEST';
+    await navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  
+  // Find user's rank (use email as fallback since we don't have id)
+  const userKey = user.id || user.email;
+  const userRank = leaderboard.findIndex((m: any) => (m.id || m.email) === userKey) + 1;
   const nextPlayer = userRank > 0 && userRank < leaderboard.length ? leaderboard[userRank] : null;
   const xpToPass = nextPlayer ? Math.max(0, (nextPlayer.total_xp || 0) - (user.total_xp || 0)) : 0;
   
@@ -75,6 +84,13 @@ export default function SquadTab({ user, leaderboard }: SquadTabProps) {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">SQUAD</h2>
         <div className="flex items-center gap-2">
+          <button 
+            onClick={copySquadCode}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500/30 rounded-lg transition-all"
+          >
+            {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} className="text-yellow-500" />}
+            <span className="text-xs font-bold text-yellow-500">{copied ? 'COPIED!' : user.group_id}</span>
+          </button>
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
           <span className="text-xs text-green-500 font-bold">LIVE</span>
         </div>
@@ -111,13 +127,21 @@ export default function SquadTab({ user, leaderboard }: SquadTabProps) {
       {leaderboard.length === 0 ? (
         <div className="text-center py-8 bg-gray-950/50 rounded-xl">
           <p className="text-gray-400">No one else in your squad yet!</p>
-          <p className="text-gray-600 text-sm mt-1">Share the squad code: <span className="text-yellow-500 font-bold">{user.group_id}</span></p>
+          <p className="text-gray-400 text-sm mt-2">Share the squad code with friends to join!</p>
+          <button 
+            onClick={copySquadCode}
+            className="mt-2 flex items-center justify-center gap-2 w-full py-2 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-lg transition-all"
+          >
+            {copied ? <Check size={16} /> : <Copy size={16} />}
+            {copied ? 'COPIED!' : 'COPY CODE'}
+          </button>
         </div>
       ) : (
         <div className="space-y-2">
           {leaderboard.map((member: any, i: number) => {
+            const memberKey = member.id || member.email;
             const xpDiff = (user.total_xp || 0) - (member.total_xp || 0);
-            const isCurrentUser = member.id === user.id;
+            const isCurrentUser = memberKey === userKey;
             const hasRecentActivity = member.last_activity && (Date.now() - new Date(member.last_activity).getTime()) < 24 * 60 * 60 * 1000;
             
             return (
@@ -238,8 +262,38 @@ export default function SquadTab({ user, leaderboard }: SquadTabProps) {
       </div>
       
       {/* Invite Button */}
-      <button className="w-full bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-yellow-500/30 text-white py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
-        <span className="text-lg">+</span> Invite Teammates
+      <button 
+        onClick={async () => {
+          const code = user?.group_id || 'TEST';
+          // Try native share on mobile, fallback to clipboard
+          if (navigator.share) {
+            try {
+              await navigator.share({
+                title: 'Join my iLift Squad!',
+                text: `Use my squad code "${code}" to join my squad on iLift and compete on the leaderboard!`,
+                url: window.location.origin
+              });
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+              return;
+            } catch (e) {
+              // User cancelled or error, fall through to clipboard
+            }
+          }
+          // Fallback to clipboard
+          try {
+            await navigator.clipboard.writeText(code);
+          } catch {
+            // Clipboard API failed - show alert with code instead
+            alert(`Squad code: ${code}`);
+          }
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        }}
+        className="w-full bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-yellow-500/30 text-white py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+      >
+        {copied ? <Check className="w-4 h-4 text-green-500" /> : <span className="text-lg">+</span>}
+        {copied ? 'COPIED!' : 'Invite Teammates'}
       </button>
 
       {/* Profile Modal */}

@@ -69,11 +69,22 @@ export const useUserStore = create<UserState>((set, get) => ({
     const { user, bestStreak } = get();
     if (!user) return;
     
-    const updatedUser = { ...user, ...updates };
+    const newBestStreak = Math.max(updates.streak || user.streak || 0, bestStreak);
+    const updatedUser = { ...user, ...updates, bestStreak: newBestStreak };
+    
     await updateUser(updatedUser);
     
+    // Also sync streak to Convex
+    if (updates.streak !== undefined && user.email) {
+      try {
+        const { updateStreak } = await import('@/lib/convex/client-wrapper');
+        await updateStreak(user.email, updates.streak);
+      } catch (e) {
+        console.warn('Convex updateStreak failed:', e);
+      }
+    }
+    
     // Update best streak if new streak is higher
-    const newBestStreak = Math.max(updatedUser.streak, bestStreak);
     if (newBestStreak > bestStreak) {
       setBestStreak(newBestStreak);
     }

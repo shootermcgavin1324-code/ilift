@@ -23,8 +23,9 @@ import { calculateScore, getExerciseType, calculateLevelInfo, performPrestige, g
 import { checkBadges } from '@/lib/badges';
 import { getAchievementsByCategory, ACHIEVEMENTS } from '@/lib/achievements';
 import { getPlayerTitle } from '@/lib/player';
-import { getPRs, savePR, getBestStreak, setBestStreak, getHighestRank, setHighestRank, uploadVideo, getTotalWorkouts, incrementTotalWorkouts } from '@/lib/storage';
-import { ConvexStatus } from '@/components/ConvexTest';
+import { getPRs, savePR, getBestStreak, setBestStreak, getHighestRank, setHighestRank, uploadVideo, getTotalWorkouts, incrementTotalWorkouts, saveWorkout, getLeaderboard } from '@/lib/storage';
+import { ConvexStatus } from '@/components/ConvexStatus';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // Loading fallback for lazy components
 function TabLoader() {
@@ -153,16 +154,24 @@ export default function Dashboard() {
 
   // Set up leaderboard after user loads
   useEffect(() => {
-    if (user && !leaderboard.length) {
-      const placeholders = [
-        { id: 'p1', name: 'GymRat_Mike', total_xp: 2450, streak: 12 },
-        { id: 'p2', name: 'LifterLisa', total_xp: 2100, streak: 8 },
-        { id: 'p3', name: 'SwoleSam', total_xp: 1850, streak: 5 },
-        { id: 'p4', name: 'FitQueen', total_xp: 1600, streak: 3 },
-      ];
-      const fullLeaderboard = [user, ...placeholders].sort((a, b) => (b.total_xp || 0) - (a.total_xp || 0));
-      setLeaderboard(fullLeaderboard);
+    async function loadLeaderboard() {
+      if (user && !leaderboard.length) {
+        const groupCode = user.group_id || 'TEST';
+        try {
+          const squadMembers = await getLeaderboard(groupCode);
+          if (squadMembers && squadMembers.length > 0) {
+            setLeaderboard(squadMembers);
+          } else {
+            // Fallback to just the user if no squad members found
+            setLeaderboard([user]);
+          }
+        } catch (err) {
+          console.warn('Failed to load leaderboard:', err);
+          setLeaderboard([user]);
+        }
+      }
     }
+    loadLeaderboard();
   }, [user]);
 
   // Rest timer countdown
@@ -223,6 +232,9 @@ export default function Dashboard() {
     
     // Check badges - use persistent total workouts count
     const totalWorkouts = incrementTotalWorkouts();
+    updatedUser.totalWorkouts = totalWorkouts;
+    updatedUser.bestStreak = Math.max(updatedUser.streak, getBestStreak());
+    updatedUser.highestRank = Math.max(Math.floor(newXP / 500) + 1, getHighestRank());
     
     const { newlyEarned } = checkBadges(
       { total_xp: newXP, streak: updatedUser.streak, badges: currentUser.badges || [] },
@@ -261,11 +273,14 @@ export default function Dashboard() {
     const workout = {
       id: Date.now().toString(),
       exercise: currentExercise,
-      sets: doneSets,
-      volume,
       score,
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      user_id: currentUser?.email,
+      user_name: currentUser?.name
     };
+
+    // Save workout to Convex (with localStorage fallback)
+    await saveWorkout(workout);
 
     // Check for PR
     const prs = getPRs(user?.id || '');
@@ -350,7 +365,7 @@ export default function Dashboard() {
               className="mb-2 p-3 rounded-xl bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 animate-pulse"
             >
               <p className="text-yellow-400 font-bold text-sm">🏆 Achievement Unlocked!</p>
-              <p className="text-white font-bold">{badgeId.replace('_', ' ').toUpperCase()}</p>
+              <p className="text-white font-bold">{badgeId.replace(/_/g, ' ').toUpperCase()}</p>
             </div>
           ))}
           <button 
@@ -386,55 +401,65 @@ export default function Dashboard() {
 
       {/* Tab Content */}
       {activeTab === 'home' && (
-        <HomeTab 
-          user={user} 
-          leaderboard={leaderboard} 
-          currentLevel={levelInfo.level}
-          xpToNextLevel={levelInfo.xpToNextLevel}
-          onLogWorkout={() => setActiveTab('log')}
-          onViewProfile={(profileUser) => setSelectedProfile(profileUser)}
-        />
+        <ErrorBoundary>
+          <HomeTab 
+            user={user} 
+            leaderboard={leaderboard} 
+            currentLevel={levelInfo.level}
+            xpToNextLevel={levelInfo.xpToNextLevel}
+            onLogWorkout={() => setActiveTab('log')}
+            onViewProfile={(profileUser) => setSelectedProfile(profileUser)}
+          />
+        </ErrorBoundary>
       )}
 
       {activeTab === 'log' && (
         <Suspense fallback={<TabLoader />}>
-          <LogTab
-            currentExercise={currentExercise}
-            setCurrentExercise={setCurrentExercise}
-            sets={sets}
-            setSets={setSets}
-            restTimer={restTimer}
-            restTimeLeft={restTimeLeft}
-            setRestTimer={stopRestTimer}
-            setRestTimeLeft={() => stopRestTimer()}
-            calculateScore={getScore}
-            completeWorkout={completeWorkout}
-            workoutSession={workoutSession}
-            setWorkoutSession={() => {}}
-            favorites={favorites}
-            toggleFavorite={toggleFavorite}
-          />
+          <ErrorBoundary>
+            <LogTab
+              currentExercise={currentExercise}
+              setCurrentExercise={setCurrentExercise}
+              sets={sets}
+              setSets={setSets}
+              restTimer={restTimer}
+              restTimeLeft={restTimeLeft}
+              setRestTimer={stopRestTimer}
+              setRestTimeLeft={() => stopRestTimer()}
+              calculateScore={getScore}
+              completeWorkout={completeWorkout}
+              workoutSession={workoutSession}
+              setWorkoutSession={() => {}}
+              favorites={favorites}
+              toggleFavorite={toggleFavorite}
+            />
+          </ErrorBoundary>
         </Suspense>
       )}
 
       {activeTab === 'squad' && (
         <Suspense fallback={<TabLoader />}>
-          <SquadTab user={user} leaderboard={leaderboard} />
+          <ErrorBoundary>
+            <SquadTab user={user} leaderboard={leaderboard} />
+          </ErrorBoundary>
         </Suspense>
       )}
       
       {activeTab === 'challenges' && (
         <Suspense fallback={<TabLoader />}>
-          <ChallengesTab user={user} onUploadVideo={() => {
+          <ErrorBoundary>
+            <ChallengesTab user={user} onUploadVideo={() => {
               setActiveTab('awards');
               showToast('Upload your workout video in the Awards tab!', 'info');
             }} />
+          </ErrorBoundary>
         </Suspense>
       )}
 
       {activeTab === 'history' && (
         <Suspense fallback={<TabLoader />}>
-          <HistoryTab workouts={workouts} totalWorkouts={getTotalWorkouts()} />
+          <ErrorBoundary>
+            <HistoryTab workouts={workouts} totalWorkouts={getTotalWorkouts()} />
+          </ErrorBoundary>
         </Suspense>
       )}
 

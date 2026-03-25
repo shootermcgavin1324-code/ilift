@@ -17,7 +17,9 @@ export const saveWorkout = mutation({
   },
   handler: async (ctx, args) => {
     const now = Date.now();
-    return await ctx.db.insert("workouts", {
+    
+    // Insert the workout
+    await ctx.db.insert("workouts", {
       userEmail: args.userEmail,
       userName: args.userName || 'User',
       exercise: args.exercise,
@@ -25,6 +27,22 @@ export const saveWorkout = mutation({
       date: args.date,
       createdAt: now,
     });
+
+    // Update user's total XP
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.userEmail))
+      .first();
+
+    if (user) {
+      const newXP = user.total_xp + args.score;
+      await ctx.db.patch(user._id, {
+        total_xp: newXP,
+        updatedAt: now,
+      });
+    }
+
+    return { success: true, xpAdded: args.score };
   },
 });
 
